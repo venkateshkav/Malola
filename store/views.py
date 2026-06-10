@@ -1005,6 +1005,8 @@ def place_order(request):
             product = Product.objects.filter(slug=slug, is_active=True).first()
             if not product:
                 return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" not found or unavailable.'}, status=400)
+            if product.stock_quantity > 0 and qty > product.stock_quantity:
+                return JsonResponse({'success': False, 'error': f'"{product.title}" only has {product.stock_quantity} unit(s) left in stock.'}, status=400)
             price = float(product.price)  # discount_price is the crossed-out MRP, not the selling price
             total += price * qty
             verified_items.append({
@@ -1059,6 +1061,25 @@ def place_order(request):
         })
     except (KeyError, ValueError, json.JSONDecodeError) as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@require_GET
+def product_list_api(request):
+    """All active products for the search widget — slug, name, price, category, image."""
+    qs = Product.objects.filter(is_active=True).values(
+        'slug', 'title', 'price', 'discount_price', 'product_type', 'image'
+    )
+    results = []
+    for p in qs:
+        results.append({
+            'id':    p['slug'],
+            'name':  p['title'],
+            'price': float(p['price']),
+            'mrp':   float(p['discount_price']) if p['discount_price'] else None,
+            'cat':   p['product_type'] or 'Snack',
+            'img':   settings.MEDIA_URL + p['image'] if p['image'] else '',
+        })
+    return JsonResponse({'products': results})
 
 
 @require_GET

@@ -12,6 +12,23 @@
 <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
 <link rel="stylesheet" href="{% static 'css/product.css' %}"/>
 <link rel="stylesheet" href="{% static 'css/shop.css' %}"/>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1549283419509499');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -19,7 +36,7 @@
 <div class="cart-overlay" id="cartOverlay"></div>
 <aside class="cart-sidebar" id="cartSidebar" aria-label="Shopping cart">
   <div class="cart-header">
-    <div class="cart-title"><i class="fa-solid fa-basket-shopping"></i> Your Cart</div>
+    <div class="cart-title">Your Cart <span class="cart-count-badge" id="cartCountBadge"></span></div>
     <button class="cart-close" id="cartClose" aria-label="Close cart">&#10005;</button>
   </div>
   <div class="cart-items" id="cartItems">
@@ -29,9 +46,30 @@
       <span>Add some natural goodness!</span>
     </div>
   </div>
-  <div class="cart-footer" id="cartFooter" style="display:none">
-    <div class="cart-subtotal"><span>Subtotal</span><strong id="cartTotal">&#8377;0.00</strong></div>
-    <button class="checkout-btn">Checkout &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+  <div id="cartBottom" style="display:none">
+    <div class="cart-coupon-section">
+      <div class="cart-coupon-row">
+        <i class="fa-solid fa-tag coupon-tag-icon"></i>
+        <input type="text" id="cartCouponInput" class="cart-coupon-input" placeholder="Enter Coupon Code" autocomplete="off">
+        <button id="cartCouponApply" class="cart-coupon-apply-btn">APPLY</button>
+      </div>
+      <div id="cartCouponMsg" class="cart-coupon-msg" style="display:none"></div>
+    </div>
+    <div class="cart-savings-bar" id="cartSavingsBar" style="display:none">
+      <i class="fa-solid fa-piggy-bank"></i><span id="cartSavingsText"></span>
+    </div>
+    <div class="cart-footer" id="cartFooter">
+      <div class="cart-total-row">
+        <div class="cart-total-label"><i class="fa-solid fa-receipt"></i> Estimated Total</div>
+        <div class="cart-total-right">
+          <span class="cart-total-mrp" id="cartTotalMrp"></span>
+          <strong id="cartTotal">&#8377;0</strong>
+          <span class="cart-total-pct" id="cartTotalPct"></span>
+        </div>
+      </div>
+      <button class="checkout-btn">Place My Order &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+      <p class="cart-delivery-note"><i class="fa-solid fa-truck-fast"></i> Orders delivered within 3–5 days after dispatch.</p>
+    </div>
   </div>
 </aside>
 
@@ -222,6 +260,7 @@
                 <button class="shop-card-cart db-cart-btn"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
+                        data-mrp="{{ p.discount_price|default:'' }}"
                         title="Add to cart" onclick="event.stopPropagation()">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
@@ -264,6 +303,7 @@
                 <button class="shop-card-cart db-cart-btn"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
+                        data-mrp="{{ p.discount_price|default:'' }}"
                         title="Add to cart" onclick="event.stopPropagation()">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
@@ -331,7 +371,7 @@ document.getElementById('mobOverlay').addEventListener('click',closeMenu);
 document.querySelectorAll('.db-cart-btn').forEach(btn=>{
   btn.addEventListener('click',e=>{
     e.stopPropagation();
-    addToCart(btn.dataset.name, btn.dataset.price, btn.dataset.img, btn.dataset.slug);
+    addToCart(btn.dataset.name, btn.dataset.price, btn.dataset.img, btn.dataset.slug, btn.dataset.mrp||null);
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+btn.dataset.name+' added!');
   });
 });
