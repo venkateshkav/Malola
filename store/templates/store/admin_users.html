@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Users — Malola Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height:100vh}
+.ap-header{background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(13,43,107,.35);position:sticky;top:0;z-index:100}
+.ap-brand{display:flex;align-items:center;gap:14px}
+.ap-logo-ring{width:40px;height:40px;border-radius:50%;background:#FECF0A;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b;flex-shrink:0}
+.ap-brand-name{font-family:'Fredoka One',cursive;font-size:1.15rem;color:#fff;line-height:1}
+.ap-brand-sub{font-size:.68rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ap-header-actions{display:flex;align-items:center;gap:10px}
+.ap-hdr-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;border:none;transition:all .2s;letter-spacing:.04em}
+.ap-hdr-site{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.ap-hdr-site:hover{background:rgba(255,255,255,.22)}
+.ap-hdr-logout{background:#FECF0A;color:#0d2b6b}
+.ap-hdr-logout:hover{background:#ffd93d}
+.ap-tabs{display:flex;background:#0a1f52;padding:0 32px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto;scrollbar-width:none}
+.ap-tabs::-webkit-scrollbar{display:none}
+.ap-tab{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:13px 18px;color:rgba(255,255,255,.45);font-size:.73rem;font-weight:800;text-decoration:none;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.06em;text-transform:uppercase}
+.ap-tab:hover{color:rgba(255,255,255,.8)}
+.ap-tab.active{color:#FECF0A;border-bottom-color:#FECF0A}
+.ap-tab-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53935;color:#fff;font-size:.6rem;font-weight:900;width:18px;height:18px;border-radius:50%}
+.ap-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;padding:28px 32px 0}
+.ap-stat-card{background:#fff;border-radius:20px;padding:22px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 20px rgba(13,43,107,.07);border-left:4px solid #FECF0A}
+.ap-stat-icon{width:48px;height:48px;border-radius:14px;background:#0d2b6b;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#FECF0A;flex-shrink:0}
+.ap-stat-num{font-family:'Fredoka One',cursive;font-size:2rem;color:#0d2b6b;line-height:1}
+.ap-stat-label{font-size:.72rem;font-weight:800;color:rgba(13,43,107,.45);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.ap-action-bar{display:flex;align-items:center;justify-content:space-between;padding:24px 32px 12px;flex-wrap:wrap;gap:14px}
+.ap-page-title{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#0d2b6b}
+.ap-filter-bar{display:flex;align-items:center;gap:10px;padding:0 32px 16px;flex-wrap:wrap}
+.ap-search-form{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid rgba(13,43,107,.12);border-radius:50px;padding:8px 18px;flex:1;min-width:200px;max-width:400px}
+.ap-search-form input{border:none;outline:none;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:#0d2b6b;background:transparent;width:100%}
+.ap-search-form i{color:rgba(13,43,107,.35)}
+.ap-table-wrap{margin:0 32px 16px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(13,43,107,.08);overflow:hidden}
+.ap-table{width:100%;border-collapse:collapse}
+.ap-table thead tr{background:#0d2b6b}
+.ap-table th{padding:14px 18px;text-align:left;font-size:.7rem;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.ap-table tbody tr{border-bottom:1.5px solid rgba(13,43,107,.06);transition:background .15s}
+.ap-table tbody tr:last-child{border-bottom:none}
+.ap-table tbody tr:hover{background:#f7f9ff}
+.ap-table td{padding:13px 18px;vertical-align:middle;font-size:.85rem}
+.user-avatar{width:40px;height:40px;border-radius:50%;background:#0d2b6b;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;color:#FECF0A;flex-shrink:0}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800}
+.chip-green{background:rgba(27,94,32,.12);color:#1b5e20}
+.chip-blue{background:rgba(21,101,192,.12);color:#1565C0}
+.chip-red{background:rgba(183,28,28,.12);color:#b71c1c}
+.chip-grey{background:rgba(0,0,0,.07);color:#555}
+.chip-yellow{background:rgba(255,193,7,.18);color:#795800}
+.ap-pagination{display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 32px;flex-wrap:wrap}
+.ap-pagination a,.ap-pagination span{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 12px;border-radius:12px;font-size:.82rem;font-weight:800;text-decoration:none}
+.ap-pagination a{background:#fff;color:#0d2b6b;border:2px solid rgba(13,43,107,.12);transition:all .15s}
+.ap-pagination a:hover{background:#0d2b6b;color:#FECF0A;border-color:#0d2b6b}
+.ap-pagination span{background:#0d2b6b;color:#FECF0A;border:2px solid #0d2b6b}
+.view-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;font-size:.75rem;font-weight:800;text-decoration:none;background:#e8f4fd;color:#1565c0;transition:background .15s}
+.view-btn:hover{background:#bbdefb}
+</style>
+</head>
+<body>
+
+<header class="ap-header">
+  <div class="ap-brand">
+    <div class="ap-logo-ring">M</div>
+    <div><div class="ap-brand-name">Malola Admin</div><div class="ap-brand-sub">Healthy Snacks</div></div>
+  </div>
+  <div class="ap-header-actions">
+    <a href="/" class="ap-hdr-btn ap-hdr-site" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
+    <form method="post" action="/api/logout/" style="display:inline;margin:0">
+      {% csrf_token %}<button type="submit" class="ap-hdr-btn ap-hdr-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </form>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div class="ap-stats-row">
+  <div class="ap-stat-card">
+    <div class="ap-stat-icon"><i class="fa-solid fa-users"></i></div>
+    <div><div class="ap-stat-num">{{ total_users }}</div><div class="ap-stat-label">Total Users</div></div>
+  </div>
+</div>
+
+<div class="ap-action-bar">
+  <div class="ap-page-title"><i class="fa-solid fa-users" style="color:#FECF0A;margin-right:8px"></i>Users</div>
+</div>
+
+<div class="ap-filter-bar">
+  <form method="get" class="ap-search-form">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" name="q" value="{{ search }}" placeholder="Search by name, email…" autocomplete="off">
+  </form>
+  {% if search %}<a href="/manage/users/" style="font-size:.82rem;font-weight:800;color:#c62828;text-decoration:none"><i class="fa-solid fa-xmark"></i> Clear</a>{% endif %}
+</div>
+
+<div class="ap-table-wrap">
+  <table class="ap-table">
+    <thead><tr>
+      <th>#</th><th>User</th><th>Email</th><th>Orders</th><th>Joined</th><th>Status</th><th>Action</th>
+    </tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+      <td style="color:rgba(13,43,107,.4);font-weight:800">{{ u.id }}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="user-avatar">{{ u.first_name|first|upper|default:u.username|first|upper }}</div>
+          <div>
+            <div style="font-weight:800;color:#0d2b6b">{{ u.get_full_name|default:u.username }}</div>
+            <div style="font-size:.75rem;color:rgba(13,43,107,.45)">@{{ u.username }}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:#555">{{ u.email }}</td>
+      <td>
+        <span style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b">{{ u.orders.count }}</span>
+      </td>
+      <td style="font-size:.8rem;color:#888">{{ u.date_joined|date:"d M Y" }}</td>
+      <td>
+        {% if u.is_superuser %}<span class="chip chip-yellow"><i class="fa-solid fa-crown"></i> Superuser</span>
+        {% elif u.is_staff %}<span class="chip chip-blue"><i class="fa-solid fa-shield"></i> Staff</span>
+        {% else %}<span class="chip chip-grey">Customer</span>{% endif %}
+        {% if not u.is_active %}<span class="chip chip-red">Inactive</span>{% endif %}
+      </td>
+      <td><a href="/manage/users/{{ u.pk }}/" class="view-btn"><i class="fa-solid fa-eye"></i> View</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" style="text-align:center;padding:60px;color:rgba(13,43,107,.35)">
+      <i class="fa-solid fa-users" style="font-size:2rem;display:block;margin-bottom:12px"></i>
+      No users found{% if search %} for "{{ search }}"{% endif %}
+    </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if users.has_other_pages %}
+<div class="ap-pagination">
+  {% if users.has_previous %}<a href="?q={{ search }}&page={{ users.previous_page_number }}">← Prev</a>{% endif %}
+  <span>{{ users.number }} / {{ users.paginator.num_pages }}</span>
+  {% if users.has_next %}<a href="?q={{ search }}&page={{ users.next_page_number }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+
+</body></html>

@@ -1,0 +1,37 @@
+{% with u=request.resolver_match.url_name %}
+<nav class="ap-tabs">
+  <a href="/manage/" class="ap-tab {% if u == 'manage_products' or u == 'manage_add' or u == 'manage_edit' or u == 'manage_delete' %}active{% endif %}">
+    <i class="fa-solid fa-box"></i> Products
+  </a>
+  <a href="/manage/orders/" class="ap-tab {% if u == 'manage_orders' or u == 'manage_order_status' %}active{% endif %}">
+    <i class="fa-solid fa-bag-shopping"></i> Orders
+    {% if pending_orders %}<span class="ap-tab-badge">{{ pending_orders }}</span>{% endif %}
+  </a>
+  <a href="/manage/offers/" class="ap-tab {% if u == 'manage_offers' or u == 'manage_add_offer' or u == 'manage_edit_offer' %}active{% endif %}">
+    <i class="fa-solid fa-tag"></i> Offers
+  </a>
+  <a href="/manage/categories/" class="ap-tab {% if u == 'manage_categories' or u == 'manage_add_category' or u == 'manage_edit_category' %}active{% endif %}">
+    <i class="fa-solid fa-layer-group"></i> Categories
+  </a>
+  <a href="/manage/coupons/" class="ap-tab {% if u == 'manage_coupons' or u == 'manage_add_coupon' or u == 'manage_edit_coupon' %}active{% endif %}">
+    <i class="fa-solid fa-ticket"></i> Coupons
+  </a>
+  <span style="width:1px;background:rgba(255,255,255,.12);margin:10px 4px;flex-shrink:0"></span>
+  <a href="/manage/users/" class="ap-tab {% if u == 'manage_users' or u == 'manage_user_detail' %}active{% endif %}">
+    <i class="fa-solid fa-users"></i> Users
+  </a>
+  <a href="/manage/carts/" class="ap-tab {% if u == 'manage_carts' %}active{% endif %}">
+    <i class="fa-solid fa-cart-shopping"></i> Carts
+  </a>
+  <a href="/manage/shipments/" class="ap-tab {% if u == 'manage_shipments' %}active{% endif %}">
+    <i class="fa-solid fa-truck"></i> Shipments
+  </a>
+  <span style="width:1px;background:rgba(255,255,255,.12);margin:10px 4px;flex-shrink:0"></span>
+  <a href="/manage/reviews/" class="ap-tab {% if u == 'manage_reviews' %}active{% endif %}">
+    <i class="fa-solid fa-star"></i> Reviews
+  </a>
+  <a href="/manage/videos/" class="ap-tab {% if u == 'manage_videos' %}active{% endif %}">
+    <i class="fa-solid fa-film"></i> Videos
+  </a>
+</nav>
+{% endwith %}

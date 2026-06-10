@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif}
+.wrap{max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.header{background:linear-gradient(135deg,#2e7d32,#66bb6a);padding:32px 24px;text-align:center}
+.header h1{color:#fff;margin:0;font-size:26px;font-weight:700;letter-spacing:1px}
+.header p{color:rgba(255,255,255,.85);margin:6px 0 0;font-size:14px}
+.body{padding:28px 24px}
+.greeting{font-size:18px;color:#1b5e20;font-weight:600;margin-bottom:8px}
+.body p{color:#444;line-height:1.6;margin:0 0 16px}
+.order-box{background:#f1f8e9;border:1px solid #c8e6c9;border-radius:8px;padding:16px 20px;margin:20px 0}
+.order-box .label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px}
+.order-box .value{font-size:20px;font-weight:700;color:#2e7d32;margin-top:2px}
+table.items{width:100%;border-collapse:collapse;margin:20px 0}
+table.items th{text-align:left;padding:10px 8px;background:#f9f9f9;border-bottom:2px solid #e0e0e0;font-size:13px;color:#666;text-transform:uppercase;letter-spacing:.5px}
+table.items td{padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333}
+table.items tr:last-child td{border-bottom:none}
+.total-row{background:#f1f8e9;font-weight:700;color:#2e7d32}
+.cta{text-align:center;margin:24px 0}
+.btn{display:inline-block;background:#2e7d32;color:#fff;text-decoration:none;padding:12px 32px;border-radius:25px;font-size:15px;font-weight:600}
+.footer{text-align:center;padding:20px 24px;background:#f9f9f9;font-size:12px;color:#999;border-top:1px solid #eee}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🌿 {{ site_name }}</h1>
+    <p>Healthy Snacks, Happy Life</p>
+  </div>
+  <div class="body">
+    <div class="greeting">Hi {{ order.name }}! 🎉</div>
+    <p>Your order has been confirmed. We're so excited to prepare your healthy snacks!</p>
+
+    <div class="order-box">
+      <div class="label">Order ID</div>
+      <div class="value">#ORD{{ order.id|stringformat:"04d" }}</div>
+    </div>
+
+    <table class="items">
+      <thead>
+        <tr><th>Product</th><th>Qty</th><th style="text-align:right">Price</th></tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.qty }}</td>
+          <td style="text-align:right">₹{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+        {% if order.discount_amount %}
+        <tr><td colspan="2" style="color:#2e7d32">Coupon Discount ({{ order.coupon_code }})</td><td style="text-align:right;color:#2e7d32">−₹{{ order.discount_amount }}</td></tr>
+        {% endif %}
+        <tr class="total-row"><td colspan="2">Total</td><td style="text-align:right">₹{{ order.total }}</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Delivery Address:</strong><br>{{ order.address }}</p>
+    <p><strong>Contact:</strong> {{ order.phone }}</p>
+    <p>We'll send you another email when your order ships. Questions? Reply to this email anytime.</p>
+
+    <div class="cta">
+      <a href="https://malola.in/orders/" class="btn">Track Your Order</a>
+    </div>
+  </div>
+  <div class="footer">
+    &copy; {{ site_name }} · Healthy Indian Snacks<br>
+    Made with ❤️ in India
+  </div>
+</div>
+</body>
+</html>

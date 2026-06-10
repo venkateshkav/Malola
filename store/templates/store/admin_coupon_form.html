@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{{ action }} Coupon — Malola Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height:100vh}
+.ap-header{background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(13,43,107,.35);position:sticky;top:0;z-index:100}
+.ap-brand{display:flex;align-items:center;gap:14px}
+.ap-logo-ring{width:40px;height:40px;border-radius:50%;background:#FECF0A;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b;flex-shrink:0}
+.ap-brand-name{font-family:'Fredoka One',cursive;font-size:1.15rem;color:#fff;line-height:1}
+.ap-brand-sub{font-size:.68rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ap-header-actions{display:flex;align-items:center;gap:10px}
+.ap-hdr-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;border:none;transition:all .2s;letter-spacing:.04em}
+.ap-hdr-site{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.ap-hdr-site:hover{background:rgba(255,255,255,.22)}
+.ap-hdr-logout{background:#FECF0A;color:#0d2b6b}
+.ap-hdr-logout:hover{background:#ffd93d}
+.form-wrap{max-width:700px;margin:36px auto;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(13,43,107,.08);overflow:hidden}
+.form-header{background:#0d2b6b;padding:24px 32px;display:flex;align-items:center;justify-content:space-between}
+.form-title{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#fff;display:flex;align-items:center;gap:12px}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:.8rem;font-weight:700;text-decoration:none}
+.back-link:hover{color:#FECF0A}
+.form-body{padding:32px}
+.form-group{margin-bottom:20px}
+.form-label{display:block;font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(13,43,107,.6);margin-bottom:6px}
+.form-control{width:100%;padding:11px 14px;border:2px solid #e8ecf8;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:700;color:#0d2b6b;outline:none;transition:border-color .2s}
+.form-control:focus{border-color:#FECF0A}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-hint{font-size:.75rem;color:#888;margin-top:4px}
+.form-check{display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid #e8ecf8;border-radius:12px;cursor:pointer}
+.form-check input[type=checkbox]{width:18px;height:18px;accent-color:#2e7d32}
+.form-check label{font-weight:800;color:#0d2b6b;cursor:pointer}
+.error-box{background:#fdecea;border:1.5px solid #ef9a9a;color:#c62828;border-radius:12px;padding:14px 18px;font-size:.88rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;padding-top:8px}
+.btn-save{display:inline-flex;align-items:center;gap:8px;padding:12px 30px;background:#FECF0A;color:#0d2b6b;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:900;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(254,207,10,.4);transition:transform .2s}
+.btn-save:hover{transform:translateY(-2px)}
+.btn-cancel{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#f0f4ff;color:#0d2b6b;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;text-decoration:none;transition:background .2s}
+.btn-cancel:hover{background:#e0e7ff}
+</style>
+</head>
+<body>
+
+<header class="ap-header">
+  <div class="ap-brand">
+    <div class="ap-logo-ring">M</div>
+    <div>
+      <div class="ap-brand-name">Malola Admin</div>
+      <div class="ap-brand-sub">Healthy Snacks</div>
+    </div>
+  </div>
+  <div class="ap-header-actions">
+    <a href="/" class="ap-hdr-btn ap-hdr-site"><i class="fa-solid fa-globe"></i> View Site</a>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div style="padding:24px 20px">
+<div class="form-wrap">
+  <div class="form-header">
+    <div class="form-title"><i class="fa-solid fa-ticket"></i> {{ action }} Coupon</div>
+    <a href="/manage/coupons/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+  </div>
+  <div class="form-body">
+    {% if error %}
+    <div class="error-box"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Coupon Code *</label>
+          <input type="text" name="code" value="{{ coupon.code|default:'' }}" required
+                 class="form-control" placeholder="e.g. SAVE20" style="text-transform:uppercase">
+          <div class="form-hint">Customers enter this at checkout</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discount Type *</label>
+          <select name="discount_type" class="form-control">
+            <option value="percent" {% if not coupon or coupon.discount_type == 'percent' %}selected{% endif %}>Percentage (%)</option>
+            <option value="flat" {% if coupon and coupon.discount_type == 'flat' %}selected{% endif %}>Flat Amount (₹)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Discount Value *</label>
+          <input type="number" name="discount_value" value="{{ coupon.discount_value|default:'' }}" required
+                 class="form-control" placeholder="e.g. 20" step="0.01" min="0">
+          <div class="form-hint">Enter % or ₹ amount</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Discount (₹)</label>
+          <input type="number" name="max_discount" value="{{ coupon.max_discount|default:'' }}"
+                 class="form-control" placeholder="Leave blank for no cap" step="0.01" min="0">
+          <div class="form-hint">Cap for percentage discounts</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Min Order Value (₹)</label>
+          <input type="number" name="min_order_value" value="{{ coupon.min_order_value|default:'0' }}"
+                 class="form-control" placeholder="0" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Uses</label>
+          <input type="number" name="max_uses" value="{{ coupon.max_uses|default:'100' }}"
+                 class="form-control" min="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input type="text" name="description" value="{{ coupon.description|default:'' }}"
+               class="form-control" placeholder="e.g. 20% off on orders above ₹500">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valid From *</label>
+          <input type="datetime-local" name="valid_from"
+                 value="{{ coupon.valid_from|date:'Y-m-d\TH:i'|default:'' }}"
+                 required class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valid Until *</label>
+          <input type="datetime-local" name="valid_until"
+                 value="{{ coupon.valid_until|date:'Y-m-d\TH:i'|default:'' }}"
+                 required class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-check">
+          <input type="checkbox" name="is_active" id="is_active"
+                 {% if not coupon or coupon.is_active %}checked{% endif %}>
+          <label for="is_active">Active (customers can use this coupon)</label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="/manage/coupons/" class="btn-cancel"><i class="fa-solid fa-xmark"></i> Cancel</a>
+        <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

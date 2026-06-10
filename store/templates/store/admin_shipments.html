@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Shipments — Malola Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height:100vh}
+.ap-header{background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(13,43,107,.35);position:sticky;top:0;z-index:100}
+.ap-brand{display:flex;align-items:center;gap:14px}
+.ap-logo-ring{width:40px;height:40px;border-radius:50%;background:#FECF0A;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b;flex-shrink:0}
+.ap-brand-name{font-family:'Fredoka One',cursive;font-size:1.15rem;color:#fff;line-height:1}
+.ap-brand-sub{font-size:.68rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ap-header-actions{display:flex;align-items:center;gap:10px}
+.ap-hdr-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;border:none;transition:all .2s;letter-spacing:.04em}
+.ap-hdr-site{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.ap-hdr-site:hover{background:rgba(255,255,255,.22)}
+.ap-hdr-logout{background:#FECF0A;color:#0d2b6b}
+.ap-hdr-logout:hover{background:#ffd93d}
+.ap-tabs{display:flex;background:#0a1f52;padding:0 32px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto;scrollbar-width:none}
+.ap-tabs::-webkit-scrollbar{display:none}
+.ap-tab{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:13px 18px;color:rgba(255,255,255,.45);font-size:.73rem;font-weight:800;text-decoration:none;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.06em;text-transform:uppercase}
+.ap-tab:hover{color:rgba(255,255,255,.8)}
+.ap-tab.active{color:#FECF0A;border-bottom-color:#FECF0A}
+.ap-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;padding:28px 32px 0}
+.ap-stat-card{background:#fff;border-radius:20px;padding:22px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 20px rgba(13,43,107,.07);border-left:4px solid #FECF0A}
+.ap-stat-icon{width:48px;height:48px;border-radius:14px;background:#0d2b6b;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#FECF0A;flex-shrink:0}
+.ap-stat-num{font-family:'Fredoka One',cursive;font-size:2rem;color:#0d2b6b;line-height:1}
+.ap-stat-label{font-size:.72rem;font-weight:800;color:rgba(13,43,107,.45);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.ap-action-bar{display:flex;align-items:center;justify-content:space-between;padding:24px 32px 12px;flex-wrap:wrap;gap:14px}
+.ap-page-title{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#0d2b6b}
+.ap-table-wrap{margin:0 32px 16px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(13,43,107,.08);overflow:hidden}
+.ap-table{width:100%;border-collapse:collapse}
+.ap-table thead tr{background:#0d2b6b}
+.ap-table th{padding:14px 18px;text-align:left;font-size:.7rem;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.ap-table tbody tr{border-bottom:1.5px solid rgba(13,43,107,.06);transition:background .15s}
+.ap-table tbody tr:last-child{border-bottom:none}
+.ap-table tbody tr:hover{background:#f7f9ff}
+.ap-table td{padding:13px 18px;vertical-align:middle;font-size:.85rem}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800}
+.chip-green{background:rgba(27,94,32,.12);color:#1b5e20}
+.chip-blue{background:rgba(21,101,192,.12);color:#1565C0}
+.chip-orange{background:rgba(230,81,0,.12);color:#e65100}
+.chip-grey{background:rgba(0,0,0,.07);color:#555}
+.chip-red{background:rgba(183,28,28,.12);color:#b71c1c}
+.chip-teal{background:rgba(0,121,107,.12);color:#00796b}
+.action-row{display:flex;gap:6px;flex-wrap:wrap}
+.act-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:10px;font-size:.72rem;font-weight:800;cursor:pointer;border:none;text-decoration:none;transition:all .2s}
+.act-create{background:rgba(27,94,32,.1);color:#1b5e20}
+.act-create:hover{background:#1b5e20;color:#fff}
+.act-cancel{background:rgba(183,28,28,.1);color:#b71c1c}
+.act-cancel:hover{background:#b71c1c;color:#fff}
+.act-track{background:#e8f4fd;color:#1565c0}
+.act-track:hover{background:#bbdefb}
+.ap-pagination{display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 32px;flex-wrap:wrap}
+.ap-pagination a,.ap-pagination span{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 12px;border-radius:12px;font-size:.82rem;font-weight:800;text-decoration:none}
+.ap-pagination a{background:#fff;color:#0d2b6b;border:2px solid rgba(13,43,107,.12);transition:all .15s}
+.ap-pagination a:hover{background:#0d2b6b;color:#FECF0A;border-color:#0d2b6b}
+.ap-pagination span{background:#0d2b6b;color:#FECF0A;border:2px solid #0d2b6b}
+#msg-toast{position:fixed;bottom:24px;right:24px;background:#0d2b6b;color:#FECF0A;padding:12px 22px;border-radius:12px;font-weight:800;font-size:.88rem;display:none;z-index:300}
+</style>
+</head>
+<body>
+
+<header class="ap-header">
+  <div class="ap-brand">
+    <div class="ap-logo-ring">M</div>
+    <div><div class="ap-brand-name">Malola Admin</div><div class="ap-brand-sub">Healthy Snacks</div></div>
+  </div>
+  <div class="ap-header-actions">
+    <a href="/" class="ap-hdr-btn ap-hdr-site" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
+    <form method="post" action="/api/logout/" style="display:inline;margin:0">
+      {% csrf_token %}<button type="submit" class="ap-hdr-btn ap-hdr-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </form>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div class="ap-stats-row">
+  <div class="ap-stat-card">
+    <div class="ap-stat-icon"><i class="fa-solid fa-truck"></i></div>
+    <div><div class="ap-stat-num">{{ total_shipments }}</div><div class="ap-stat-label">Total Shipments</div></div>
+  </div>
+  <div class="ap-stat-card">
+    <div class="ap-stat-icon"><i class="fa-solid fa-clock"></i></div>
+    <div><div class="ap-stat-num">{{ pending_count }}</div><div class="ap-stat-label">Needs Shipment</div></div>
+  </div>
+</div>
+
+<div class="ap-action-bar">
+  <div class="ap-page-title"><i class="fa-solid fa-truck" style="color:#FECF0A;margin-right:8px"></i>Shipments</div>
+</div>
+
+<div class="ap-table-wrap">
+  <table class="ap-table">
+    <thead><tr>
+      <th>Order</th><th>Customer</th><th>AWB</th><th>Courier</th><th>Est. Delivery</th><th>Status</th><th>Created</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for ship in shipments %}
+    <tr>
+      <td style="font-weight:800;color:#0d2b6b">
+        <a href="/manage/orders/" style="text-decoration:none;color:#0d2b6b">#{{ ship.order.id }}</a>
+      </td>
+      <td>
+        <div style="font-weight:700">{{ ship.order.name }}</div>
+        <div style="font-size:.75rem;color:#888">{{ ship.order.phone }}</div>
+      </td>
+      <td>
+        {% if ship.awb_number %}
+          <span style="font-family:monospace;font-size:.82rem;font-weight:800;color:#0d2b6b">{{ ship.awb_number }}</span>
+        {% else %}
+          <span style="color:rgba(13,43,107,.3);font-size:.8rem">—</span>
+        {% endif %}
+      </td>
+      <td>{{ ship.courier_name|default:"—" }}</td>
+      <td style="font-size:.8rem">{{ ship.estimated_delivery|date:"d M Y"|default:"—" }}</td>
+      <td>
+        {% if ship.status %}
+          {% if "delivered" in ship.status|lower %}
+            <span class="chip chip-green"><i class="fa-solid fa-circle-check"></i> {{ ship.status }}</span>
+          {% elif "transit" in ship.status|lower or "shipped" in ship.status|lower %}
+            <span class="chip chip-teal"><i class="fa-solid fa-truck"></i> {{ ship.status }}</span>
+          {% elif "cancel" in ship.status|lower %}
+            <span class="chip chip-red"><i class="fa-solid fa-ban"></i> {{ ship.status }}</span>
+          {% else %}
+            <span class="chip chip-orange">{{ ship.status }}</span>
+          {% endif %}
+        {% elif ship.shiprocket_order_id %}
+          <span class="chip chip-blue"><i class="fa-solid fa-box"></i> Order Created</span>
+        {% else %}
+          <span class="chip chip-grey">Pending</span>
+        {% endif %}
+      </td>
+      <td style="font-size:.8rem;color:#888">{{ ship.created_at|date:"d M Y" }}</td>
+      <td>
+        <div class="action-row">
+          {% if ship.tracking_url %}
+            <a href="{{ ship.tracking_url }}" target="_blank" class="act-btn act-track"><i class="fa-solid fa-location-dot"></i> Track</a>
+          {% endif %}
+          {% if not ship.shiprocket_order_id %}
+            <button class="act-btn act-create" onclick="createShipment({{ ship.order.id }})">
+              <i class="fa-solid fa-plus"></i> Create
+            </button>
+          {% elif not ship.awb_number %}
+            <button class="act-btn act-create" onclick="assignAWB({{ ship.order.id }})">
+              <i class="fa-solid fa-link"></i> Assign AWB
+            </button>
+          {% endif %}
+          {% if ship.shiprocket_order_id and "cancel" not in ship.status|lower %}
+            <button class="act-btn act-cancel" onclick="cancelShipment({{ ship.order.id }})">
+              <i class="fa-solid fa-ban"></i> Cancel
+            </button>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" style="text-align:center;padding:60px;color:rgba(13,43,107,.35)">
+      <i class="fa-solid fa-truck" style="font-size:2rem;display:block;margin-bottom:12px"></i>
+      No shipments yet
+    </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if shipments.has_other_pages %}
+<div class="ap-pagination">
+  {% if shipments.has_previous %}<a href="?page={{ shipments.previous_page_number }}">← Prev</a>{% endif %}
+  <span>{{ shipments.number }} / {{ shipments.paginator.num_pages }}</span>
+  {% if shipments.has_next %}<a href="?page={{ shipments.next_page_number }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+
+<!-- Pending orders (orders confirmed but no shipment) -->
+{% if pending_orders %}
+<div style="margin:0 32px 40px">
+  <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#0d2b6b;margin-bottom:14px">
+    <i class="fa-solid fa-circle-exclamation" style="color:#e65100"></i> Orders Needing Shipment
+  </div>
+  <div style="background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(13,43,107,.08);overflow:hidden">
+    <table class="ap-table">
+      <thead><tr><th>Order</th><th>Customer</th><th>Address</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for order in pending_orders %}
+      <tr>
+        <td style="font-weight:800">#{{ order.id }}</td>
+        <td>
+          <div style="font-weight:700">{{ order.name }}</div>
+          <div style="font-size:.75rem;color:#888">{{ order.phone }}</div>
+        </td>
+        <td style="font-size:.8rem;color:#555;max-width:200px">{{ order.address }}</td>
+        <td style="font-family:'Fredoka One',cursive">₹{{ order.total }}</td>
+        <td><span class="chip chip-orange">{{ order.get_status_display }}</span></td>
+        <td>
+          <button class="act-btn act-create" onclick="createShipmentForOrder({{ order.id }})">
+            <i class="fa-solid fa-plus"></i> Create Shipment
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div id="msg-toast"></div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+
+function showToast(msg, ok=true) {
+  const t = document.getElementById('msg-toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.background = ok ? '#0d2b6b' : '#c62828';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function createShipment(orderId) {
+  if (!confirm('Create Shiprocket shipment for order #' + orderId + '?')) return;
+  fetch(`/api/shipping/${orderId}/create/`, {
+    method: 'POST', headers: {'X-CSRFToken': CSRF}
+  }).then(r => r.json()).then(d => {
+    if (d.ok || d.shiprocket_order_id) {
+      showToast('Shipment created. Refresh to see updated status.');
+      setTimeout(() => location.reload(), 1500);
+    } else showToast(d.error || 'Failed to create shipment', false);
+  }).catch(() => showToast('Network error', false));
+}
+
+function createShipmentForOrder(orderId) { createShipment(orderId); }
+
+function cancelShipment(orderId) {
+  if (!confirm('Cancel shipment for order #' + orderId + '? This cannot be undone.')) return;
+  fetch(`/api/shipping/${orderId}/cancel/`, {
+    method: 'POST', headers: {'X-CSRFToken': CSRF}
+  }).then(r => r.json()).then(d => {
+    if (d.ok) {
+      showToast('Shipment cancelled.');
+      setTimeout(() => location.reload(), 1500);
+    } else showToast(d.error || 'Failed to cancel', false);
+  }).catch(() => showToast('Network error', false));
+}
+</script>
+</body></html>

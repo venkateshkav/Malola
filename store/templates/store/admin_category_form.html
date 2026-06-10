@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{{ action }} Category — Malola</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --brand:#0d2b6b;--brand-light:#1a3a8a;--accent:#FECF0A;
+  --bg:#f4f6fa;--surface:#ffffff;--border:#e5e9f2;
+  --text:#0f172a;--muted:#64748b;--muted-2:#94a3b8;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --radius:10px;--radius-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13.5px;-webkit-font-smoothing:antialiased}
+.hd{background:var(--brand);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:200;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.hd-brand{display:flex;align-items:center;gap:10px}
+.hd-mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--brand)}
+.hd-name{font-weight:700;font-size:.9rem;color:#fff}
+.hd-sep{width:1px;height:16px;background:rgba(255,255,255,.15);margin:0 4px}
+.hd-section{font-size:.75rem;color:rgba(255,255,255,.45);font-weight:500}
+.hd-actions{display:flex;align-items:center;gap:8px}
+.hd-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:.74rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .15s;font-family:'Inter',sans-serif}
+.hd-back{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
+.hd-back:hover{background:rgba(255,255,255,.18)}
+.hd-logout{background:var(--accent);color:var(--brand)}
+.hd-logout:hover{background:#ffd93d}
+.ap-tabs{display:flex;background:#0a1f52;padding:0 28px;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
+.ap-tabs::-webkit-scrollbar{display:none}
+.ap-tab{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:11px 16px;color:rgba(255,255,255,.4);font-size:.71rem;font-weight:700;text-decoration:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.05em;text-transform:uppercase}
+.ap-tab:hover{color:rgba(255,255,255,.75)}
+.ap-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.ap-tab-badge{display:inline-flex;align-items:center;justify-content:center;background:#ef4444;color:#fff;font-size:.58rem;font-weight:800;width:16px;height:16px;border-radius:50%;line-height:1}
+.page{max-width:600px;margin:0 auto;padding:28px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--muted);text-decoration:none;margin-bottom:16px;transition:color .15s}
+.back-link:hover{color:var(--brand)}
+.form-title{font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:20px}
+.error-box{background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--radius);padding:12px 16px;color:var(--red);font-size:.82rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:22px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.label-hint{font-size:.7rem;font-weight:400;color:var(--muted-2);text-transform:none;letter-spacing:0;margin-left:4px}
+.input,.textarea{width:100%;height:40px;border:1.5px solid var(--border);border-radius:8px;padding:0 12px;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;color:var(--text);background:#f8fafc;outline:none;transition:border-color .15s,background .15s}
+.input:focus,.textarea:focus{border-color:var(--brand);background:#fff}
+.textarea{height:auto;padding:10px 12px;resize:vertical}
+.toggle-field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid var(--border);margin-top:4px}
+.toggle-text .toggle-title{font-size:.85rem;font-weight:600;color:var(--text)}
+.toggle-text .toggle-sub{font-size:.75rem;color:var(--muted);margin-top:2px}
+.toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:999px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.toggle input:checked + .toggle-slider{background:var(--brand)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
+.form-actions{display:flex;gap:10px;margin-top:16px}
+.btn-cancel{height:40px;padding:0 20px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;transition:all .15s}
+.btn-cancel:hover{border-color:var(--brand);color:var(--brand)}
+.btn-submit{flex:1;height:40px;border-radius:8px;border:none;background:var(--brand);color:#fff;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
+.btn-submit:hover{background:var(--brand-light)}
+@media(max-width:640px){.page{padding:16px 14px 40px}.hd{padding:0 16px}.ap-tabs{padding:0 14px}}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-brand">
+    <div class="hd-mark">M</div>
+    <span class="hd-name">Malola</span>
+    <div class="hd-sep"></div>
+    <span class="hd-section">Admin</span>
+  </div>
+  <div class="hd-actions">
+    <a href="/manage/categories/" class="hd-btn hd-back"><i class="fa-solid fa-arrow-left"></i> Categories</a>
+    <form method="post" action="/api/logout/" style="margin:0">
+      {% csrf_token %}
+      <button type="submit" class="hd-btn hd-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </form>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div class="page">
+  <a href="/manage/categories/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to categories</a>
+  <div class="form-title">{{ action }} Category</div>
+
+  {% if error %}
+  <div class="error-box"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-card">
+
+      <div class="field">
+        <label class="label" for="nameInput">Name <span style="color:var(--red)">*</span></label>
+        <input type="text" name="name" id="nameInput" class="input"
+               placeholder="e.g. Bites &amp; Crunchies"
+               value="{{ cat.name|default:'' }}" required maxlength="100" autofocus>
+      </div>
+
+      <div class="field">
+        <label class="label" for="descInput">Description <span class="label-hint">optional</span></label>
+        <textarea name="description" id="descInput" class="textarea" rows="2"
+                  placeholder="Short description of this category…">{{ cat.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="label" for="sortInput">Sort Order <span class="label-hint">lower number = shown first</span></label>
+        <input type="number" name="sort_order" id="sortInput" class="input"
+               placeholder="0" value="{{ cat.sort_order|default:'0' }}" min="0">
+      </div>
+
+      <div class="toggle-field">
+        <div class="toggle-text">
+          <div class="toggle-title">Active</div>
+          <div class="toggle-sub">Inactive categories are hidden from the shop filter</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="is_active" {% if not cat or cat.is_active %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <a href="/manage/categories/" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-{% if action == 'Add' %}plus{% else %}floppy-disk{% endif %}"></i>
+          {{ action }} Category
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+</body>
+</html>

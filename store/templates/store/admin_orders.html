@@ -1,0 +1,526 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Orders — Malola</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --brand:#0d2b6b;--brand-light:#1a3a8a;--accent:#FECF0A;
+  --bg:#f4f6fa;--surface:#ffffff;--border:#e5e9f2;
+  --text:#0f172a;--muted:#64748b;--muted-2:#94a3b8;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --orange:#ea580c;--orange-bg:#fff7ed;--orange-border:#fed7aa;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --yellow:#d97706;--yellow-bg:#fffbeb;--yellow-border:#fde68a;
+  --teal:#0d9488;--teal-bg:#f0fdfa;--teal-border:#99f6e4;
+  --radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13.5px;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.hd{background:var(--brand);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:200;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.hd-brand{display:flex;align-items:center;gap:10px}
+.hd-mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--brand)}
+.hd-name{font-weight:700;font-size:.9rem;color:#fff;letter-spacing:.01em}
+.hd-sep{width:1px;height:16px;background:rgba(255,255,255,.15);margin:0 4px}
+.hd-section{font-size:.75rem;color:rgba(255,255,255,.45);font-weight:500}
+.hd-actions{display:flex;align-items:center;gap:8px}
+.hd-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:.74rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .15s;font-family:'Inter',sans-serif}
+.hd-site{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
+.hd-site:hover{background:rgba(255,255,255,.18)}
+.hd-logout{background:var(--accent);color:var(--brand)}
+.hd-logout:hover{background:#ffd93d}
+
+/* ── NAV ── */
+.ap-tabs{display:flex;background:#0a1f52;padding:0 28px;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
+.ap-tabs::-webkit-scrollbar{display:none}
+.ap-tab{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:11px 16px;color:rgba(255,255,255,.4);font-size:.71rem;font-weight:700;text-decoration:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.05em;text-transform:uppercase}
+.ap-tab:hover{color:rgba(255,255,255,.75)}
+.ap-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.ap-tab-badge{display:inline-flex;align-items:center;justify-content:center;background:#ef4444;color:#fff;font-size:.58rem;font-weight:800;width:16px;height:16px;border-radius:50%;line-height:1}
+
+/* ── PAGE WRAP ── */
+.page{max-width:1400px;margin:0 auto;padding:24px 28px 48px}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:1.25rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.page-count{font-size:.82rem;font-weight:500;color:var(--muted);background:var(--border);padding:2px 10px;border-radius:999px}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.stat:hover{box-shadow:var(--shadow-md)}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.stat-icon-blue{background:var(--blue-bg);color:var(--blue)}
+.stat-icon-amber{background:var(--yellow-bg);color:var(--yellow)}
+.stat-icon-green{background:var(--green-bg);color:var(--green)}
+.stat-icon-orange{background:var(--orange-bg);color:var(--orange)}
+.stat-icon-teal{background:var(--teal-bg);color:var(--teal)}
+.stat-val{font-size:1.45rem;font-weight:800;color:var(--text);line-height:1}
+.stat-label{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+/* ── TOOLBAR ── */
+.toolbar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.toolbar-top{display:flex;align-items:center;gap:0;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.search-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;max-width:320px;height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 12px;background:#f8fafc;transition:border-color .15s}
+.search-wrap:focus-within{border-color:var(--brand);background:#fff}
+.search-wrap i{color:var(--muted-2);font-size:.8rem;flex-shrink:0}
+.search-wrap input{border:none;outline:none;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:500;color:var(--text);background:transparent;width:100%}
+.date-group{display:flex;align-items:center;gap:6px}
+.date-group label{font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.date-input{height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;color:var(--text);background:#f8fafc;outline:none;transition:border-color .15s}
+.date-input:focus{border-color:var(--brand);background:#fff}
+.search-btn{height:36px;padding:0 16px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+.search-btn:hover{background:var(--brand-light)}
+.clear-link{font-size:.76rem;font-weight:600;color:var(--red);text-decoration:none;white-space:nowrap;padding:4px 8px;border-radius:6px;transition:background .15s}
+.clear-link:hover{background:var(--red-bg)}
+.toolbar-divider{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.export-group{display:flex;align-items:center;gap:6px;margin-left:auto}
+.exp-label{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.exp-btn{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;border-radius:8px;font-family:'Inter',sans-serif;font-size:.76rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.exp-btn:hover.exp-csv{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.exp-btn:hover.exp-excel{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.exp-btn:hover.exp-print{background:var(--brand);border-color:var(--brand);color:#fff}
+
+.toolbar-filters{display:flex;align-items:center;gap:0;padding:10px 16px;flex-wrap:wrap;gap:6px}
+.filter-group{display:flex;align-items:center;gap:5px}
+.filter-label{font-size:.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-right:4px;white-space:nowrap}
+.filter-pill{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;font-size:.73rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;white-space:nowrap;cursor:pointer}
+.filter-pill:hover{border-color:var(--brand);color:var(--brand)}
+.filter-pill.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 8px;flex-shrink:0}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#f8fafc;border-bottom:1px solid var(--border)}
+th{padding:11px 16px;text-align:left;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;user-select:none}
+th:first-child{width:36px;padding-right:8px}
+tbody tr.ord-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+tbody tr.ord-row:last-child{border-bottom:none}
+tbody tr.ord-row:hover{background:#f8fafc}
+tbody tr.ord-row.expanded{background:#fafbff;border-bottom:none}
+tbody tr.detail-row{display:none;border-bottom:1px solid var(--border)}
+tbody tr.detail-row.open{display:table-row}
+tbody tr.detail-row:last-child{border-bottom:none}
+td{padding:13px 16px;vertical-align:middle;font-size:.84rem}
+
+/* row toggle */
+.row-toggle{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.row-toggle i{font-size:.6rem;color:var(--muted-2);transition:transform .25s}
+.ord-row.expanded .row-toggle{background:var(--brand);border-color:var(--brand)}
+.ord-row.expanded .row-toggle i{color:#fff;transform:rotate(180deg)}
+
+/* order id */
+.oid{font-weight:700;font-size:.82rem;color:var(--brand)}
+
+/* customer */
+.cust-name{font-weight:600;font-size:.85rem;color:var(--text)}
+.cust-phone{font-size:.74rem;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
+
+/* items preview */
+.items-preview{font-size:.78rem;color:var(--muted);line-height:1.6}
+.items-more{font-size:.7rem;color:var(--muted-2);font-weight:500}
+
+/* total */
+.total-val{font-size:.92rem;font-weight:700;color:var(--text)}
+
+/* ── STATUS BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-pending{background:var(--yellow-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.badge-pending::before{background:var(--yellow)}
+.badge-confirmed{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
+.badge-confirmed::before{background:var(--blue)}
+.badge-processing{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+.badge-processing::before{background:var(--purple)}
+.badge-shipped{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-border)}
+.badge-shipped::before{background:var(--teal)}
+.badge-delivered{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.badge-delivered::before{background:var(--green)}
+.badge-cancelled{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.badge-cancelled::before{background:var(--red)}
+.badge-paid{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.badge-paid::before{background:var(--green)}
+.badge-cod{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border)}
+.badge-cod::before{background:var(--orange)}
+.badge-failed{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.badge-failed::before{background:var(--red)}
+
+/* ── STATUS DROPDOWN ── */
+.status-form{display:flex;align-items:center;gap:6px}
+select.status-sel{height:32px;border:1.5px solid var(--border);border-radius:7px;padding:0 26px 0 10px;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;color:var(--text);background:#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 8px center;appearance:none;outline:none;cursor:pointer;transition:border-color .15s}
+select.status-sel:focus{border-color:var(--brand);background-color:#fff}
+.status-save-btn{width:32px;height:32px;border:none;border-radius:7px;background:var(--brand);color:#fff;font-size:.78rem;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center}
+.status-save-btn:hover{background:var(--brand-light)}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{padding:0}
+.detail-inner{padding:20px 24px;background:#f8faff;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:24px}
+.dp-section-title{font-size:.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.dp-section-title i{color:var(--brand);font-size:.72rem}
+.dp-val{font-size:.84rem;font-weight:600;color:var(--text);line-height:1.5}
+.dp-sub{font-size:.76rem;color:var(--muted);margin-top:2px;line-height:1.5}
+.dp-addr{font-size:.8rem;color:var(--text);line-height:1.7;white-space:pre-wrap;font-weight:500}
+.dp-spacer{margin-top:14px}
+.items-table{width:100%;border-collapse:collapse}
+.items-table td{padding:7px 0;font-size:.8rem;border-bottom:1px solid var(--border);vertical-align:middle}
+.items-table tr:last-child td{border-bottom:none}
+.item-img{width:34px;height:34px;object-fit:contain;border-radius:8px;background:#f0f4ff;border:1px solid var(--border);padding:3px}
+.item-name{font-weight:600;color:var(--text)}
+.item-weight{font-size:.72rem;color:var(--muted);margin-top:1px}
+.item-qty{color:var(--muted);font-size:.78rem;text-align:center}
+.item-price{font-weight:700;color:var(--brand);text-align:right;white-space:nowrap}
+.total-bar{background:var(--brand);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.total-bar-label{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em}
+.total-bar-val{font-size:1.05rem;font-weight:800;color:var(--accent)}
+.dp-info-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dp-info-label{font-size:.72rem;color:var(--muted);font-weight:500}
+.razorpay-id{font-size:.68rem;color:var(--muted-2);word-break:break-all;margin-top:4px;font-family:monospace}
+.coupon-tag{display:inline-flex;align-items:center;gap:5px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;margin-top:6px}
+.discount-line{font-size:.76rem;color:var(--red);font-weight:600;margin-top:4px}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;padding:20px 0 4px}
+.pg-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 12px;border-radius:8px;font-size:.78rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s}
+.pg-btn:hover{border-color:var(--brand);color:var(--brand)}
+.pg-btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:72px 20px}
+.empty-state i{font-size:2.5rem;color:var(--border);margin-bottom:14px;display:block}
+.empty-state h3{font-size:1rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.empty-state p{font-size:.82rem;color:var(--muted-2)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}.detail-inner{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.stats-row{grid-template-columns:repeat(2,1fr)}.detail-inner{grid-template-columns:1fr}.page{padding:16px 14px 40px}.hd{padding:0 16px}.ap-tabs{padding:0 14px}.col-hide{display:none}}
+@media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hd">
+  <div class="hd-brand">
+    <div class="hd-mark">M</div>
+    <span class="hd-name">Malola</span>
+    <div class="hd-sep"></div>
+    <span class="hd-section">Admin</span>
+  </div>
+  <div class="hd-actions">
+    <a href="/" class="hd-btn hd-site" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
+    <form method="post" action="/api/logout/" style="margin:0">
+      {% csrf_token %}
+      <button type="submit" class="hd-btn hd-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </form>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-title">
+      <i class="fa-solid fa-bag-shopping" style="color:var(--brand);font-size:1rem"></i>
+      Orders
+      <span class="page-count">{{ orders.paginator.count }} total</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-bag-shopping"></i></div>
+      <div><div class="stat-val">{{ stats.total }}</div><div class="stat-label">Total Orders</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-clock"></i></div>
+      <div><div class="stat-val">{{ stats.pending }}</div><div class="stat-label">Pending</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon stat-icon-green"><i class="fa-solid fa-credit-card"></i></div>
+      <div><div class="stat-val">{{ stats.paid }}</div><div class="stat-label">Paid Online</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-money-bill-wave"></i></div>
+      <div><div class="stat-val">{{ stats.cod }}</div><div class="stat-label">Cash on Delivery</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon stat-icon-teal"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+      <div><div class="stat-val" style="font-size:1.1rem">₹{{ stats.revenue }}</div><div class="stat-label">Revenue</div></div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <form method="get" action="/manage/orders/">
+      <input type="hidden" name="status" value="{{ status_filter }}">
+      <input type="hidden" name="payment" value="{{ payment_filter }}">
+      <div class="toolbar-top">
+        <!-- Search -->
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" value="{{ search }}" placeholder="Order #, name or phone…" autocomplete="off">
+        </div>
+        <!-- Date range -->
+        <div class="date-group">
+          <label>From</label>
+          <input type="date" name="date_from" value="{{ date_from }}" class="date-input">
+        </div>
+        <div class="date-group">
+          <label>To</label>
+          <input type="date" name="date_to" value="{{ date_to }}" class="date-input">
+        </div>
+        <button type="submit" class="search-btn"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        {% if search or date_from or date_to or status_filter or payment_filter %}
+        <a href="/manage/orders/" class="clear-link"><i class="fa-solid fa-xmark"></i> Clear all</a>
+        {% endif %}
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Export -->
+        <div class="export-group">
+          <span class="exp-label">Export</span>
+          <a href="/manage/orders/export/csv/?{{ filter_qs }}" class="exp-btn exp-csv" title="Download CSV">
+            <i class="fa-solid fa-file-csv"></i> CSV
+          </a>
+          <a href="/manage/orders/export/excel/?{{ filter_qs }}" class="exp-btn exp-excel" title="Download Excel">
+            <i class="fa-solid fa-file-excel"></i> Excel
+          </a>
+          <a href="/manage/orders/export/print/?{{ filter_qs }}" target="_blank" class="exp-btn exp-print" title="Print or save as PDF">
+            <i class="fa-solid fa-print"></i> Print
+          </a>
+        </div>
+      </div>
+    </form>
+
+    <!-- Filters -->
+    <div class="toolbar-filters">
+      <span class="filter-label">Status</span>
+      <div class="filter-group">
+        <a href="/manage/orders/?q={{ search|urlencode }}&payment={{ payment_filter }}&date_from={{ date_from }}&date_to={{ date_to }}" class="filter-pill {% if not status_filter %}active{% endif %}">All</a>
+        {% for val, label in status_choices %}
+        <a href="/manage/orders/?q={{ search|urlencode }}&payment={{ payment_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ val }}" class="filter-pill {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+      <div class="filter-sep"></div>
+      <span class="filter-label">Payment</span>
+      <div class="filter-group">
+        <a href="/manage/orders/?q={{ search|urlencode }}&status={{ status_filter }}&date_from={{ date_from }}&date_to={{ date_to }}" class="filter-pill {% if not payment_filter %}active{% endif %}">All</a>
+        {% for val, label in payment_choices %}
+        <a href="/manage/orders/?q={{ search|urlencode }}&status={{ status_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&payment={{ val }}" class="filter-pill {% if payment_filter == val %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  {% if orders %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Order</th>
+          <th>Customer</th>
+          <th class="col-hide">Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+
+        <!-- SUMMARY ROW -->
+        <tr class="ord-row" data-detail="detail-{{ o.id }}">
+          <td style="padding-right:8px">
+            <div class="row-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+          </td>
+          <td><span class="oid">#{{ o.id }}</span></td>
+          <td>
+            <div class="cust-name">{{ o.name }}</div>
+            <div class="cust-phone"><i class="fa-solid fa-phone" style="font-size:.6rem"></i> {{ o.phone }}</div>
+          </td>
+          <td class="col-hide">
+            <div class="items-preview">
+              {% for item in o.items|slice:":2" %}
+              <div>{{ item.name }} <span style="color:var(--muted-2)">×{{ item.qty|default:1 }}</span></div>
+              {% endfor %}
+              {% if o.items|length > 2 %}<div class="items-more">+{{ o.items|length|add:"-2" }} more</div>{% endif %}
+            </div>
+          </td>
+          <td><span class="total-val">₹{{ o.total }}</span></td>
+          <td>
+            {% if o.payment_status == 'paid' %}<span class="badge badge-paid">Paid</span>
+            {% elif o.payment_status == 'cod' %}<span class="badge badge-cod">COD</span>
+            {% elif o.payment_status == 'failed' %}<span class="badge badge-failed">Failed</span>
+            {% else %}<span class="badge badge-pending">Pending</span>{% endif %}
+          </td>
+          <td style="color:var(--muted);font-size:.78rem;white-space:nowrap">
+            {{ o.created_at|date:"d M Y" }}<br>
+            <span style="color:var(--muted-2);font-size:.72rem">{{ o.created_at|date:"H:i" }}</span>
+          </td>
+          <td>
+            {% if o.status == 'pending' %}<span class="badge badge-pending">Pending</span>
+            {% elif o.status == 'confirmed' %}<span class="badge badge-confirmed">Confirmed</span>
+            {% elif o.status == 'processing' %}<span class="badge badge-processing">Processing</span>
+            {% elif o.status == 'shipped' %}<span class="badge badge-shipped">Shipped</span>
+            {% elif o.status == 'delivered' %}<span class="badge badge-delivered">Delivered</span>
+            {% elif o.status == 'cancelled' %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+          </td>
+          <td onclick="event.stopPropagation()">
+            <form method="post" action="/manage/orders/{{ o.pk }}/status/" class="status-form">
+              {% csrf_token %}
+              <input type="hidden" name="status_filter" value="{{ status_filter }}">
+              <select name="status" class="status-sel">
+                {% for val, label in status_choices %}
+                <option value="{{ val }}" {% if o.status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="status-save-btn" title="Save"><i class="fa-solid fa-check"></i></button>
+            </form>
+          </td>
+        </tr>
+
+        <!-- DETAIL ROW -->
+        <tr class="detail-row" id="detail-{{ o.id }}">
+          <td colspan="9" style="padding:0">
+            <div class="detail-inner">
+
+              <!-- Customer + Address -->
+              <div>
+                <div class="dp-section-title"><i class="fa-solid fa-user"></i> Customer</div>
+                <div class="dp-val">{{ o.name }}</div>
+                <div class="dp-sub"><i class="fa-solid fa-phone" style="font-size:.65rem"></i> {{ o.phone }}</div>
+                <div class="dp-spacer">
+                  <div class="dp-section-title"><i class="fa-solid fa-location-dot"></i> Delivery Address</div>
+                  <div class="dp-addr">{{ o.address }}</div>
+                </div>
+              </div>
+
+              <!-- Items -->
+              <div>
+                <div class="dp-section-title"><i class="fa-solid fa-basket-shopping"></i> Items Ordered</div>
+                <table class="items-table">
+                  {% for item in o.items %}
+                  <tr>
+                    <td style="width:40px;padding-right:10px">
+                      {% if item.image %}<img src="{{ item.image }}" class="item-img" alt="" onerror="this.style.display='none'">{% endif %}
+                    </td>
+                    <td>
+                      <div class="item-name">{{ item.name }}</div>
+                      {% if item.weight %}<div class="item-weight">{{ item.weight }}</div>{% endif %}
+                    </td>
+                    <td class="item-qty">×{{ item.qty|default:1 }}</td>
+                    <td class="item-price">₹{{ item.price }}</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+                <div class="total-bar">
+                  <span class="total-bar-label">Order Total</span>
+                  <span class="total-bar-val">₹{{ o.total }}</span>
+                </div>
+              </div>
+
+              <!-- Payment + Status -->
+              <div>
+                <div class="dp-section-title"><i class="fa-solid fa-credit-card"></i> Payment</div>
+                <div class="dp-info-row">
+                  <span class="dp-info-label">Method</span>
+                  {% if o.payment_status == 'paid' %}<span class="badge badge-paid">Paid Online</span>
+                  {% elif o.payment_status == 'cod' %}<span class="badge badge-cod">Cash on Delivery</span>
+                  {% elif o.payment_status == 'failed' %}<span class="badge badge-failed">Failed</span>
+                  {% else %}<span class="badge badge-pending">Pending</span>{% endif %}
+                </div>
+                {% if o.razorpay_payment_id %}
+                <div class="razorpay-id">Razorpay: {{ o.razorpay_payment_id }}</div>
+                {% endif %}
+                {% if o.coupon_code %}
+                <div class="coupon-tag"><i class="fa-solid fa-ticket"></i> {{ o.coupon_code }}</div>
+                <div class="discount-line">Discount: −₹{{ o.discount_amount }}</div>
+                {% endif %}
+
+                <div class="dp-spacer">
+                  <div class="dp-section-title"><i class="fa-solid fa-truck"></i> Order Status</div>
+                  {% if o.status == 'pending' %}<span class="badge badge-pending">Pending</span>
+                  {% elif o.status == 'confirmed' %}<span class="badge badge-confirmed">Confirmed</span>
+                  {% elif o.status == 'processing' %}<span class="badge badge-processing">Processing</span>
+                  {% elif o.status == 'shipped' %}<span class="badge badge-shipped">Shipped</span>
+                  {% elif o.status == 'delivered' %}<span class="badge badge-delivered">Delivered</span>
+                  {% elif o.status == 'cancelled' %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+                </div>
+
+                <div class="dp-spacer">
+                  <div class="dp-section-title"><i class="fa-solid fa-calendar"></i> Placed On</div>
+                  <div class="dp-val">{{ o.created_at|date:"d M Y, h:i A" }}</div>
+                </div>
+              </div>
+
+            </div>
+          </td>
+        </tr>
+
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  {% if orders.has_other_pages %}
+  <div class="pagination">
+    {% if orders.has_previous %}
+    <a href="?{{ filter_qs }}&page={{ orders.previous_page_number }}" class="pg-btn">← Prev</a>
+    {% endif %}
+    <span class="pg-btn active">{{ orders.number }} / {{ orders.paginator.num_pages }}</span>
+    {% if orders.has_next %}
+    <a href="?{{ filter_qs }}&page={{ orders.next_page_number }}" class="pg-btn">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="table-wrap">
+    <div class="empty-state">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <h3>No orders found</h3>
+      <p>{% if search or status_filter or payment_filter or date_from or date_to %}Try adjusting your filters.{% else %}Orders placed by customers will appear here.{% endif %}</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+document.querySelectorAll('.ord-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const id = row.dataset.detail;
+    const detail = document.getElementById(id);
+    const isOpen = detail.classList.contains('open');
+    document.querySelectorAll('.detail-row.open').forEach(d => {
+      d.classList.remove('open');
+      d.previousElementSibling.classList.remove('expanded');
+    });
+    if (!isOpen) {
+      detail.classList.add('open');
+      row.classList.add('expanded');
+      row.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  });
+});
+</script>
+</body>
+</html>

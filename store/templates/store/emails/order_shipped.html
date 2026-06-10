@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif}
+.wrap{max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.header{background:linear-gradient(135deg,#1565c0,#42a5f5);padding:32px 24px;text-align:center}
+.header h1{color:#fff;margin:0;font-size:26px;font-weight:700}
+.header p{color:rgba(255,255,255,.85);margin:6px 0 0;font-size:14px}
+.body{padding:28px 24px}
+.greeting{font-size:18px;color:#0d47a1;font-weight:600;margin-bottom:8px}
+.body p{color:#444;line-height:1.6;margin:0 0 16px}
+.track-box{background:#e3f2fd;border:1px solid #90caf9;border-radius:8px;padding:20px;margin:20px 0;text-align:center}
+.track-box .label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px}
+.track-box .value{font-size:20px;font-weight:700;color:#0d47a1;margin:4px 0}
+.track-box .courier{font-size:14px;color:#555;margin-top:4px}
+.cta{text-align:center;margin:24px 0}
+.btn{display:inline-block;background:#1565c0;color:#fff;text-decoration:none;padding:12px 32px;border-radius:25px;font-size:15px;font-weight:600}
+.footer{text-align:center;padding:20px 24px;background:#f9f9f9;font-size:12px;color:#999;border-top:1px solid #eee}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>📦 Your order is on the way!</h1>
+    <p>{{ site_name }} – Healthy Snacks</p>
+  </div>
+  <div class="body">
+    <div class="greeting">Hi {{ order.name }}! 🚀</div>
+    <p>Great news! Your {{ site_name }} order <strong>#ORD{{ order.id|stringformat:"04d" }}</strong> has been shipped and is heading your way.</p>
+
+    {% if awb %}
+    <div class="track-box">
+      <div class="label">AWB / Tracking Number</div>
+      <div class="value">{{ awb }}</div>
+      {% if courier %}<div class="courier">Shipped via {{ courier }}</div>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if tracking_url %}
+    <div class="cta">
+      <a href="{{ tracking_url }}" class="btn">Track Your Shipment</a>
+    </div>
+    {% endif %}
+
+    <p>Your order total was <strong>₹{{ order.total }}</strong>. If you have any questions about your delivery, reply to this email.</p>
+  </div>
+  <div class="footer">
+    &copy; {{ site_name }} · Made with ❤️ in India
+  </div>
+</div>
+</body>
+</html>
