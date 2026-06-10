@@ -93,4 +93,16 @@ urlpatterns = [
 
     # admin — shipments
     path('manage/shipments/',                   views.manage_shipments,            name='manage_shipments'),
+
+    # public — blog & about
+    path('blog/',                views.blog_list,         name='blog_list'),
+    path('blog/<slug:slug>/',    views.blog_detail,       name='blog_detail'),
+    path('about/',               views.about_page,        name='about'),
+
+    # admin — blog
+    path('manage/blog/',                   views.manage_blog,         name='manage_blog'),
+    path('manage/blog/add/',               views.manage_add_blog,     name='manage_add_blog'),
+    path('manage/blog/edit/<int:pk>/',     views.manage_edit_blog,    name='manage_edit_blog'),
+    path('manage/blog/delete/<int:pk>/',   views.manage_delete_blog,  name='manage_delete_blog'),
+    path('manage/blog/toggle/<int:pk>/',   views.manage_toggle_blog,  name='manage_toggle_blog'),
 ]

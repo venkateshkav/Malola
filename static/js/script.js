@@ -44,6 +44,7 @@ function addToCart(name,price,image,slug){const existing=cart.find(i=>i.slug===s
 function renderCart(){
   const total=cart.reduce((s,i)=>s+i.qty,0);
   if(total>0){cartBadge.style.display="flex";cartBadge.textContent=total>99?"99+":total;}else{cartBadge.style.display="none";}
+  var mobBadge=document.getElementById("mobCartBadge");if(mobBadge){if(total>0){mobBadge.style.display="flex";mobBadge.textContent=total>99?"99+":total;}else{mobBadge.style.display="none";}}
   cartItemsEl.innerHTML="";
   if(cart.length===0){cartItemsEl.appendChild(cartEmptyEl);cartEmptyEl.style.display="block";cartFooterEl.style.display="none";return;}
   cartEmptyEl.style.display="none";cartFooterEl.style.display="block";
@@ -182,11 +183,11 @@ async function submitAuth(url,payload,btn,errEl){
 function buildCheckoutModal(){
   const existing=document.getElementById('checkoutModal');if(existing)existing.remove();
   if(cart.length===0){showToast('<i class="fa-solid fa-basket-shopping"></i> Your cart is empty!');return;}
-  const itemsHtml=cart.map(item=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed rgba(21,101,192,.15)"><span style="font-weight:700;font-size:.88rem;color:var(--cd);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px">${item.name} <span style="color:rgba(13,43,107,.4)">×${item.qty}</span></span><span style="font-family:'Fredoka One',cursive;font-size:1rem;color:var(--aqua2);flex-shrink:0">₹${(item.price*item.qty).toFixed(0)}</span></div>`).join('');
+  const itemsHtml=cart.map(item=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed rgba(21,101,192,.15)"><span style="font-weight:700;font-size:.88rem;color:var(--cd);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px">${item.name} <span style="color:rgba(115,205,221,.4)">×${item.qty}</span></span><span style="font-family:'Fredoka One',cursive;font-size:1rem;color:var(--aqua2);flex-shrink:0">₹${(item.price*item.qty).toFixed(0)}</span></div>`).join('');
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const modal=document.createElement('div');modal.id='checkoutModal';
   modal.style.cssText='position:fixed;inset:0;z-index:3500;display:flex;align-items:center;justify-content:center;background:rgba(10,31,94,.55);backdrop-filter:blur(6px);padding:16px';
-  modal.innerHTML=`<div style="background:#fff;border-radius:28px;padding:32px 28px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.3)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><h2 style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--cd);margin:0"><i class="fa-solid fa-basket-shopping" style="color:var(--aqua2);margin-right:10px"></i>Your Order</h2><button id="coClose" style="background:rgba(13,43,107,.08);border:none;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;color:var(--cd);display:flex;align-items:center;justify-content:center">&times;</button></div><div style="margin-bottom:18px;max-height:200px;overflow-y:auto">${itemsHtml}</div><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-bottom:22px;border-top:2.5px solid var(--yellow)"><span style="font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(13,43,107,.5)">Total</span><span style="font-family:'Fredoka One',cursive;font-size:2rem;color:var(--cd)">₹${total.toFixed(0)}</span></div><form id="coForm"><div style="margin-bottom:12px"><input type="text" id="coName" placeholder="Full Name *" required style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></div><div style="margin-bottom:12px"><input type="tel" id="coPhone" placeholder="Phone Number *" required style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></div><div style="margin-bottom:20px"><textarea id="coAddress" placeholder="Delivery Address *" required rows="3" style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;resize:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></textarea></div><button type="submit" style="width:100%;height:56px;background:var(--yellow);border:none;border-radius:999px;font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--cd);cursor:pointer;box-shadow:0 8px 28px rgba(254,207,10,.45);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 40px rgba(254,207,10,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(254,207,10,.45)'">Place Order &nbsp;<i class="fa-solid fa-check-circle"></i></button></form></div>`;
+  modal.innerHTML=`<div style="background:#fff;border-radius:28px;padding:32px 28px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.3)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><h2 style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--cd);margin:0"><i class="fa-solid fa-basket-shopping" style="color:var(--aqua2);margin-right:10px"></i>Your Order</h2><button id="coClose" style="background:rgba(115,205,221,.08);border:none;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;color:var(--cd);display:flex;align-items:center;justify-content:center">&times;</button></div><div style="margin-bottom:18px;max-height:200px;overflow-y:auto">${itemsHtml}</div><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-bottom:22px;border-top:2.5px solid var(--yellow)"><span style="font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(115,205,221,.5)">Total</span><span style="font-family:'Fredoka One',cursive;font-size:2rem;color:var(--cd)">₹${total.toFixed(0)}</span></div><form id="coForm"><div style="margin-bottom:12px"><input type="text" id="coName" placeholder="Full Name *" required style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></div><div style="margin-bottom:12px"><input type="tel" id="coPhone" placeholder="Phone Number *" required style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></div><div style="margin-bottom:20px"><textarea id="coAddress" placeholder="Delivery Address *" required rows="3" style="width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:'Nunito',sans-serif;font-weight:700;outline:none;resize:none;box-sizing:border-box;transition:border-color .2s" onfocus="this.style.borderColor='var(--aqua2)'" onblur="this.style.borderColor='rgba(21,101,192,.2)'"></textarea></div><button type="submit" style="width:100%;height:56px;background:var(--yellow);border:none;border-radius:999px;font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--cd);cursor:pointer;box-shadow:0 8px 28px rgba(254,207,10,.45);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 40px rgba(254,207,10,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(254,207,10,.45)'">Place Order &nbsp;<i class="fa-solid fa-check-circle"></i></button></form></div>`;
   document.body.appendChild(modal);document.body.style.overflow='hidden';
   document.getElementById('coClose').addEventListener('click',closeCheckoutModal);
   modal.addEventListener('click',e=>{if(e.target===modal)closeCheckoutModal();});
@@ -391,7 +392,7 @@ function showToast(html,duration=3000){
 
   const cards = Array.from(track.querySelectorAll('.reel-card'));
   const total = cards.length;
-  const GAP   = 20;
+  const GAP   = 8;
   let current  = 1;
   let dragStartX = 0, dragDelta = 0, dragging = false;
 
@@ -421,6 +422,7 @@ function showToast(html,duration=3000){
         v.play().catch(() => {});
       } else if (!isActive) {
         v.pause();
+        v.load();  /* reset to empty — no frame shown on inactive cards */
         card.classList.remove('user-paused');
       }
     });
@@ -513,7 +515,7 @@ function showToast(html,duration=3000){
   if (section) {
     new IntersectionObserver(entries => {
       if (!entries[0].isIntersecting) {
-        cards.forEach(c => c.querySelector('.reel-video').pause());
+        cards.forEach(c => { const v=c.querySelector('.reel-video'); v.pause(); v.load(); });
       } else {
         const v = cards[current].querySelector('.reel-video');
         if (!cards[current].classList.contains('user-paused')) v.play().catch(() => {});
@@ -521,6 +523,11 @@ function showToast(html,duration=3000){
     }, { threshold: 0.2 }).observe(section);
   }
 
+  /* Reset all on init — only active card plays via IntersectionObserver */
+  cards.forEach((c, i) => {
+    const v = c.querySelector('.reel-video');
+    if (i !== current) { v.pause(); v.load(); }
+  });
   applyCarousel();
   window.addEventListener('resize', () => applyCarousel());
 })();

@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Blog — Malola Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height:100vh}
+.ap-header{background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(13,43,107,.35);position:sticky;top:0;z-index:100}
+.ap-brand{display:flex;align-items:center;gap:14px}
+.ap-logo-ring{width:40px;height:40px;border-radius:50%;background:#FECF0A;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b;flex-shrink:0}
+.ap-brand-name{font-family:'Fredoka One',cursive;font-size:1.15rem;color:#fff}
+.ap-brand-sub{font-size:.68rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ap-header-actions{display:flex;align-items:center;gap:10px}
+.ap-hdr-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;border:none;transition:all .2s;letter-spacing:.04em}
+.ap-hdr-site{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.ap-hdr-site:hover{background:rgba(255,255,255,.22)}
+.ap-hdr-logout{background:#FECF0A;color:#0d2b6b}
+.ap-hdr-logout:hover{background:#ffd93d}
+
+/* LAYOUT */
+.bl-wrap{max-width:1200px;margin:0 auto;padding:32px 32px 80px}
+.bl-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:32px}
+.bl-title{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#0d2b6b;display:flex;align-items:center;gap:10px}
+.bl-sub{font-size:.78rem;color:rgba(13,43,107,.45);font-weight:600;margin-top:4px}
+.ap-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;background:#FECF0A;color:#0d2b6b;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:900;text-decoration:none;box-shadow:0 6px 20px rgba(254,207,10,.4);transition:transform .2s,box-shadow .2s;border:none;cursor:pointer}
+.ap-btn-primary:hover{transform:translateY(-2px)}
+
+/* GRID */
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
+.bl-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(13,43,107,.07);border:2px solid transparent;transition:border-color .2s}
+.bl-card:hover{border-color:rgba(254,207,10,.4)}
+.bl-card-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#e8f0fe}
+.bl-card-img-ph{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#e8f0fe,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.bl-card-body{padding:20px 22px}
+.bl-card-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:#0d2b6b;margin-bottom:6px;line-height:1.25}
+.bl-card-meta{font-size:.7rem;font-weight:700;color:rgba(13,43,107,.4);margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bl-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:999px;font-size:.68rem;font-weight:800;white-space:nowrap}
+.chip-green{background:rgba(27,94,32,.12);color:#1b5e20}
+.chip-grey{background:rgba(0,0,0,.07);color:#555}
+.icon-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:10px;font-size:.75rem;font-weight:800;text-decoration:none;border:none;cursor:pointer;transition:all .15s;font-family:'Nunito',sans-serif}
+.icon-btn-edit{background:#e8f4fd;color:#1565c0}
+.icon-btn-edit:hover{background:#bbdefb}
+.icon-btn-del{background:#fdecea;color:#c62828}
+.icon-btn-del:hover{background:#ffcdd2}
+.icon-btn-green{background:rgba(27,94,32,.1);color:#1b5e20}
+.icon-btn-green:hover{background:rgba(27,94,32,.18)}
+.icon-btn-yellow{background:rgba(255,193,7,.15);color:#795800}
+.icon-btn-yellow:hover{background:rgba(255,193,7,.25)}
+.bl-view{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:10px;font-size:.75rem;font-weight:800;text-decoration:none;background:#f0f4ff;color:#0d2b6b;transition:background .15s}
+.bl-view:hover{background:#e0e7ff}
+
+/* EMPTY */
+.bl-empty{text-align:center;padding:80px 20px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(13,43,107,.07);color:rgba(13,43,107,.35)}
+.bl-empty i{font-size:3.5rem;margin-bottom:18px;display:block;color:rgba(13,43,107,.15)}
+.bl-empty h3{font-family:'Fredoka One',cursive;font-size:1.5rem;margin-bottom:8px;color:rgba(13,43,107,.5)}
+
+@media(max-width:900px){.bl-wrap{padding:20px 20px 60px}.ap-header{padding:0 20px}}
+@media(max-width:600px){.ap-header{padding:0 14px;height:56px}.bl-wrap{padding:14px 14px 50px}.bl-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="ap-header">
+  <div class="ap-brand">
+    <div class="ap-logo-ring">M</div>
+    <div>
+      <div class="ap-brand-name">Malola Admin</div>
+      <div class="ap-brand-sub">Blog Manager</div>
+    </div>
+  </div>
+  <div class="ap-header-actions">
+    <a href="/" class="ap-hdr-btn ap-hdr-site" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
+    <form method="post" action="/api/logout/" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="ap-hdr-btn ap-hdr-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </form>
+  </div>
+</header>
+
+{% include 'store/_admin_nav.html' %}
+
+<div class="bl-wrap">
+  <div class="bl-top">
+    <div>
+      <h1 class="bl-title"><i class="fa-solid fa-pen-nib" style="color:#1565C0"></i> Blog Posts</h1>
+      <p class="bl-sub">{{ posts|length }} article{{ posts|length|pluralize }} · Manage blog content for your site</p>
+    </div>
+    <a href="/manage/blog/add/" class="ap-btn-primary"><i class="fa-solid fa-plus"></i> New Article</a>
+  </div>
+
+  {% if posts %}
+  <div class="bl-grid">
+    {% for post in posts %}
+    <div class="bl-card">
+      {% if post.cover_image %}
+        <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="bl-card-img">
+      {% else %}
+        <div class="bl-card-img-ph">📝</div>
+      {% endif %}
+      <div class="bl-card-body">
+        <div class="bl-card-title">{{ post.title }}</div>
+        <div class="bl-card-meta">
+          <span><i class="fa-regular fa-calendar"></i> {{ post.published_at|date:"d M Y" }}</span>
+          <span><i class="fa-solid fa-user-pen"></i> {{ post.author }}</span>
+          {% if post.is_published %}
+            <span class="chip chip-green"><i class="fa-solid fa-circle" style="font-size:.35rem"></i> Published</span>
+          {% else %}
+            <span class="chip chip-grey">Draft</span>
+          {% endif %}
+        </div>
+        <div class="bl-card-actions">
+          <a href="/manage/blog/edit/{{ post.pk }}/" class="icon-btn icon-btn-edit"><i class="fa-solid fa-pen"></i> Edit</a>
+          {% if post.is_published %}
+            <form method="post" action="/manage/blog/toggle/{{ post.pk }}/">{% csrf_token %}
+              <button type="submit" class="icon-btn icon-btn-yellow"><i class="fa-solid fa-eye-slash"></i> Unpublish</button>
+            </form>
+            <a href="/blog/{{ post.slug }}/" target="_blank" class="bl-view"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          {% else %}
+            <form method="post" action="/manage/blog/toggle/{{ post.pk }}/">{% csrf_token %}
+              <button type="submit" class="icon-btn icon-btn-green"><i class="fa-solid fa-eye"></i> Publish</button>
+            </form>
+          {% endif %}
+          <form method="post" action="/manage/blog/delete/{{ post.pk }}/"
+                onsubmit="return confirm('Delete this article permanently?')">
+            {% csrf_token %}
+            <button type="submit" class="icon-btn icon-btn-del"><i class="fa-solid fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bl-empty">
+    <i class="fa-solid fa-pen-nib"></i>
+    <h3>No articles yet</h3>
+    <p style="font-size:.88rem;font-weight:600;margin-bottom:24px">Write your first blog post to engage your audience.</p>
+    <a href="/manage/blog/add/" class="ap-btn-primary"><i class="fa-solid fa-plus"></i> Write First Article</a>
+  </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

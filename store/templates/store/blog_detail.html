@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{{ post.title }} — Malola Blog</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+/* NAV */
+.bd-nav{background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 4px 20px rgba(13,43,107,.35)}
+.bd-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem;transition:color .2s}
+.bd-nav a:hover,.bd-nav a.active{color:#FECF0A}
+
+/* HERO */
+.bd-hero{position:relative;width:100%;max-height:480px;overflow:hidden}
+.bd-hero-img{width:100%;max-height:480px;object-fit:cover;display:block}
+.bd-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(115,205,221,.85) 0%,rgba(115,205,221,.2) 60%,transparent 100%)}
+.bd-hero-fallback{height:300px;background:linear-gradient(135deg,#73CDDD,#1565C0);display:flex;align-items:center;justify-content:center;font-size:5rem}
+.bd-hero-content{position:absolute;bottom:0;left:0;right:0;padding:40px clamp(20px,5vw,80px)}
+.bd-hero-content .bd-eyebrow{color:#FECF0A;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.bd-hero-content h1{font-family:'Fredoka One',cursive;font-size:clamp(1.8rem,4vw,3rem);color:#fff;line-height:1.15;max-width:820px}
+.bd-hero-meta{display:flex;align-items:center;gap:18px;margin-top:16px;flex-wrap:wrap}
+.bd-meta-item{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:700}
+.bd-meta-item i{color:#FECF0A;font-size:.75rem}
+
+/* LAYOUT */
+.bd-layout{max-width:1180px;margin:0 auto;padding:60px 24px 100px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:48px;align-items:start}
+.bd-article{background:#fff;border-radius:24px;padding:48px clamp(24px,4vw,52px);box-shadow:0 4px 24px rgba(115,205,221,.07);min-width:0;overflow:hidden}
+
+/* ARTICLE CONTENT */
+.bd-content{font-size:1rem;line-height:1.85;color:#2a3a5e;font-weight:500;word-break:break-word;overflow-wrap:break-word;min-width:0}
+.bd-content h2{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#73CDDD;margin:2rem 0 1rem;border-left:4px solid #FECF0A;padding-left:16px}
+.bd-content h3{font-family:'Fredoka One',cursive;font-size:1.25rem;color:#73CDDD;margin:1.6rem 0 .8rem}
+.bd-content p{margin-bottom:1.4rem;overflow-wrap:break-word;word-break:break-word}
+.bd-content ul,.bd-content ol{margin:1rem 0 1.4rem;padding-left:1.8rem}
+.bd-content li{margin-bottom:.5rem;overflow-wrap:break-word}
+.bd-content img{max-width:100%;height:auto;border-radius:16px;margin:1.5rem 0;box-shadow:0 4px 20px rgba(115,205,221,.1);display:block}
+.bd-content blockquote{background:#f0f4ff;border-left:4px solid #1565C0;border-radius:0 12px 12px 0;padding:18px 24px;margin:1.5rem 0;font-style:italic;color:#73CDDD;font-weight:700;overflow-wrap:break-word}
+.bd-content strong{color:#73CDDD;font-weight:800}
+.bd-content a{color:#1565C0;font-weight:700;overflow-wrap:break-word;word-break:break-all}
+.bd-content pre,.bd-content code{white-space:pre-wrap;word-break:break-all;overflow-wrap:break-word;background:#f0f4ff;border-radius:8px;padding:2px 6px;font-size:.88em}
+
+/* BACK LINK */
+.bd-back{display:inline-flex;align-items:center;gap:8px;color:#1565C0;font-weight:800;font-size:.85rem;text-decoration:none;margin-bottom:28px;padding:8px 18px;background:#e8f0fe;border-radius:999px;transition:background .2s}
+.bd-back:hover{background:#bbdefb}
+
+/* SIDEBAR */
+.bd-sidebar{position:sticky;top:84px;display:flex;flex-direction:column;gap:24px;min-width:0;overflow:hidden}
+.bd-sidebar-card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 24px rgba(115,205,221,.07);overflow:hidden}
+.bd-sidebar-title{font-family:'Fredoka One',cursive;font-size:1.05rem;color:#73CDDD;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.bd-sidebar-title i{color:#FECF0A}
+
+/* Recent posts */
+.bd-recent-item{display:flex;gap:14px;text-decoration:none;padding:12px 0;border-bottom:1.5px solid rgba(115,205,221,.06);transition:opacity .2s}
+.bd-recent-item:last-child{border-bottom:none;padding-bottom:0}
+.bd-recent-item:hover{opacity:.75}
+.bd-recent-thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.bd-recent-thumb img{width:64px;height:64px;border-radius:12px;object-fit:cover}
+.bd-recent-name{font-size:.82rem;font-weight:800;color:#73CDDD;line-height:1.3;margin-bottom:4px}
+.bd-recent-date{font-size:.68rem;font-weight:700;color:rgba(115,205,221,.4)}
+
+/* CTA card */
+.bd-cta-card{background:linear-gradient(135deg,#73CDDD,#1565C0);border-radius:20px;padding:28px;text-align:center;color:#fff}
+.bd-cta-card h3{font-family:'Fredoka One',cursive;font-size:1.2rem;margin-bottom:8px}
+.bd-cta-card p{font-size:.82rem;opacity:.75;margin-bottom:20px;line-height:1.6;font-weight:600}
+.bd-cta-card a{display:inline-flex;align-items:center;gap:8px;background:#FECF0A;color:#73CDDD;font-weight:900;font-size:.85rem;padding:12px 24px;border-radius:999px;text-decoration:none;transition:opacity .2s}
+.bd-cta-card a:hover{opacity:.88}
+
+@media(max-width:1024px){
+  .bd-layout{grid-template-columns:1fr;padding:36px 20px 80px;gap:28px}
+  .bd-sidebar{position:static}
+}
+@media(max-width:640px){
+  .bd-nav{padding:0 16px}
+  .bd-nav-links{display:none}
+  .bd-hero-content h1{font-size:clamp(1.4rem,5vw,2rem)}
+  .bd-article{padding:24px 18px}
+  .bd-layout{padding:24px 14px 64px}
+  .bd-content{font-size:.95rem}
+}
+</style>
+</head>
+<body style="background:#f7f9ff;overflow-x:hidden">
+
+<!-- NAV -->
+<nav class="bd-nav">
+  <a href="/">
+    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:36px">
+  </a>
+  <div class="bd-nav-links" style="display:flex;align-items:center;gap:24px">
+    <a href="/">Home</a>
+    <a href="/shop/">Shop</a>
+    <a href="/about/">About</a>
+    <a href="/blog/" class="active">Blog</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="bd-hero">
+  {% if post.cover_image %}
+    <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="bd-hero-img">
+    <div class="bd-hero-overlay"></div>
+  {% else %}
+    <div class="bd-hero-fallback">🌿</div>
+  {% endif %}
+  <div class="bd-hero-content">
+    <div class="bd-eyebrow"><i class="fa-solid fa-seedling"></i> Malola Journal</div>
+    <h1>{{ post.title }}</h1>
+    <div class="bd-hero-meta">
+      <span class="bd-meta-item"><i class="fa-regular fa-calendar"></i> {{ post.published_at|date:"d M Y" }}</span>
+      <span class="bd-meta-item"><i class="fa-solid fa-user-pen"></i> {{ post.author }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="bd-layout">
+
+  <!-- ARTICLE -->
+  <div>
+    <a href="/blog/" class="bd-back"><i class="fa-solid fa-arrow-left"></i> Back to Blog</a>
+    <article class="bd-article">
+      <div class="bd-content">{{ post.content|safe }}</div>
+    </article>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="bd-sidebar">
+    {% if recent %}
+    <div class="bd-sidebar-card">
+      <div class="bd-sidebar-title"><i class="fa-solid fa-newspaper"></i> Recent Articles</div>
+      {% for r in recent %}
+      <a href="/blog/{{ r.slug }}/" class="bd-recent-item">
+        <div class="bd-recent-thumb">
+          {% if r.cover_image %}<img src="{{ r.cover_image.url }}" alt="{{ r.title }}">{% else %}🌿{% endif %}
+        </div>
+        <div>
+          <div class="bd-recent-name">{{ r.title }}</div>
+          <div class="bd-recent-date">{{ r.published_at|date:"d M Y" }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bd-cta-card">
+      <h3>Love Healthy Snacking?</h3>
+      <p>Explore our range of millet-powered snacks made with real ingredients.</p>
+      <a href="/shop/"><i class="fa-solid fa-bag-shopping"></i> Shop Now</a>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Footer strip -->
+<div style="background:#73CDDD;padding:28px 24px;text-align:center">
+  <p style="color:rgba(255,255,255,.45);font-size:.8rem;font-weight:700">© 2025 Malola Healthy Snacks · <a href="/" style="color:#FECF0A;text-decoration:none">Back to Home</a></p>
+</div>
+
+</body>
+</html>

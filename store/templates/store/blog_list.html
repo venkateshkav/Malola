@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Blog — Malola Healthy Snacks</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+.bl-hero{background:linear-gradient(135deg,#73CDDD 0%,#1565C0 100%);padding:100px 24px 72px;text-align:center;position:relative;overflow:hidden}
+.bl-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.bl-hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(254,207,10,.15);border:1.5px solid rgba(254,207,10,.35);color:#FECF0A;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:6px 18px;border-radius:999px;margin-bottom:20px}
+.bl-hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,5vw,3.8rem);color:#fff;margin-bottom:14px;line-height:1.1}
+.bl-hero h1 span{color:#FECF0A}
+.bl-hero p{color:rgba(255,255,255,.65);font-size:1rem;max-width:520px;margin:0 auto;font-weight:600;line-height:1.7}
+
+.bl-container{max-width:1180px;margin:0 auto;padding:64px 24px 100px}
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:36px}
+
+.bl-card{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(115,205,221,.07);transition:transform .25s,box-shadow .25s;text-decoration:none;display:flex;flex-direction:column}
+.bl-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(115,205,221,.14)}
+.bl-card-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#e8f0fe}
+.bl-card-img-placeholder{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#e8f0fe,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.bl-card-body{padding:26px 28px 28px;flex:1;display:flex;flex-direction:column}
+.bl-card-meta{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.bl-card-date{font-size:.7rem;font-weight:800;color:rgba(115,205,221,.4);text-transform:uppercase;letter-spacing:.08em}
+.bl-card-author{font-size:.7rem;font-weight:800;color:#1565C0;display:flex;align-items:center;gap:5px}
+.bl-card-title{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#73CDDD;margin-bottom:10px;line-height:1.25}
+.bl-card-excerpt{font-size:.88rem;color:rgba(115,205,221,.55);line-height:1.7;font-weight:600;flex:1}
+.bl-card-cta{display:inline-flex;align-items:center;gap:7px;margin-top:20px;font-size:.8rem;font-weight:900;color:#1565C0;text-transform:uppercase;letter-spacing:.06em}
+.bl-card-cta i{transition:transform .2s}
+.bl-card:hover .bl-card-cta i{transform:translateX(4px)}
+
+.bl-empty{text-align:center;padding:80px 20px;color:rgba(115,205,221,.4)}
+.bl-empty i{font-size:3.5rem;margin-bottom:20px;display:block;color:rgba(115,205,221,.15)}
+.bl-empty h3{font-family:'Fredoka One',cursive;font-size:1.8rem;color:rgba(115,205,221,.45);margin-bottom:10px}
+.bl-empty p{font-size:.95rem;font-weight:600}
+
+/* NAV overrides for this page */
+#mainNav{position:sticky;top:0;z-index:200;background:#0d2b6b!important}
+#mainNav .nav-logo-img{filter:none}
+#mainNav .nav-links a{color:rgba(255,255,255,.75)!important}
+#mainNav .nav-links a:hover{color:#FECF0A!important}
+#mainNav .btn-login{color:#fff!important;border-color:rgba(255,255,255,.35)!important}
+
+@media(max-width:768px){
+  .bl-container{padding:40px 16px 80px}
+  .bl-grid{grid-template-columns:1fr;gap:24px}
+  .bl-hero{padding:80px 20px 56px}
+}
+</style>
+</head>
+<body style="background:#f7f9ff">
+
+<!-- Minimal nav -->
+<nav style="background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 4px 20px rgba(13,43,107,.35)">
+  <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:12px">
+    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:38px">
+  </a>
+  <div style="display:flex;align-items:center;gap:24px">
+    <a href="/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">Home</a>
+    <a href="/shop/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">Shop</a>
+    <a href="/about/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">About</a>
+    <a href="/blog/" style="color:#FECF0A;text-decoration:none;font-weight:800;font-size:.88rem">Blog</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="bl-hero">
+  <div class="bl-hero-eyebrow"><i class="fa-solid fa-seedling"></i> Malola Journal</div>
+  <h1>Stories of <span>Health</span> &amp; Flavour</h1>
+  <p>Recipes, nutrition tips, and snacking inspiration from the Malola kitchen.</p>
+</div>
+
+<!-- Posts -->
+<div class="bl-container">
+  {% if posts %}
+  <div class="bl-grid">
+    {% for post in posts %}
+    <a href="/blog/{{ post.slug }}/" class="bl-card">
+      {% if post.cover_image %}
+        <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="bl-card-img" loading="lazy">
+      {% else %}
+        <div class="bl-card-img-placeholder">🌿</div>
+      {% endif %}
+      <div class="bl-card-body">
+        <div class="bl-card-meta">
+          <span class="bl-card-date"><i class="fa-regular fa-calendar"></i> {{ post.published_at|date:"d M Y" }}</span>
+          <span class="bl-card-author"><i class="fa-solid fa-user-pen"></i> {{ post.author }}</span>
+        </div>
+        <div class="bl-card-title">{{ post.title }}</div>
+        {% if post.excerpt %}
+        <div class="bl-card-excerpt">{{ post.excerpt }}</div>
+        {% endif %}
+        <div class="bl-card-cta">Read More <i class="fa-solid fa-arrow-right"></i></div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bl-empty">
+    <i class="fa-solid fa-pen-to-square"></i>
+    <h3>No articles yet</h3>
+    <p>Check back soon — great content is on the way!</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Footer strip -->
+<div style="background:#73CDDD;padding:28px 24px;text-align:center">
+  <p style="color:rgba(255,255,255,.45);font-size:.8rem;font-weight:700">© 2025 Malola Healthy Snacks · <a href="/" style="color:#FECF0A;text-decoration:none">Back to Home</a></p>
+</div>
+
+</body>
+</html>

@@ -266,3 +266,35 @@ class Coupon(models.Model):
         else:
             disc = float(self.discount_value)
         return round(min(disc, total), 2)
+
+
+# ── Blog ──────────────────────────────────────────────────────────────────────
+
+class BlogPost(models.Model):
+    title        = models.CharField(max_length=200)
+    slug         = models.SlugField(unique=True, blank=True, max_length=220)
+    cover_image  = models.ImageField(upload_to='blog/', blank=True, null=True)
+    excerpt      = models.TextField(max_length=400, blank=True, help_text='Short summary shown on the list page')
+    content      = models.TextField(help_text='Full article body (HTML allowed)')
+    author       = models.CharField(max_length=100, default='Malola Team')
+    is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-published_at']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(self.title) or 'post'
+            slug = base
+            n = 1
+            while BlogPost.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f'{base}-{n}'
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
