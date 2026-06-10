@@ -48,6 +48,9 @@ urlpatterns = [
     path('api/razorpay-webhook/',        views.razorpay_webhook,        name='razorpay_webhook'),
     path('api/payment-failed/',          views.record_payment_failure,  name='payment_failed'),
 
+    # product list (used by search widget)
+    path('api/products/',                views.product_list_api,  name='product_list_api'),
+
     # order API
     path('api/place-order/',             views.place_order,       name='place_order'),
     path('api/orders/<int:order_id>/',   views.get_order,         name='get_order'),

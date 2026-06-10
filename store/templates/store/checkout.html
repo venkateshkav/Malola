@@ -210,6 +210,23 @@ body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height
   .co-card-header h2{font-size:1.55rem}
   .co-input,.co-select{height:56px;font-size:.95rem}
 }</style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1549283419509499');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -620,10 +637,11 @@ body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height
 <!-- Razorpay Checkout.js -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-const ORDER_ID   = {{ order.id }};
-const ORDER_TOTAL= {{ order.total }};
-const RZP_KEY    = '{{ razorpay_key }}';
-const CSRF       = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+const ORDER_ID    = {{ order.id }};
+const ORDER_TOTAL = {{ order.total }};
+const ORDER_ITEMS = {{ order.items|safe }};
+const RZP_KEY     = '{{ razorpay_key }}';
+const CSRF        = document.querySelector('meta[name=csrf-token]').getAttribute('content');
 
 let selectedMethod = null;
 
@@ -680,6 +698,15 @@ function showSuccess(isCod) {
     document.getElementById('successSub').textContent    = 'Your payment is confirmed. We\'ll ship your order shortly.';
   }
   overlay.classList.add('show');
+  if (typeof fbq === 'function') {
+    fbq('track', 'Purchase', {
+      value:        ORDER_TOTAL,
+      currency:     'INR',
+      content_ids:  ORDER_ITEMS.map(i => i.slug),
+      content_type: 'product',
+      num_items:    ORDER_ITEMS.reduce((s, i) => s + (i.qty || 1), 0),
+    });
+  }
 }
 
 /* ── main payment handler ─────────────────────────────────────────────────── */

@@ -57,7 +57,7 @@ function showToast(html,duration=3000){
 }
 
 /* ══ CART ══ */
-let cart=[];
+let cart=(()=>{try{return JSON.parse(localStorage.getItem('malola_cart'))||[];}catch{return [];}})();
 const cartSidebar =document.getElementById('cartSidebar');
 const cartOverlay =document.getElementById('cartOverlay');
 const cartItemsEl =document.getElementById('cartItems');
@@ -73,24 +73,59 @@ document.getElementById('navCartBtn').addEventListener('click',openCart);
 document.getElementById('cartClose').addEventListener('click',closeCart);
 cartOverlay.addEventListener('click',closeCart);
 
-function addToCart(name,price,image){
-  const existing=cart.find(i=>i.name===name);
-  if(existing){existing.qty+=1;}else{cart.push({name,price:parseFloat(price),image,qty:1});}
+let cartCoupon={code:'',discount:0};
+
+function addToCart(name,price,image,slug,mrp){
+  const existing=cart.find(i=>i.slug&&i.slug===slug||i.name===name);
+  if(existing){existing.qty+=1;}
+  else{cart.push({name,price:parseFloat(price),image,slug:slug||'',mrp:mrp?parseFloat(mrp):null,qty:1});}
   renderCart();
 }
+
 function renderCart(){
-  const total=cart.reduce((s,i)=>s+i.qty,0);
-  if(total>0){cartBadgeEl.style.display='flex';cartBadgeEl.textContent=total>99?'99+':total;}
+  try{localStorage.setItem('malola_cart',JSON.stringify(cart));}catch{}
+  const count=cart.reduce((s,i)=>s+i.qty,0);
+  if(count>0){cartBadgeEl.style.display='flex';cartBadgeEl.textContent=count>99?'99+':count;}
   else{cartBadgeEl.style.display='none';}
+  const countBadge=document.getElementById('cartCountBadge');
+  if(countBadge)countBadge.textContent=count>0?`(${count} item${count!==1?'s':''})`: '';
+  const cartBottom=document.getElementById('cartBottom');
   cartItemsEl.innerHTML='';
-  if(cart.length===0){cartItemsEl.appendChild(cartEmptyEl);cartEmptyEl.style.display='block';cartFooterEl.style.display='none';return;}
-  cartEmptyEl.style.display='none';cartFooterEl.style.display='block';
+  if(cart.length===0){
+    cartItemsEl.appendChild(cartEmptyEl);cartEmptyEl.style.display='block';
+    if(cartBottom)cartBottom.style.display='none';
+    cartCoupon={code:'',discount:0};
+    const inp=document.getElementById('cartCouponInput');const msg=document.getElementById('cartCouponMsg');
+    if(inp)inp.value='';if(msg){msg.style.display='none';msg.textContent='';}
+    return;
+  }
+  cartEmptyEl.style.display='none';
+  if(cartBottom)cartBottom.style.display='block';
+  let subtotal=0,mrpTotal=0;
+  cart.forEach(item=>{subtotal+=item.price*item.qty;mrpTotal+=(item.mrp&&item.mrp>item.price?item.mrp:item.price)*item.qty;});
   cart.forEach((item,idx)=>{
     const row=document.createElement('div');row.className='cart-item';
-    row.innerHTML=`<img class="cart-item-img" src="${item.image}" alt="${item.name}"><div class="cart-item-body"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">&#8377;${(item.price*item.qty).toFixed(2)}</div><div class="cart-qty"><button class="qty-btn" data-idx="${idx}" data-action="dec">&#8722;</button><span class="qty-num">${item.qty}</span><button class="qty-btn" data-idx="${idx}" data-action="inc">&#43;</button></div></div><button class="cart-item-remove" data-idx="${idx}" aria-label="Remove"><i class="fa-solid fa-xmark"></i></button>`;
+    const hasMrp=item.mrp&&parseFloat(item.mrp)>item.price;
+    const pct=hasMrp?Math.round((parseFloat(item.mrp)-item.price)/parseFloat(item.mrp)*100):0;
+    row.innerHTML=`<img class="cart-item-img" src="${item.image}" alt="${item.name}">
+      <div class="cart-item-body">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-prices">
+          ${hasMrp?`<span class="cart-item-mrp">&#8377;${parseFloat(item.mrp).toFixed(0)}</span>`:''}
+          <span class="cart-item-price">&#8377;${item.price.toFixed(0)}</span>
+          ${pct>0?`<span class="cart-item-off">${pct}% OFF</span>`:''}
+        </div>
+        <div class="cart-item-actions">
+          <div class="cart-qty">
+            <button class="qty-btn" data-idx="${idx}" data-action="dec">&#8722;</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="qty-btn" data-idx="${idx}" data-action="inc">&#43;</button>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      </div>`;
     cartItemsEl.appendChild(row);
   });
-  cartTotalEl.innerHTML=`&#8377;${cart.reduce((s,i)=>s+i.price*i.qty,0).toFixed(2)}`;
   cartItemsEl.querySelectorAll('.qty-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const idx=+btn.dataset.idx;
@@ -101,7 +136,49 @@ function renderCart(){
   cartItemsEl.querySelectorAll('.cart-item-remove').forEach(btn=>{
     btn.addEventListener('click',()=>{cart.splice(+btn.dataset.idx,1);renderCart();});
   });
+  const finalTotal=Math.max(0,subtotal-cartCoupon.discount);
+  const totalSavings=(mrpTotal-subtotal)+cartCoupon.discount;
+  const savingsBar=document.getElementById('cartSavingsBar');
+  const savingsText=document.getElementById('cartSavingsText');
+  if(savingsBar&&savingsText){
+    if(totalSavings>0){savingsBar.style.display='flex';savingsText.textContent=` ₹${totalSavings.toFixed(0)} Saved so far!`;}
+    else{savingsBar.style.display='none';}
+  }
+  if(cartTotalEl)cartTotalEl.innerHTML=`&#8377;${finalTotal.toFixed(0)}`;
+  const mrpEl=document.getElementById('cartTotalMrp');
+  const pctEl=document.getElementById('cartTotalPct');
+  if(mrpEl){
+    if(mrpTotal>subtotal||cartCoupon.discount>0){mrpEl.textContent=`₹${mrpTotal.toFixed(0)}`;mrpEl.style.display='inline';}
+    else{mrpEl.style.display='none';}
+  }
+  if(pctEl){
+    const tp=mrpTotal>0?Math.round((mrpTotal-finalTotal)/mrpTotal*100):0;
+    if(tp>0){pctEl.textContent=`(${tp}% OFF)`;pctEl.style.display='inline';}else{pctEl.style.display='none';}
+  }
 }
+renderCart();
+
+/* ══ CART COUPON ══ */
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#cartCouponApply'))return;
+  const inp=document.getElementById('cartCouponInput');
+  const msg=document.getElementById('cartCouponMsg');
+  const code=(inp?.value||'').trim().toUpperCase();
+  if(!code){if(msg){msg.textContent='Please enter a coupon code.';msg.className='cart-coupon-msg error';msg.style.display='block';}return;}
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const btn=document.getElementById('cartCouponApply');
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  fetch('/api/apply-coupon/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCSRF()},body:JSON.stringify({code,cart_total:subtotal})})
+    .then(r=>r.json()).then(d=>{
+      if(msg){
+        if(d.valid){cartCoupon={code,discount:d.discount_amount};msg.textContent=`✔ ₹${d.discount_amount} off applied!`;msg.className='cart-coupon-msg success';}
+        else{cartCoupon={code:'',discount:0};msg.textContent=d.error||'Invalid coupon';msg.className='cart-coupon-msg error';}
+        msg.style.display='block';
+      }
+      renderCart();
+    }).catch(()=>{if(msg){msg.textContent='Could not apply coupon.';msg.className='cart-coupon-msg error';msg.style.display='block';}})
+    .finally(()=>{if(btn){btn.disabled=false;btn.textContent='APPLY';}});
+});
 
 /* ══ AUTH ══ */
 function getCSRF(){return document.querySelector('meta[name="csrf-token"]')?.content||'';}
@@ -258,11 +335,11 @@ async function _coSubmit(name,phone,address){
   const btn=document.getElementById('coSubmit')||document.getElementById('coConfirmBtn');
   if(btn){btn.disabled=true;btn.innerHTML='Proceeding… <i class="fa-solid fa-spinner fa-spin"></i>';}
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const payload={name,phone,address,items:cart.map(i=>({name:i.name,price:i.price,qty:i.qty,image:i.image})),total};
+  const payload={name,phone,address,items:cart.map(i=>({name:i.name,slug:i.slug,qty:i.qty,image:i.image})),total,coupon_code:cartCoupon.code||''};
   try{
     const resp=await fetch('/api/place-order/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await resp.json();
-    if(data.success){cart=[];renderCart();closeCart();closeCheckoutModal();window.location.href=data.redirect;}
+    if(data.success){cart=[];cartCoupon={code:'',discount:0};renderCart();closeCart();closeCheckoutModal();window.location.href=data.redirect;}
     else throw new Error(data.error||'Unknown error');
   }catch(err){
     if(btn){btn.disabled=false;btn.innerHTML='Proceed to Payment <i class="fa-solid fa-arrow-right"></i>';}
@@ -564,8 +641,11 @@ document.querySelectorAll('.mega-item[data-pdp]').forEach(item=>{
   document.getElementById('pdpMinus').addEventListener('click',()=>{if(qty>1){qty--;qtyEl.textContent=qty;}});
   document.getElementById('pdpPlus').addEventListener('click',()=>{qty++;qtyEl.textContent=qty;});
   document.getElementById('pdpAddCart').addEventListener('click',()=>{
-    const selectedWeight=weightsEl.querySelector('.pdp-w-btn.active').textContent;
-    for(let i=0;i<qty;i++)addToCart(product.name+' ('+selectedWeight+')',currentPrice,product.image);
+    const activeBtn=weightsEl.querySelector('.pdp-w-btn.active');
+    const selectedWeight=activeBtn.textContent;
+    const selectedGrams=parseInt(selectedWeight);
+    const currentMrp=product.discountPrice?Math.round(product.discountPrice*selectedGrams/baseGrams):null;
+    for(let i=0;i<qty;i++)addToCart(product.name+' ('+selectedWeight+')',currentPrice,product.image,product.id,currentMrp);
     openCart();
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+product.name+' added to cart!');
   });
