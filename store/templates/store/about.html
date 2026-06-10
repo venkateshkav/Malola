@@ -1,0 +1,444 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>About Us — Malola | A Mom's Yes!</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Shadows+Into+Light&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+/* ── RESET & BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidden}
+
+/* ── BRAND TOKENS ── */
+:root{
+  --fresh:#CCDD54;
+  --aqua:#73CDDD;
+  --gold:#FECF0A;
+  --dark:#1a2408;
+  --grad:linear-gradient(135deg,#CCDD54 0%,#73CDDD 100%);
+}
+
+/* ── NAV ── */
+.ab-nav{background:#fff;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.08)}
+.ab-nav-logo img{height:40px}
+.ab-nav-links{display:flex;align-items:center;gap:28px}
+.ab-nav-links a{color:#444;text-decoration:none;font-weight:700;font-size:.9rem;transition:color .2s}
+.ab-nav-links a:hover,.ab-nav-links a.active{color:#73CDDD}
+.ab-nav-shop{background:var(--gold);color:#222!important;padding:9px 22px;border-radius:999px;font-weight:900!important}
+
+/* ── HERO ── */
+.hero{background:var(--grad);padding:100px 24px 80px;text-align:center;position:relative;overflow:hidden;min-height:420px;display:flex;align-items:center;justify-content:center}
+.hero-deco{position:absolute;border-radius:50%;opacity:.15}
+.hero-deco.d1{width:320px;height:320px;background:#fff;top:-80px;left:-80px}
+.hero-deco.d2{width:200px;height:200px;background:#fff;bottom:-60px;right:-40px}
+.hero-deco.d3{width:100px;height:100px;background:#fff;top:40px;right:18%}
+.hero-inner{position:relative;z-index:1}
+.hero-tag{display:inline-block;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.6);color:#fff;font-size:.72rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;padding:7px 20px;border-radius:999px;margin-bottom:22px}
+.hero h1{font-size:clamp(2.4rem,5.5vw,4.2rem);color:#fff;line-height:1.1;margin-bottom:18px;font-weight:900;text-shadow:0 2px 12px rgba(0,0,0,.12)}
+.hero h1 span{color:#FECF0A;font-style:italic}
+.hero-tagline{font-family:'Shadows Into Light',cursive;font-size:clamp(1.4rem,3vw,2.2rem);color:#fff;margin-bottom:16px;opacity:.95}
+.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.85);max-width:580px;margin:0 auto;font-weight:600;line-height:1.8}
+
+/* ── SECTION WRAPPER ── */
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+.section-sm{padding:56px 0}
+
+/* ── EYEBROW ── */
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.14em;color:#73CDDD;margin-bottom:14px}
+.eyebrow::before{content:'';display:block;width:28px;height:3px;border-radius:999px;background:var(--gold)}
+.h2{font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:900;color:#222;line-height:1.2;margin-bottom:18px}
+.h2 span{color:#73CDDD}
+.body-text{font-size:.97rem;color:#555;line-height:1.85;font-weight:600;margin-bottom:16px}
+
+/* ── STORY SECTION ── */
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.story-img-wrap{position:relative}
+.story-img{width:100%;border-radius:28px;object-fit:cover;display:block;box-shadow:0 16px 56px rgba(0,0,0,.12)}
+.story-badge{position:absolute;bottom:-18px;right:-18px;background:var(--gold);border-radius:20px;padding:18px 22px;font-weight:900;font-size:1rem;color:#222;box-shadow:0 8px 28px rgba(254,207,10,.4);text-align:center;min-width:120px;line-height:1.2}
+.story-badge strong{font-size:2rem;display:block}
+
+/* ── STATS BAND ── */
+.stats-band{background:var(--grad);padding:56px 24px}
+.stats-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat-num{font-size:2.8rem;font-weight:900;color:#fff;line-height:1;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.1)}
+.stat-label{font-size:.78rem;font-weight:800;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.1em}
+
+/* ── MISSION ── */
+.mission-band{background:#FECF0A;padding:72px 24px;text-align:center;position:relative;overflow:hidden}
+.mission-band::before{content:'"';position:absolute;font-size:28rem;color:rgba(255,255,255,.15);line-height:1;top:-60px;left:-20px;pointer-events:none;font-family:Georgia,serif}
+.mission-band h2{font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;color:#222;margin-bottom:14px;position:relative}
+.mission-tagline{font-family:'Shadows Into Light',cursive;font-size:clamp(1.6rem,3vw,2.4rem);color:#222;margin-bottom:10px;opacity:.75;position:relative}
+.mission-band p{font-size:1.05rem;color:rgba(0,0,0,.6);max-width:600px;margin:0 auto 30px;font-weight:700;line-height:1.75;position:relative}
+.mission-btn{display:inline-flex;align-items:center;gap:10px;background:#222;color:#FECF0A;font-weight:900;font-size:.95rem;padding:16px 36px;border-radius:999px;text-decoration:none;box-shadow:0 8px 28px rgba(0,0,0,.2);transition:transform .2s;position:relative}
+.mission-btn:hover{transform:translateY(-3px)}
+
+/* ── PILLARS ── */
+.pillars-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:48px}
+.pillar-card{background:#fff;border-radius:22px;padding:30px 24px;box-shadow:0 4px 24px rgba(0,0,0,.07);border-top:5px solid var(--fresh);transition:transform .25s,box-shadow .25s;text-align:center}
+.pillar-card:nth-child(2){border-top-color:var(--aqua)}
+.pillar-card:nth-child(3){border-top-color:var(--gold)}
+.pillar-card:nth-child(4){border-top-color:#CCDD54}
+.pillar-card:nth-child(5){border-top-color:#73CDDD}
+.pillar-card:hover{transform:translateY(-6px);box-shadow:0 14px 40px rgba(0,0,0,.12)}
+.pillar-icon{width:62px;height:62px;border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem}
+.pillar-card:nth-child(1) .pillar-icon{background:rgba(204,221,84,.2);color:#7a9600}
+.pillar-card:nth-child(2) .pillar-icon{background:rgba(115,205,221,.2);color:#2a8fa0}
+.pillar-card:nth-child(3) .pillar-icon{background:rgba(254,207,10,.2);color:#a07000}
+.pillar-card:nth-child(4) .pillar-icon{background:rgba(204,221,84,.15);color:#7a9600}
+.pillar-card:nth-child(5) .pillar-icon{background:rgba(115,205,221,.15);color:#2a8fa0}
+.pillar-title{font-weight:900;font-size:1rem;color:#222;margin-bottom:8px}
+.pillar-desc{font-size:.83rem;color:#666;line-height:1.65;font-weight:600}
+
+/* ── PERSONALITY ── */
+.personality-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:48px}
+.pers-card{border-radius:22px;padding:32px 28px;position:relative;overflow:hidden}
+.pers-card.fun{background:rgba(204,221,84,.15);border:2px solid rgba(204,221,84,.4)}
+.pers-card.people{background:rgba(115,205,221,.12);border:2px solid rgba(115,205,221,.35)}
+.pers-card.growth{background:rgba(254,207,10,.12);border:2px solid rgba(254,207,10,.4)}
+.pers-card-tag{display:inline-block;font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.12em;padding:4px 14px;border-radius:999px;margin-bottom:14px}
+.fun .pers-card-tag{background:rgba(204,221,84,.4);color:#5a7000}
+.people .pers-card-tag{background:rgba(115,205,221,.35);color:#1a6a7a}
+.growth .pers-card-tag{background:rgba(254,207,10,.4);color:#7a5800}
+.pers-title{font-weight:900;font-size:1.2rem;color:#222;margin-bottom:10px}
+.pers-body{font-size:.85rem;color:#555;line-height:1.75;font-weight:600;margin-bottom:16px}
+.pers-list{list-style:none;padding:0}
+.pers-list li{font-size:.82rem;color:#444;font-weight:700;padding:5px 0;display:flex;align-items:flex-start;gap:8px}
+.pers-list li::before{content:'✦';font-size:.55rem;margin-top:4px;flex-shrink:0;color:#73CDDD}
+
+/* ── VALUES ── */
+.values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:48px}
+.value-card{background:#fff;border-radius:22px;padding:30px 26px;box-shadow:0 4px 24px rgba(0,0,0,.07);transition:transform .25s}
+.value-card:hover{transform:translateY(-5px)}
+.value-icon{width:56px;height:56px;border-radius:16px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;margin-bottom:16px}
+.value-title{font-weight:900;font-size:1.05rem;color:#222;margin-bottom:8px}
+.value-desc{font-size:.85rem;color:#666;line-height:1.7;font-weight:600}
+
+/* ── CERTS ── */
+.certs-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:40px}
+.cert{background:#fff;border-radius:14px;padding:14px 22px;box-shadow:0 4px 16px rgba(0,0,0,.07);display:flex;align-items:center;gap:10px;font-weight:800;font-size:.88rem;color:#222;border:2px solid rgba(115,205,221,.25)}
+.cert-icon{font-size:1.5rem}
+
+/* ── PROMISE ── */
+.promise-band{background:linear-gradient(135deg,#CCDD54,#73CDDD);padding:70px 24px}
+.promise-inner{max-width:900px;margin:0 auto;text-align:center}
+.promise-band h2{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:#fff;margin-bottom:14px;text-shadow:0 2px 8px rgba(0,0,0,.1)}
+.promise-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin:36px 0}
+.promise-item{background:rgba(255,255,255,.25);border-radius:16px;padding:20px;text-align:center;backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,.4)}
+.promise-item .pi-icon{font-size:1.8rem;margin-bottom:10px;display:block}
+.promise-item p{font-size:.88rem;font-weight:800;color:#fff;line-height:1.5}
+.promise-item span{font-size:.75rem;color:rgba(255,255,255,.75);font-weight:600}
+
+/* ── SOCIAL SECTION ── */
+.social-section{padding:90px 0;background:#fff;overflow:hidden}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;max-width:1140px;margin:0 auto;padding:0 24px}
+.social-img-wrap{position:relative;border-radius:28px;overflow:hidden;box-shadow:0 20px 64px rgba(0,0,0,.12)}
+.social-img{width:100%;display:block;border-radius:28px}
+.social-img-label{position:absolute;top:18px;left:18px;background:#FECF0A;color:#222;font-weight:900;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;padding:7px 16px;border-radius:999px;box-shadow:0 4px 16px rgba(254,207,10,.4)}
+.social-text{position:relative}
+.social-handles{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.social-handle{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;font-weight:800;font-size:.82rem;text-decoration:none;transition:transform .2s,box-shadow .2s;border:2px solid transparent}
+.social-handle:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.sh-ig{background:#fdf0ff;color:#8e24aa;border-color:#e1bee7}
+.sh-fb{background:#e8f4fd;color:#1565C0;border-color:#bbdefb}
+.sh-yt{background:#fff3e0;color:#e53935;border-color:#ffccbc}
+.sh-wa{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
+.social-quote{background:linear-gradient(135deg,rgba(204,221,84,.15),rgba(115,205,221,.12));border-left:4px solid #73CDDD;border-radius:0 16px 16px 0;padding:18px 22px;margin-top:22px;font-style:italic;font-size:.92rem;color:#444;font-weight:700;line-height:1.7}
+.social-quote strong{color:#222;font-style:normal}
+
+/* ── FOOTER STRIP ── */
+.footer-strip{background:#222;padding:28px 24px;text-align:center}
+.footer-strip p{color:rgba(255,255,255,.4);font-size:.8rem;font-weight:700}
+.footer-strip a{color:#FECF0A;text-decoration:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .story-grid{grid-template-columns:1fr;gap:40px}
+  .story-badge{right:12px;bottom:-12px}
+  .personality-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .social-grid{grid-template-columns:1fr;gap:36px}
+}
+@media(max-width:640px){
+  .ab-nav{padding:0 16px}
+  .ab-nav-links{display:none}
+  .hero{padding:80px 16px 60px}
+  .section{padding:56px 0}
+  .stat-num{font-size:2.2rem}
+  .social-section{padding:56px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="ab-nav">
+  <div class="ab-nav-logo">
+    <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola"></a>
+  </div>
+  <div class="ab-nav-links">
+    <a href="/">Home</a>
+    <a href="/shop/">Shop</a>
+    <a href="/about/" class="active">About</a>
+    <a href="/blog/">Blog</a>
+    <a href="/shop/" class="ab-nav-shop">Shop Now</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-deco d1"></div>
+  <div class="hero-deco d2"></div>
+  <div class="hero-deco d3"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">Our Story &amp; Brand</div>
+    <h1>Good Food Isn't Just<br>Healthy… It's <span>Happy.</span></h1>
+    <div class="hero-tagline">"A Mom's Yes!"</div>
+    <p class="hero-sub">Malola bridges the gap between health and indulgence — blending the goodness of millets, ragi, and quinoa with fun formats families actually love.</p>
+  </div>
+</div>
+
+<!-- STORY -->
+<div class="section">
+  <div class="wrap">
+    <div class="story-grid">
+      <div>
+        <div class="eyebrow">How It Started</div>
+        <h2 class="h2">A Mom's Mission<br>Became a <span>Movement</span></h2>
+        <p class="body-text">When Ovya couldn't find breakfast options her picky eater truly loved, she turned to her family's grain heritage — millets, ragi, oats, and quinoa passed down through generations. Together with her brother Pranav, she started experimenting in their home kitchen.</p>
+        <p class="body-text">What began as weekend recipes soon became a brand. <strong>Malola</strong> — meaning "Super-Sibling" — was born to bring ancient, nutrient-dense grains to every modern family in formats kids actually want to eat.</p>
+        <p class="body-text">Guided by our tagline <strong>"A Mom's Yes!"</strong>, every product is designed to earn the trust of families by being safe, natural, and made with love.</p>
+      </div>
+      <div class="story-img-wrap">
+        <img src="{% static 'images/about/ChatGPT Image Jun 10, 2026, 12_49_37 PM.png' %}" alt="Malola Products" class="story-img">
+        <div class="story-badge"><strong>2022</strong>Founded</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stats-grid">
+    <div><div class="stat-num">20K+</div><div class="stat-label">Happy Families</div></div>
+    <div><div class="stat-num">20+</div><div class="stat-label">Products</div></div>
+    <div><div class="stat-num">100%</div><div class="stat-label">Natural Ingredients</div></div>
+    <div><div class="stat-num">⭐ 4.8</div><div class="stat-label">Average Rating</div></div>
+  </div>
+</div>
+
+<!-- MISSION -->
+<div class="mission-band">
+  <h2>Our Purpose Is Simple</h2>
+  <div class="mission-tagline">"A Mom's Yes!"</div>
+  <p>To bring wholesome, millet-based goodness into every home in a way that delights both kids and parents — because healthy eating should never feel like a compromise.</p>
+  <a href="/shop/" class="mission-btn"><i class="fa-solid fa-bag-shopping"></i> Explore Our Products</a>
+</div>
+
+<!-- 5 PILLARS -->
+<div class="section" style="background:#f7f9ff">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">How We Do It</div>
+      <h2 class="h2" style="text-align:center">Our 5 Pillars <span>Strategy</span></h2>
+      <p class="body-text" style="max-width:620px;margin:0 auto">At Malola, our growth is anchored on five strong pillars that shape everything we do.</p>
+    </div>
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon"><i class="fa-solid fa-star"></i></div>
+        <div class="pillar-title">Product Excellence</div>
+        <div class="pillar-desc">Every snack is made from 100% millet, free from preservatives, and crafted to balance nutrition with kid-approved taste.</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon"><i class="fa-solid fa-heart"></i></div>
+        <div class="pillar-title">Brand Story &amp; Positioning</div>
+        <div class="pillar-desc">Celebrating the love and trust of moms through the promise of "Fun for Kids, Peace of Mind for Moms."</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon"><i class="fa-solid fa-users"></i></div>
+        <div class="pillar-title">Customer Engagement</div>
+        <div class="pillar-desc">Interactive campaigns, educational content on millet benefits, and loyalty programs that keep families connected.</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon"><i class="fa-solid fa-truck"></i></div>
+        <div class="pillar-title">Distribution &amp; Accessibility</div>
+        <div class="pillar-desc">Malola snacks are easy to find — in schools, mom-focused stores, and online with convenient bulk-order options.</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon"><i class="fa-solid fa-earth-asia"></i></div>
+        <div class="pillar-title">Sustainability &amp; Community</div>
+        <div class="pillar-desc">Eco-friendly packaging, farmer partnerships, and school programs that inspire healthy eating habits in children.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BRAND PERSONALITY -->
+<div class="section">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">Who We Are</div>
+      <h2 class="h2" style="text-align:center">Brand <span>Personality</span></h2>
+    </div>
+    <div class="personality-grid">
+      <div class="pers-card fun">
+        <div class="pers-card-tag">Fun Factor</div>
+        <div class="pers-title">Healthy Food Should Feel Like a Celebration</div>
+        <p class="pers-body">At Malola, we add a sprinkle of joy into everything we do — from our playful packaging designs to our bright social content and cheerful brand voice.</p>
+        <ul class="pers-list">
+          <li>Playful product names and descriptions</li>
+          <li>Colorful, inviting photography</li>
+          <li>Lighthearted social campaigns that make people smile</li>
+        </ul>
+      </div>
+      <div class="pers-card people">
+        <div class="pers-card-tag">People Factor</div>
+        <div class="pers-title">Built on Real Relationships</div>
+        <p class="pers-body">Our brand is built on relationships — with our farmers, our team, our partners, and our customers. "A Mom's Yes!" means we put people first.</p>
+        <ul class="pers-list">
+          <li>Supporting local farmers and communities</li>
+          <li>Transparent communication with customers</li>
+          <li>Featuring real people and real stories</li>
+        </ul>
+      </div>
+      <div class="pers-card growth">
+        <div class="pers-card-tag">Growth Factor</div>
+        <div class="pers-title">Growing Together in Health &amp; Impact</div>
+        <p class="pers-body">For our customers it's about growing healthier habits. For our farmers it's about growing opportunities. For our brand it's about growing awareness and trust.</p>
+        <ul class="pers-list">
+          <li>New product innovations that make healthy living easier</li>
+          <li>Expanding reach without compromising quality</li>
+          <li>Educating customers about nutrition and sustainability</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OUR PROMISE -->
+<div class="promise-band">
+  <div class="promise-inner">
+    <h2>Every Malola Product Is…</h2>
+    <div class="promise-list">
+      <div class="promise-item">
+        <span class="pi-icon">🌾</span>
+        <p>Naturally Nutritious</p>
+        <span>Packed with the goodness of heritage grains</span>
+      </div>
+      <div class="promise-item">
+        <span class="pi-icon">✅</span>
+        <p>Pure &amp; Honest</p>
+        <span>No artificial additives, no hidden nasties</span>
+      </div>
+      <div class="promise-item">
+        <span class="pi-icon">⚡</span>
+        <p>Convenient</p>
+        <span>Ready for real life, not just recipe books</span>
+      </div>
+      <div class="promise-item">
+        <span class="pi-icon">😊</span>
+        <p>Feel-Good Approved</p>
+        <span>Delicious enough to share, wholesome enough to feel proud about</span>
+      </div>
+    </div>
+    <p style="color:rgba(255,255,255,.9);font-size:1.1rem;font-weight:800">Because when healthy is happy, it's always a <em>"Yes!"</em></p>
+  </div>
+</div>
+
+<!-- VALUES -->
+<div class="section">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">What We Stand For</div>
+      <h2 class="h2" style="text-align:center">Our Core <span>Values</span></h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon"><i class="fa-solid fa-leaf"></i></div>
+        <div class="value-title">Real Ingredients Only</div>
+        <div class="value-desc">No artificial colours, flavours or preservatives. Every ingredient is chosen for its nutritional value and taste — exactly as nature intended.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon"><i class="fa-solid fa-children"></i></div>
+        <div class="value-title">Made for Families</div>
+        <div class="value-desc">Recipes are crafted with children in mind — portioned right, flavoured right, and packed with the nutrients growing bodies need most.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon"><i class="fa-solid fa-wheat-awn"></i></div>
+        <div class="value-title">Ancient Grain Wisdom</div>
+        <div class="value-desc">We draw from India's 5,000-year-old grain heritage — millets, ragi, and quinoa — and bring them into modern, convenient formats.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon"><i class="fa-solid fa-earth-asia"></i></div>
+        <div class="value-title">Sustainable Sourcing</div>
+        <div class="value-desc">We partner with small farms across India, supporting local agriculture while ensuring the freshest, most nutritious inputs for every batch.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CERTIFICATIONS -->
+<div class="section-sm" style="background:#f7f9ff">
+  <div class="wrap" style="text-align:center">
+    <div class="eyebrow" style="justify-content:center">Quality You Can Trust</div>
+    <h2 class="h2" style="text-align:center">Our <span>Certifications</span></h2>
+    <div class="certs-row">
+      <div class="cert"><span class="cert-icon">🌱</span> FSSAI Certified</div>
+      <div class="cert"><span class="cert-icon">✅</span> No Artificial Additives</div>
+      <div class="cert"><span class="cert-icon">🌾</span> Ancient Grain Based</div>
+      <div class="cert"><span class="cert-icon">👨‍👩‍👧</span> Family-Tested Recipes</div>
+      <div class="cert"><span class="cert-icon">🚚</span> Pan-India Delivery</div>
+      <div class="cert"><span class="cert-icon">♻️</span> Eco-Friendly Packaging</div>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIAL MEDIA SECTION -->
+<div class="social-section">
+  <div class="social-grid">
+
+    <!-- Image -->
+    <div class="social-img-wrap">
+      <img src="{% static 'images/about/ChatGPT Image Jun 10, 2026, 12_47_46 PM.png' %}"
+           alt="Malola Social Media" class="social-img">
+      <div class="social-img-label">📲 Social Media</div>
+    </div>
+
+    <!-- Text -->
+    <div class="social-text">
+      <div class="eyebrow">Follow the Fun</div>
+      <h2 class="h2">Healthy Can Be <span>Fun!</span></h2>
+      <p class="body-text">Our social media isn't just marketing — it's a movement. We share recipes, behind-the-scenes sneak peeks, parenting wins, and the real stories of families who've made Malola part of their daily routine.</p>
+      <p class="body-text">Meet <strong>Milo</strong>, our cheerful blue mascot who loves millet snacks just as much as your little ones. Follow along for daily doses of nutrition tips, playful content, and exclusive offers crafted for our community.</p>
+
+      <div class="social-quote">
+        <strong>"Fresh. Flavorful. Family Friendly."</strong><br>
+        Discover millet magic with Malola — one happy bite at a time.
+      </div>
+
+      <div class="social-handles">
+        <a href="#" class="social-handle sh-ig"><i class="fa-brands fa-instagram"></i> @malolafoods</a>
+        <a href="#" class="social-handle sh-fb"><i class="fa-brands fa-facebook-f"></i> Malola Foods</a>
+        <a href="#" class="social-handle sh-yt"><i class="fa-brands fa-youtube"></i> Malola Kitchen</a>
+        <a href="#" class="social-handle sh-wa"><i class="fa-brands fa-whatsapp"></i> Join Community</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-strip">
+  <p>© 2025 Malola Healthy Snacks · "A Mom's Yes!" ·
+    <a href="/">Home</a> ·
+    <a href="/shop/">Shop</a> ·
+    <a href="/blog/">Blog</a>
+  </p>
+</div>
+
+</body>
+</html>

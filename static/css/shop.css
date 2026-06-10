@@ -1,25 +1,28 @@
 /* ══ SHOP PAGE ══ */
 :root{--yellow:#FECF0A;--kids-dark:#0d2b6b;--aqua:#1565C0;--aqua2:#1976D2;--kids-bg:#fffef5}
 
-/* HERO BANNER */
-.shop-hero{background:linear-gradient(135deg,#0d2b6b 0%,#1565C0 60%,#0d2b6b 100%);padding:100px 24px 60px;text-align:center;position:relative;overflow:hidden}
-.shop-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
-.shop-hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(254,207,10,.18);color:var(--yellow);border:1.5px solid rgba(254,207,10,.35);border-radius:999px;padding:7px 20px;font-size:.82rem;font-family:'Fredoka One',cursive;letter-spacing:.06em;margin-bottom:20px}
-.shop-hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,5vw,4rem);color:#fff;line-height:1.1;margin-bottom:14px}
-.shop-hero h1 span{color:var(--yellow)}
-.shop-hero p{color:rgba(255,255,255,.75);font-size:1.05rem;max-width:520px;margin:0 auto 36px;line-height:1.7}
-.shop-hero-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap}
-.shop-stat{text-align:center}
-.shop-stat-num{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--yellow);display:block}
-.shop-stat-lbl{font-size:.78rem;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+/* SHOP BANNER */
+.shop-banner-wrap{
+  width:100%;
+  background:#f26522;
+  margin-top:80px;
+  overflow:hidden;
+}
+.shop-banner-img{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:cover;
+}
 
 /* FILTER BAR */
 .shop-filter-bar{position:sticky;top:68px;z-index:100;background:#fff;border-bottom:2px solid rgba(13,43,107,.08);box-shadow:0 2px 16px rgba(13,43,107,.06)}
-.shop-filter-inner{max-width:1600px;margin:0 auto;padding:14px 24px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.shop-filter-inner{max-width:1600px;margin:0 auto;padding:14px 24px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;align-items:center}
 .shop-filter-inner::-webkit-scrollbar{display:none}
-.shop-filter-btn{flex-shrink:0;padding:9px 22px;border-radius:999px;border:2px solid rgba(13,43,107,.14);background:#fff;color:var(--kids-dark);font-family:'Fredoka One',cursive;font-size:.9rem;cursor:pointer;transition:all .22s ease;white-space:nowrap}
+.shop-filter-btn{flex-shrink:0;padding:8px 20px;border-radius:999px;border:2px solid rgba(13,43,107,.14);background:#fff;color:var(--kids-dark);font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;transition:all .22s ease;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .shop-filter-btn:hover{border-color:var(--aqua);color:var(--aqua)}
 .shop-filter-btn.active{background:var(--yellow);border-color:var(--yellow);color:var(--kids-dark);box-shadow:0 4px 14px rgba(254,207,10,.45)}
+.sfc-icon{font-size:1.1em;line-height:1}
 
 /* MAIN CONTAINER */
 .shop-main{background:var(--kids-bg);min-height:60vh;padding:50px 24px 80px}
@@ -82,8 +85,7 @@
 @media(max-width:1100px){.shop-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:768px){
   .shop-grid{grid-template-columns:repeat(2,1fr);gap:16px}
-  .shop-hero{padding:90px 16px 50px}
-  .shop-hero-stats{gap:24px}
+  .shop-banner-wrap{margin-top:12px}
   .shop-filter-bar{top:60px}
   .shop-filter-inner{padding:12px 16px}
   .shop-main{padding:36px 16px 60px}
@@ -109,12 +111,7 @@
   .shop-card-price{font-size:1.2rem}
   .shop-card-view{padding:7px 14px;font-size:.75rem}
 
-  .shop-hero{padding:80px 14px 40px}
-  .shop-hero h1{font-size:clamp(1.7rem,7vw,2.2rem)}
-  .shop-hero p{font-size:.9rem;margin-bottom:24px}
-  .shop-hero-stats{gap:14px}
-  .shop-stat-num{font-size:1.5rem}
-  .shop-stat-lbl{font-size:.7rem}
+  .shop-banner-wrap{margin-top:8px}
 
   .shop-filter-inner{padding:10px 12px}
   .shop-filter-btn{padding:7px 14px;font-size:.82rem}

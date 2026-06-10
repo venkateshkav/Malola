@@ -17,7 +17,7 @@ from django.core.cache import cache
 from django.db.models import F
 from django.contrib.auth.models import User as AuthUser
 from django.db.models import Q
-from .models import Order, Product, OfferGroup, Review, SiteVideo, ProductImage, Category, Cart, CartItem, Coupon
+from .models import Order, Product, OfferGroup, Review, SiteVideo, ProductImage, Category, Cart, CartItem, Coupon, BlogPost
 
 
 # ── Rate limiting ────────────────────────────────────────────────────────────
@@ -802,6 +802,106 @@ def manage_toggle_video(request, pk):
     video.is_active = not video.is_active
     video.save(update_fields=['is_active'])
     return redirect('manage_videos')
+
+
+# ── public blog & about ───────────────────────────────────────────────────────
+
+def blog_list(request):
+    posts = BlogPost.objects.filter(is_published=True)
+    return render(request, 'store/blog_list.html', {'posts': posts})
+
+
+def blog_detail(request, slug):
+    post = get_object_or_404(BlogPost, slug=slug, is_published=True)
+    recent = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:4]
+    return render(request, 'store/blog_detail.html', {'post': post, 'recent': recent})
+
+
+def about_page(request):
+    return render(request, 'store/about.html')
+
+
+# ── admin blog ────────────────────────────────────────────────────────────────
+
+@_staff_required
+def manage_blog(request):
+    posts = BlogPost.objects.all()
+    return render(request, 'store/admin_blog.html', {
+        'posts': posts,
+        'pending_orders': _pending_orders(),
+    })
+
+
+@_staff_required
+def manage_add_blog(request):
+    error = None
+    if request.method == 'POST':
+        title   = request.POST.get('title', '').strip()
+        excerpt = request.POST.get('excerpt', '').strip()
+        content = request.POST.get('content', '').strip()
+        author  = request.POST.get('author', 'Malola Team').strip()
+        published = request.POST.get('is_published') == 'on'
+        cover   = request.FILES.get('cover_image')
+        if not title:
+            error = 'Title is required.'
+        elif not content:
+            error = 'Content is required.'
+        else:
+            post = BlogPost(title=title, excerpt=excerpt, content=content,
+                            author=author, is_published=published)
+            if cover:
+                post.cover_image = cover
+            post.save()
+            return redirect('manage_blog')
+    return render(request, 'store/admin_blog_form.html', {
+        'action': 'Add', 'error': error,
+        'pending_orders': _pending_orders(),
+    })
+
+
+@_staff_required
+def manage_edit_blog(request, pk):
+    post  = get_object_or_404(BlogPost, pk=pk)
+    error = None
+    if request.method == 'POST':
+        post.title       = request.POST.get('title', '').strip()
+        post.excerpt     = request.POST.get('excerpt', '').strip()
+        post.content     = request.POST.get('content', '').strip()
+        post.author      = request.POST.get('author', 'Malola Team').strip()
+        post.is_published = request.POST.get('is_published') == 'on'
+        cover = request.FILES.get('cover_image')
+        if not post.title:
+            error = 'Title is required.'
+        elif not post.content:
+            error = 'Content is required.'
+        else:
+            if cover:
+                post.cover_image = cover
+            post.save()
+            return redirect('manage_blog')
+    return render(request, 'store/admin_blog_form.html', {
+        'action': 'Edit', 'post': post, 'error': error,
+        'pending_orders': _pending_orders(),
+    })
+
+
+@_staff_required
+@require_POST
+def manage_delete_blog(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    if post.cover_image:
+        post.cover_image.delete(save=False)
+    post.delete()
+    return redirect('manage_blog')
+
+
+@_staff_required
+@require_POST
+def manage_toggle_blog(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    post.is_published = not post.is_published
+    post.save(update_fields=['is_published'])
+    return redirect('manage_blog')
 
 
 def submit_review(request, order_pk):
