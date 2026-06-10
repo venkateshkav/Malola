@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="{% static 'css/product.css' %}"/>
 <link rel="stylesheet" href="{% static 'css/shop.css' %}"/>
 </head>
-<body>
+<body style="padding-top:68px">
 
 <!-- CART SIDEBAR -->
 <div class="cart-overlay" id="cartOverlay"></div>
@@ -75,8 +75,9 @@
   <ul class="nav-links">
     <li><a href="/">Home</a></li>
     <li><a href="/#kids-about">About</a></li>
+    <li><a href="/shop/" class="active">Shop All</a></li>
     <li class="has-mega">
-      <a href="/shop/" class="mega-trigger">Shop <i class="fa-solid fa-chevron-down nav-caret"></i></a>
+      <a href="/shop/" class="mega-trigger">Our Products <i class="fa-solid fa-chevron-down nav-caret"></i></a>
       <div class="nav-mega">
         <div class="mega-inner">
           <div class="mega-header">
@@ -157,7 +158,7 @@
   <ul class="mob-nav-links">
     <li><a href="/">Home</a></li>
     <li><a href="/#kids-about">About</a></li>
-    <li><a href="/shop/">Shop All</a></li>
+    <li><a href="/shop/" class="active">Shop All</a></li>
     <li><a href="/#kids-video">Videos</a></li>
     <li><a href="/#kids-contact">Contact</a></li>
   </ul>
@@ -167,26 +168,24 @@
   </div>
 </div>
 
-<!-- SHOP HERO -->
-<section class="shop-hero">
-  <div class="shop-hero-eyebrow">🌿 Malola Products</div>
-  <h1>Explore Our <span>Complete Collection</span></h1>
-  <p>From wholesome snacks to heritage health mixes — everything your family needs, crafted with love and nature.</p>
-  <div class="shop-hero-stats">
-    <div class="shop-stat"><span class="shop-stat-num">20+</span><span class="shop-stat-lbl">Products</span></div>
-    <div class="shop-stat"><span class="shop-stat-num">6</span><span class="shop-stat-lbl">Categories</span></div>
-    <div class="shop-stat"><span class="shop-stat-num">100%</span><span class="shop-stat-lbl">Natural</span></div>
-    <div class="shop-stat"><span class="shop-stat-num">No</span><span class="shop-stat-lbl">Preservatives</span></div>
-  </div>
-</section>
+<!-- SHOP BANNER -->
+<div class="shop-banner-wrap">
+  <img src="{% static 'images/banner/Screenshot 2026-06-10 130232.png' %}" alt="Malola Offer" class="shop-banner-img">
+</div>
 
-<!-- FILTER BAR -->
+<!-- CATEGORY FILTER BAR -->
 <div class="shop-filter-bar">
   <div class="shop-filter-inner" id="filterBar">
-    <button class="shop-filter-btn active" data-cat="all">All Products</button>
-    <button class="shop-filter-btn" data-cat="new_arrival">🆕 New Arrivals</button>
+    <button class="shop-filter-btn active" data-cat="all">
+      <span class="sfc-icon">🛍️</span>Shop All
+    </button>
+    <button class="shop-filter-btn" data-cat="new_arrival">
+      <span class="sfc-icon">🆕</span>New Arrivals
+    </button>
     {% for cat in categories %}
-    <button class="shop-filter-btn" data-cat="{{ cat.pk }}">{{ cat.name }}</button>
+    <button class="shop-filter-btn" data-cat="{{ cat.pk }}">
+      <span class="sfc-icon">🌿</span>{{ cat.name }}
+    </button>
     {% endfor %}
   </div>
 </div>
@@ -337,23 +336,32 @@ document.querySelectorAll('.db-cart-btn').forEach(btn=>{
 });
 
 /* ── CATEGORY FILTER ── */
+function applyFilter(cat){
+  document.querySelectorAll('.shop-filter-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.cat===cat);
+  });
+  document.querySelectorAll('.db-card').forEach(card=>{
+    card.style.display=(cat==='all'||card.dataset.cat===cat)?'':'none';
+  });
+  document.querySelectorAll('.db-admin-section').forEach(section=>{
+    const anyVisible=Array.from(section.querySelectorAll('.db-card')).some(c=>c.style.display!=='none');
+    section.style.display=anyVisible?'':'none';
+  });
+}
+
 document.querySelectorAll('.shop-filter-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    document.querySelectorAll('.shop-filter-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const cat=btn.dataset.cat;
-    /* show/hide individual cards */
-    document.querySelectorAll('.db-card').forEach(card=>{
-      card.style.display=(cat==='all'||card.dataset.cat===cat)?'':'none';
-    });
-    /* hide section wrapper if it has no visible cards */
-    document.querySelectorAll('.db-admin-section').forEach(section=>{
-      const anyVisible=Array.from(section.querySelectorAll('.db-card')).some(c=>c.style.display!=='none');
-      section.style.display=anyVisible?'':'none';
-    });
+    applyFilter(btn.dataset.cat);
     document.querySelector('.shop-main').scrollIntoView({behavior:'smooth',block:'start'});
   });
 });
+
+/* Auto-activate filter from URL param ?cat=pk */
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const cat=params.get('cat');
+  if(cat) applyFilter(cat);
+})();
 </script>
 </body>
 </html>

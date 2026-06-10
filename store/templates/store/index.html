@@ -5,7 +5,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
-<script>window.MALOLA_AUTH={% if user.is_authenticated %}{"authenticated":true,"name":"{{ user.first_name|default:user.username|escapejs }}"}{% else %}{"authenticated":false}{% endif %};</script>
+<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
+<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
 <title>Malola — Healthy Snacks & Natural Foods</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"/>
@@ -46,8 +47,8 @@
       <div class="sm-sec-title">What's New <span class="sm-sparkle">✨</span></div>
       <div class="sm-new-grid">
         {% for p in db_new_arrivals|slice:":4" %}
-        <div class="sm-new-card" onclick="window.location.href='product/?id={{ p.slug }}'">
-          <div class="sm-new-img" style="background:{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
+        <div class="sm-new-card" data-href="product/?id={{ p.slug }}">
+          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
           <div class="sm-new-name">{{ p.title }}</div>
           <div class="sm-new-sub">{{ p.short_description|default:"New Arrival" }}</div>
           <div class="sm-new-foot">
@@ -57,8 +58,8 @@
         </div>
         {% empty %}
         {% for p in db_our_products|slice:":4" %}
-        <div class="sm-new-card" onclick="window.location.href='product/?id={{ p.slug }}'">
-          <div class="sm-new-img" style="background:{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
+        <div class="sm-new-card" data-href="product/?id={{ p.slug }}">
+          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
           <div class="sm-new-name">{{ p.title }}</div>
           <div class="sm-new-sub">{{ p.short_description|default:"Our Product" }}</div>
           <div class="sm-new-foot">
@@ -137,10 +138,11 @@
     <ul class="nav-links">
       <li><a href="#hero">Home</a></li>
       <li><a href="#kids-about">About</a></li>
+      <li><a href="/shop/">Shop All</a></li>
 
       <!-- SHOP MEGA MENU -->
       <li class="has-mega">
-        <a href="#kids-shop" class="mega-trigger">Shop <i class="fa-solid fa-chevron-down nav-caret"></i></a>
+        <a href="#kids-shop" class="mega-trigger">Our Products <i class="fa-solid fa-chevron-down nav-caret"></i></a>
         <div class="nav-mega">
           <div class="mega-inner">
             <div class="mega-header">
@@ -149,7 +151,7 @@
             </div>
             <div class="mega-grid">
               {% for p in db_our_products|slice:":4" %}
-              <div class="mega-item" onclick="window.location.href='/product/?id={{ p.slug }}'" style="cursor:pointer">
+              <div class="mega-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
                 <div class="mega-item-text">
                   <div class="mega-item-cat">{{ p.product_category.name|default:"Product" }}</div>
                   <div class="mega-item-name">{{ p.title }}</div>
@@ -159,7 +161,7 @@
               </div>
               {% endfor %}
               {% for p in db_new_arrivals|slice:":2" %}
-              <div class="mega-item" onclick="window.location.href='/product/?id={{ p.slug }}'" style="cursor:pointer">
+              <div class="mega-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
                 <div class="mega-item-text">
                   <div class="mega-item-cat">New Arrival</div>
                   <div class="mega-item-name">{{ p.title }}</div>
@@ -221,15 +223,15 @@
           <div class="drop-head">🆕 New Arrivals</div>
           <div class="drop-items">
             {% for p in db_new_arrivals|slice:":4" %}
-            <div class="drop-item" onclick="window.location.href='/product/?id={{ p.slug }}'" style="cursor:pointer">
-              <img src="{{ p.image.url }}" alt="{{ p.title }}"
-                   style="width:40px;height:40px;object-fit:contain;border-radius:10px;background:{{ p.card_bg }};padding:4px;flex-shrink:0">
+            <div class="drop-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+              <img src="{{ p.image.url }}" alt="{{ p.title }}" data-bg="{{ p.card_bg }}"
+                   style="width:40px;height:40px;object-fit:contain;border-radius:10px;padding:4px;flex-shrink:0">
               <div class="drop-item-body">
                 <div class="drop-item-name">{{ p.title }}</div>
                 <div class="drop-item-sub">₹{{ p.price }}</div>
               </div>
               {% if p.badge %}
-              <div class="drop-badge" style="background:{{ p.badge_color }};color:#fff">{{ p.badge }}</div>
+              <div class="drop-badge" data-bg="{{ p.badge_color }}" style="color:#fff">{{ p.badge }}</div>
               {% else %}
               <div class="drop-badge drop-badge-hot">New</div>
               {% endif %}
@@ -273,6 +275,7 @@
       </li>
 
       <li><a href="#kids-video">Videos</a></li>
+      <li><a href="/blog/">Blog</a></li>
       <li><a href="#kids-contact">Contact</a></li>
     </ul>
     <div class="nav-actions">
@@ -328,17 +331,37 @@
     <i class="fa-solid fa-magnifying-glass"></i>
     <input type="text" id="mobSearchInput" placeholder="Search products..."/>
   </div>
+  <!-- Quick actions row -->
+  <div class="mob-quick-row">
+    <button class="mob-quick-btn" id="mobCartBtn" onclick="closeMobMenu();document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').classList.add('visible')">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span>Cart</span>
+      <span class="mob-cart-badge" id="mobCartBadge" style="display:none">0</span>
+    </button>
+    <button class="mob-quick-btn" onclick="closeMobMenu();openSearch()">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Search</span>
+    </button>
+    {% if user.is_authenticated %}
+    <button class="mob-quick-btn" onclick="closeMobMenu();document.getElementById('navProfileWrap').classList.toggle('open')">
+      <span class="mob-quick-avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+      <span>{{ user.first_name|default:"Account" }}</span>
+    </button>
+    {% endif %}
+  </div>
   <ul class="mob-nav-links">
     <li><a href="#hero">Home</a></li>
-    <li><a href="#kids-about">About</a></li>
-    <li><a href="#kids-shop">Shop</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/shop/">Shop All</a></li>
+    <li><a href="#kids-shop">Products</a></li>
     <li><a href="#kids-video">Videos</a></li>
+    <li><a href="/blog/">Blog</a></li>
     <li><a href="#kids-contact">Contact</a></li>
   </ul>
   <div class="mob-products">
     <div class="mob-prod-title">Our Products</div>
     {% for p in db_our_products %}
-    <div class="mob-prod-item" onclick="window.location.href='/product/?id={{ p.slug }}'">
+    <div class="mob-prod-item" data-href="/product/?id={{ p.slug }}">
       <img src="{{ p.image.url }}" alt="{{ p.title }}"><span>{{ p.title }}</span><small>₹{{ p.price }}</small>
     </div>
     {% endfor %}
@@ -347,7 +370,7 @@
   <div class="mob-products">
     <div class="mob-prod-title" style="color:#1565C0">🆕 New Arrivals</div>
     {% for p in db_new_arrivals %}
-    <div class="mob-prod-item" onclick="window.location.href='/product/?id={{ p.slug }}'">
+    <div class="mob-prod-item" data-href="/product/?id={{ p.slug }}">
       <img src="{{ p.image.url }}" alt="{{ p.title }}"><span>{{ p.title }}</span><small>₹{{ p.price }}</small>
     </div>
     {% endfor %}
@@ -467,10 +490,10 @@
     <div class="kids-product-grid">
       <!-- ── DB: Our Products (managed via admin panel) ── -->
       {% for p in db_our_products %}
-      <div class="k-prod-card" onclick="window.location.href='/product/?id={{ p.slug }}'" style="cursor:pointer">
-        <div class="k-prod-img" style="background:{{ p.card_bg }}">
+      <div class="k-prod-card" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+        <div class="k-prod-img" data-bg="{{ p.card_bg }}">
           <img src="{{ p.image.url }}" alt="{{ p.title }}">
-          {% if p.badge %}<div class="k-prod-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</div>{% endif %}
+          {% if p.badge %}<div class="k-prod-badge" data-bg="{{ p.badge_color }}">{{ p.badge }}</div>{% endif %}
         </div>
         <div class="k-prod-info">
           <div class="k-prod-type">{{ p.get_category_display }}</div>
@@ -501,10 +524,10 @@
     </div>
     <div class="kids-product-grid">
       {% for p in db_new_arrivals %}
-      <div class="k-prod-card" onclick="window.location.href='/product/?id={{ p.slug }}'" style="cursor:pointer">
-        <div class="k-prod-img" style="background:{{ p.card_bg }}">
+      <div class="k-prod-card" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+        <div class="k-prod-img" data-bg="{{ p.card_bg }}">
           <img src="{{ p.image.url }}" alt="{{ p.title }}">
-          {% if p.badge %}<div class="k-prod-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</div>{% endif %}
+          {% if p.badge %}<div class="k-prod-badge" data-bg="{{ p.badge_color }}">{{ p.badge }}</div>{% endif %}
         </div>
         <div class="k-prod-info">
           <div class="k-prod-type">New Arrival</div>
@@ -520,6 +543,30 @@
     </div>
   </section>
   {% endif %}
+
+  <!-- ══ EXPLORE CATEGORY ══ -->
+  <section class="exp-cat k-reveal" id="exp-cat">
+    <div class="k-section-head">
+      <div class="k-eyebrow" style="background:#0d2b6b;color:#FECF0A">🛒 Browse by Category</div>
+      <h2>Explore Category</h2>
+    </div>
+    <div class="exp-cat-grid">
+
+      <!-- Only 4 cards — one per available cat-img photo -->
+      <a href="/shop/" class="exp-cat-card exp-cat-card-1">
+        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.18.jpeg' %}" alt="Category 1"></div>
+      </a>
+      <a href="/shop/" class="exp-cat-card exp-cat-card-2">
+        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19.jpeg' %}" alt="Category 2"></div>
+      </a>
+      <a href="/shop/" class="exp-cat-card exp-cat-card-3">
+        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19 (1).jpeg' %}" alt="Category 3"></div>
+      </a>
+      <a href="/shop/" class="exp-cat-card exp-cat-card-4">
+        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19 (2).jpeg' %}" alt="Category 4"></div>
+      </a>
+    </div>
+  </section>
 
   <!-- VIDEO REELS SLIDER -->
   <section class="kids-video k-reveal" id="kids-video">
@@ -540,32 +587,32 @@
           {% if db_videos %}
             {% for v in db_videos %}
           <div class="reel-card" data-index="{{ forloop.counter0 }}">
-            <video class="reel-video" src="{{ v.video.url }}" muted playsinline preload="metadata"></video>
+            <video class="reel-video" src="{{ v.video.url }}" muted playsinline preload="none"></video>
             <div class="reel-top"><button class="reel-mute-btn"><i class="fa-solid fa-volume-xmark"></i></button></div>
             <div class="reel-pause-icon"><i class="fa-solid fa-pause"></i></div>
           </div>
             {% endfor %}
           {% else %}
           <div class="reel-card" data-index="0">
-            <video class="reel-video" src="{% static 'images/video/reel-food-alternatives.mp4' %}" muted playsinline preload="metadata"></video>
+            <video class="reel-video" src="{% static 'images/video/reel-food-alternatives.mp4' %}" muted playsinline preload="none"></video>
             <div class="reel-top"><button class="reel-mute-btn"><i class="fa-solid fa-volume-xmark"></i></button></div>
             <div class="reel-pause-icon"><i class="fa-solid fa-pause"></i></div>
           </div>
 
           <div class="reel-card" data-index="1">
-            <video class="reel-video" src="{% static 'images/video/reel-healthy-drinks.mp4' %}" muted playsinline preload="metadata"></video>
+            <video class="reel-video" src="{% static 'images/video/reel-healthy-drinks.mp4' %}" muted playsinline preload="none"></video>
             <div class="reel-top"><button class="reel-mute-btn"><i class="fa-solid fa-volume-xmark"></i></button></div>
             <div class="reel-pause-icon"><i class="fa-solid fa-pause"></i></div>
           </div>
 
           <div class="reel-card" data-index="2">
-            <video class="reel-video" src="{% static 'images/video/reel-millet-noodles.mp4' %}" muted playsinline preload="metadata"></video>
+            <video class="reel-video" src="{% static 'images/video/reel-millet-noodles.mp4' %}" muted playsinline preload="none"></video>
             <div class="reel-top"><button class="reel-mute-btn"><i class="fa-solid fa-volume-xmark"></i></button></div>
             <div class="reel-pause-icon"><i class="fa-solid fa-pause"></i></div>
           </div>
 
           <div class="reel-card" data-index="3">
-            <video class="reel-video" src="{% static 'images/video/reel-homemade-snacks.mp4' %}" muted playsinline preload="metadata"></video>
+            <video class="reel-video" src="{% static 'images/video/reel-homemade-snacks.mp4' %}" muted playsinline preload="none"></video>
             <div class="reel-top"><button class="reel-mute-btn"><i class="fa-solid fa-volume-xmark"></i></button></div>
             <div class="reel-pause-icon"><i class="fa-solid fa-pause"></i></div>
           </div>
@@ -627,115 +674,482 @@
     </div>
   </section>
 
-  <!-- CUSTOMER REVIEWS CAROUSEL -->
+  <!-- CUSTOMER REVIEWS — POLAROID STYLE -->
   <section class="kids-reviews k-reveal k-visible" id="kids-reviews">
-    <div class="k-section-head" style="padding-bottom:10px">
+    <div class="pol-arch-bg"></div>
+
+    <div class="k-section-head" style="padding-bottom:10px;position:relative;z-index:2">
       <div class="k-eyebrow" style="background:#0d2b6b;color:#FECF0A">💬 Customer Stories</div>
       <h2 style="color:#0d2b6b">Loved by families across India!</h2>
       <p style="color:rgba(13,43,107,.65)">Real families. Real moments. Real Malola love.</p>
     </div>
 
-    <div class="rv-wrap">
-      <button class="rv-arrow rv-prev" id="rvPrev" aria-label="Previous reviews">
-        <i class="fa-solid fa-chevron-left"></i>
-      </button>
-
-      <div class="rv-viewport">
-        <div class="rv-track" id="rvTrack">
+    <div class="pol-marquee-outer">
+      <div class="pol-viewport">
+        <div class="pol-track" id="polTrack">
 
           {% if db_reviews %}
             {% for r in db_reviews %}
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">{{ r.review_text }}</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:{% if forloop.counter == 1 %}#1565C0{% elif forloop.counter == 2 %}#c62828{% elif forloop.counter == 3 %}#0d2b6b{% elif forloop.counter == 4 %}#e65100{% elif forloop.counter == 5 %}#2e7d32{% else %}#6a1b9a{% endif %}">{{ r.name|slice:":1"|upper }}</div>
-                <div>
-                  <div class="rv-card-name">{{ r.name }}</div>
-                  <div class="rv-card-stars">★★★★★</div>
-                </div>
+            <div class="pol-card">
+              <div class="pol-pin"></div>
+              <div class="pol-photo pol-photo-initials">
+                <span>{{ r.name|slice:":1"|upper }}</span>
               </div>
+              <p class="pol-text">{{ r.review_text }}</p>
+              <div class="pol-name">{{ r.name|upper }}</div>
+              <div class="pol-stars">★★★★★</div>
             </div>
             {% endfor %}
           {% else %}
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">The Choco Bytes are my kids' favourite! They grab a pack straight after school. Love the clean, natural ingredients.</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:#1565C0">P</div>
-                <div><div class="rv-card-name">Priya M.</div><div class="rv-card-stars">★★★★★</div></div>
-              </div>
+            <div class="pol-card">
+              <div class="pol-pin"></div>
+              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-1.webp' %}" alt="Priya M."></div>
+              <p class="pol-text">Malola has become our daily snack partner! My son loves the Choco Bytes. Clean ingredients, great taste — every mom's dream!</p>
+              <div class="pol-name">PRIYA M.</div>
+              <div class="pol-stars">★★★★★</div>
             </div>
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">Malola Banana Granola has replaced my morning cereal. Naturally sweet, filling, and no refined sugar at all!</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:#c62828">R</div>
-                <div><div class="rv-card-name">Rohit S.</div><div class="rv-card-stars">★★★★★</div></div>
-              </div>
+            <div class="pol-card">
+              <div class="pol-pin"></div>
+              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMAGE-2.avif' %}" alt="Rohit S."></div>
+              <p class="pol-text">I choose Malola not just for the taste but for the peace of mind it gives as a parent. No maida, no preservatives — real goodness!</p>
+              <div class="pol-name">ROHIT S.</div>
+              <div class="pol-stars">★★★★★</div>
             </div>
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">The Moringa Soup is a daily ritual now. Warm, comforting and packed with goodness. My whole family loves it.</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:#0d2b6b">A</div>
-                <div><div class="rv-card-name">Aakanksha</div><div class="rv-card-stars">★★★★★</div></div>
-              </div>
+            <div class="pol-card">
+              <div class="pol-pin"></div>
+              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-3.avif' %}" alt="Aakanksha"></div>
+              <p class="pol-text">Malola is everywhere in our kitchen! From Moringa Soup to Millet Noodles — every product is wholesome and my kids love each one.</p>
+              <div class="pol-name">AAKANKSHA</div>
+              <div class="pol-stars">★★★★★</div>
             </div>
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">Malola has become part of our daily breakfast routine. My little one loves it the most. Best healthy snacks ever!</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:#e65100">K</div>
-                <div><div class="rv-card-name">Karuna Arora</div><div class="rv-card-stars">★★★★★</div></div>
-              </div>
-            </div>
-            <div class="rv-card">
-              <div class="rv-card-quote">&ldquo;</div>
-              <p class="rv-card-text">Malola is everywhere in our kitchen! From noodles to pancakes to soups — every product is quality and delicious.</p>
-              <div class="rv-card-footer">
-                <div class="rv-card-avatar" style="background:#2e7d32">N</div>
-                <div><div class="rv-card-name">Nadia</div><div class="rv-card-stars">★★★★★</div></div>
-              </div>
+            <div class="pol-card">
+              <div class="pol-pin"></div>
+              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-4.webp' %}" alt="Karuna Arora"></div>
+              <p class="pol-text">Malola has become part of our daily breakfast routine. Everything is delicious and my little one loves the cookies the most!</p>
+              <div class="pol-name">KARUNA ARORA</div>
+              <div class="pol-stars">★★★★★</div>
             </div>
           {% endif %}
 
         </div>
       </div>
-
-      <button class="rv-arrow rv-next" id="rvNext" aria-label="Next reviews">
-        <i class="fa-solid fa-chevron-right"></i>
-      </button>
-    </div>
-
-    <div class="rv-dots" id="rvDots"></div>
-  </section>
-
-  <!-- GALLERY -->
-  <section class="kids-gallery k-reveal">
-    <div class="k-section-head">
-      <div class="k-eyebrow" style="background:var(--yellow);color:var(--kids-dark)">📸 Gallery</div>
-      <h2>Nature's beauty in every product!</h2>
-    </div>
-    <div class="k-gallery-grid" style="max-width:1220px;margin:0 auto">
-      <div class="k-gal-item tall">
-        <img src="{% static 'images/Banana Granola.png' %}" alt="Banana Granola">
-        <div class="k-gal-overlay"><div class="k-gal-label">Banana Granola</div></div>
-      </div>
-      <div class="k-gal-item">
-        <img src="{% static 'images/Choco Bytes Front.png' %}" alt="Choco Bytes">
-        <div class="k-gal-overlay"><div class="k-gal-label">Choco Bytes</div></div>
-      </div>
-      <div class="k-gal-item">
-        <img src="{% static 'images/Pirandai Soup Front.png' %}" alt="Pirandai Soup">
-        <div class="k-gal-overlay"><div class="k-gal-label">Pirandai Soup Mix</div></div>
-      </div>
-      <div class="k-gal-item wide">
-        <img src="{% static 'images/Fruit and Nut muesli.png' %}" alt="Fruit and Nut Muesli">
-        <div class="k-gal-overlay"><div class="k-gal-label">Fruit &amp; Nut Muesli</div></div>
-      </div>
     </div>
   </section>
+
+  <!-- WHY SECTION -->
+  <section class="why-section k-reveal" id="why-section">
+    <div class="why-inner">
+      <!-- LEFT: image -->
+      <div class="why-img-col">
+        <div class="why-img-wrap">
+          <img src="{% static 'images/ChatGPT Image Jun 10, 2026, 12_52_34 PM.png' %}"
+               alt="Happy kid eating Malola" class="why-photo">
+          <!-- badge stickers -->
+          <div class="why-sticker why-sticker-top">
+            <span class="ws-emoji">😍</span>
+            <span class="ws-text">Kids Love It!</span>
+          </div>
+          <div class="why-sticker why-sticker-bot">
+            <span class="ws-emoji">🌱</span>
+            <span class="ws-text">100% Natural</span>
+          </div>
+        </div>
+        <!-- arch doodles under the image (mirrors the PDF arches) -->
+        <div class="why-arches">
+          <div class="why-arch why-arch-1"></div>
+          <div class="why-arch why-arch-2"></div>
+          <div class="why-arch why-arch-3"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: content -->
+      <div class="why-text-col">
+        <div class="why-eyebrow">
+          <span class="we-dot"></span> Our Purpose
+        </div>
+        <h2 class="why-h2">Why? <span class="why-accent">our purpose</span></h2>
+
+        <p class="why-para">At Malola, our purpose is simple yet powerful — to bring wholesome, millet-based goodness into every home in a way that delights both kids and parents. We believe healthy eating should never feel like a compromise, which is why every product we create blends nutrition, taste, and joy in perfect harmony.</p>
+
+        <p class="why-para">Our mission is to make millet the hero of everyday snacks and meals, proving that healthy choices can be just as fun, flavorful, and satisfying as traditional favorites. Guided by our tagline <strong>"A Mom's Yes!"</strong>, we strive to earn the trust of families by ensuring our products are safe, natural, and made with love.</p>
+
+        <p class="why-para">With Malola, we're not just offering food — we're building healthier habits, happier mealtimes, and brighter futures.</p>
+
+        <!-- pill tags -->
+        <div class="why-pills">
+          <span class="why-pill wp-green">🌾 Millet Powered</span>
+          <span class="why-pill wp-aqua">💧 No Additives</span>
+          <span class="why-pill wp-yellow">⭐ Kids Approved</span>
+          <span class="why-pill wp-green">❤️ Mom's Trust</span>
+        </div>
+
+        <a href="/about/" class="why-cta">
+          <span>Learn Our Full Story</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO SECTION -->
+  <section class="vs-section k-reveal">
+    <div class="vs-inner">
+
+      <!-- LEFT: Video -->
+      <div class="vs-video-col">
+        <div class="vs-video-wrap">
+          <video class="vs-video" autoplay muted loop playsinline preload="auto">
+            <source src="{% static 'images/video/new-section.mp4' %}" type="video/mp4">
+          </video>
+          <div class="vs-tag vs-tag-tl">🌾 Real Ingredients</div>
+          <div class="vs-tag vs-tag-br">❤️ Made with Love</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Content -->
+      <div class="vs-content-col">
+        <div class="vs-eyebrow">
+          <span class="vs-dot"></span>Watch &amp; Feel the Difference
+        </div>
+        <h2 class="vs-h2">Where Ancient<br>Grains Meet <span>Modern Joy</span></h2>
+        <p class="vs-body">Every Malola snack starts with nature's finest — millets, ragi, and quinoa — carefully sourced and crafted into something your kids will actually ask for again and again.</p>
+
+        <div class="vs-features">
+          <div class="vs-feat">
+            <div class="vs-feat-icon">🌾</div>
+            <div>
+              <div class="vs-feat-title">100% Millet Based</div>
+              <div class="vs-feat-desc">Ancient grains packed with iron, fibre &amp; protein — perfect for growing kids.</div>
+            </div>
+          </div>
+          <div class="vs-feat">
+            <div class="vs-feat-icon">🚫</div>
+            <div>
+              <div class="vs-feat-title">No Maida, No Preservatives</div>
+              <div class="vs-feat-desc">Clean-label snacking you can trust — nothing hidden, nothing artificial.</div>
+            </div>
+          </div>
+          <div class="vs-feat">
+            <div class="vs-feat-icon">😋</div>
+            <div>
+              <div class="vs-feat-title">Flavours Kids Go Crazy For</div>
+              <div class="vs-feat-desc">Choco, fruity, tangy — every bite is a taste adventure that earns a Mom's Yes!</div>
+            </div>
+          </div>
+          <div class="vs-feat">
+            <div class="vs-feat-icon">🏆</div>
+            <div>
+              <div class="vs-feat-title">FSSAI Certified Quality</div>
+              <div class="vs-feat-desc">Every batch is quality-tested so moms can snack their kids without worry.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vs-actions">
+          <a href="/shop/" class="vs-btn-primary"><i class="fa-solid fa-bag-shopping"></i> Shop Now</a>
+          <a href="/about/" class="vs-btn-outline">Our Story <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+  <style>
+  /* ── VIDEO SECTION ── */
+  .vs-section{
+    padding:90px 32px;
+    background:#f7fdf4;
+    position:relative;
+    overflow:hidden;
+  }
+  .vs-section::before{
+    content:'';position:absolute;
+    top:-60px;right:-60px;
+    width:320px;height:320px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(204,221,84,.18) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .vs-section::after{
+    content:'';position:absolute;
+    bottom:-40px;left:-40px;
+    width:220px;height:220px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(115,205,221,.15) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .vs-inner{
+    max-width:1140px;margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:72px;
+    align-items:center;
+    position:relative;z-index:1;
+  }
+
+  /* VIDEO COL */
+  .vs-video-col{position:relative}
+  .vs-video-wrap{
+    position:relative;
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:0 24px 64px rgba(0,0,0,.14);
+  }
+  .vs-video{
+    width:100%;
+    display:block;
+    border-radius:28px;
+    aspect-ratio:16/9;
+    object-fit:cover;
+  }
+  .vs-tag{
+    position:absolute;z-index:2;
+    background:#fff;
+    border-radius:999px;
+    padding:8px 16px;
+    font-family:'Nunito',sans-serif;
+    font-size:.75rem;font-weight:900;
+    color:#222;
+    box-shadow:0 6px 20px rgba(0,0,0,.12);
+    white-space:nowrap;
+  }
+  .vs-tag-tl{top:-14px;left:18px;background:#CCDD54;color:#3a4f00}
+  .vs-tag-br{bottom:-14px;right:18px;background:#FECF0A;color:#5a4000}
+
+  /* CONTENT COL */
+  .vs-eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:.72rem;font-weight:900;
+    text-transform:uppercase;letter-spacing:.14em;
+    color:#73CDDD;margin-bottom:14px;
+  }
+  .vs-dot{display:block;width:22px;height:4px;border-radius:999px;background:#FECF0A}
+  .vs-h2{
+    font-family:'Fredoka One',cursive;
+    font-size:clamp(2rem,3.5vw,3rem);
+    color:#222;line-height:1.15;
+    margin-bottom:16px;
+  }
+  .vs-h2 span{color:#73CDDD}
+  .vs-body{
+    font-family:'Nunito',sans-serif;
+    font-size:.97rem;color:#555;
+    line-height:1.85;font-weight:600;
+    margin-bottom:28px;
+  }
+
+  /* Features list */
+  .vs-features{display:flex;flex-direction:column;gap:18px;margin-bottom:32px}
+  .vs-feat{display:flex;align-items:flex-start;gap:16px}
+  .vs-feat-icon{
+    font-size:1.4rem;
+    width:48px;height:48px;min-width:48px;
+    border-radius:14px;
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+  }
+  .vs-feat-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:.92rem;color:#222;margin-bottom:3px}
+  .vs-feat-desc{font-family:'Nunito',sans-serif;font-size:.8rem;color:#777;font-weight:600;line-height:1.55}
+
+  /* Buttons */
+  .vs-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .vs-btn-primary{
+    display:inline-flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#CCDD54,#73CDDD);
+    color:#fff;font-family:'Nunito',sans-serif;
+    font-weight:900;font-size:.95rem;
+    padding:15px 32px;border-radius:999px;
+    text-decoration:none;
+    box-shadow:0 10px 28px rgba(115,205,221,.35);
+    transition:transform .25s,box-shadow .25s;
+  }
+  .vs-btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(115,205,221,.45)}
+  .vs-btn-outline{
+    display:inline-flex;align-items:center;gap:8px;
+    color:#73CDDD;font-family:'Nunito',sans-serif;
+    font-weight:900;font-size:.9rem;
+    padding:14px 26px;border-radius:999px;
+    text-decoration:none;
+    border:2.5px solid #73CDDD;
+    transition:background .2s,color .2s;
+  }
+  .vs-btn-outline:hover{background:#73CDDD;color:#fff}
+  .vs-btn-outline i{transition:transform .2s}
+  .vs-btn-outline:hover i{transform:translateX(4px)}
+
+  /* Responsive */
+  @media(max-width:900px){
+    .vs-inner{grid-template-columns:1fr;gap:40px}
+    .vs-section{padding:64px 24px}
+  }
+  @media(max-width:480px){
+    .vs-section{padding:48px 16px}
+    .vs-h2{font-size:1.8rem}
+  }
+  </style>
+
+  <style>
+  /* ── WHY SECTION ── */
+  .why-section{
+    position:relative;
+    overflow:hidden;
+    padding:90px 32px 100px;
+    background:#fff;
+  }
+
+  /* Inner grid */
+  .why-inner{
+    position:relative;z-index:2;
+    max-width:1140px;margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:72px;
+    align-items:center;
+  }
+
+  /* ── IMAGE COLUMN ── */
+  .why-img-col{position:relative;display:flex;flex-direction:column;align-items:center}
+  .why-img-wrap{position:relative;display:inline-block}
+
+  .why-photo{
+    width:100%;max-width:460px;
+    border-radius:32px;
+    object-fit:cover;
+    display:block;
+    box-shadow:0 24px 64px rgba(0,0,0,.15);
+    animation:imgWobble 4s ease-in-out infinite;
+    position:relative;z-index:1;
+  }
+  @keyframes imgWobble{
+    0%,100%{transform:rotate(-1.5deg) scale(1)}
+    50%{transform:rotate(1.5deg) scale(1.02)}
+  }
+
+  /* Sticker badges */
+  .why-sticker{
+    position:absolute;z-index:3;
+    background:#fff;border-radius:999px;
+    padding:10px 18px;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 28px rgba(0,0,0,.13);
+    font-family:'Nunito',sans-serif;font-weight:900;font-size:.82rem;color:#222;
+    white-space:nowrap;
+  }
+  .why-sticker-top{
+    top:-16px;right:-20px;
+    background:#FECF0A;
+    animation:stickerBounce 2.4s ease-in-out infinite;
+  }
+  .why-sticker-bot{
+    bottom:-16px;left:-20px;
+    background:#CCDD54;
+    animation:stickerBounce 2.8s ease-in-out infinite;
+    animation-delay:.6s;
+  }
+  .ws-emoji{font-size:1.1rem}
+  @keyframes stickerBounce{
+    0%,100%{transform:translateY(0) rotate(-4deg) scale(1)}
+    40%{transform:translateY(-8px) rotate(4deg) scale(1.08)}
+    70%{transform:translateY(-3px) rotate(-2deg) scale(1.04)}
+  }
+
+  /* PDF-style arches */
+  .why-arches{display:flex;justify-content:center;gap:0;margin-top:22px}
+  .why-arch{
+    width:54px;height:27px;
+    border-radius:54px 54px 0 0;
+    margin:0 -2px;
+  }
+  .why-arch-1{background:#73CDDD;animation:archBounce 1.8s ease-in-out infinite}
+  .why-arch-2{background:#CCDD54;animation:archBounce 1.8s ease-in-out infinite;animation-delay:.2s}
+  .why-arch-3{background:#FECF0A;animation:archBounce 1.8s ease-in-out infinite;animation-delay:.4s}
+  @keyframes archBounce{
+    0%,100%{transform:scaleY(1)}
+    50%{transform:scaleY(1.2) translateY(-4px)}
+  }
+
+  /* ── TEXT COLUMN ── */
+  .why-text-col{position:relative;z-index:2}
+  .why-eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:900;
+    text-transform:uppercase;letter-spacing:.14em;color:#73CDDD;
+    margin-bottom:12px;
+  }
+  .we-dot{display:block;width:22px;height:4px;border-radius:999px;background:#FECF0A}
+  .why-h2{
+    font-family:'Fredoka One',cursive;
+    font-size:clamp(2.2rem,4vw,3.2rem);
+    color:#222;line-height:1.1;
+    margin-bottom:18px;
+    animation:headShake 5s ease-in-out infinite;
+  }
+  .why-accent{color:#73CDDD;display:block;font-size:.72em}
+  @keyframes headShake{
+    0%,90%,100%{transform:rotate(0)}
+    93%{transform:rotate(-2deg)}
+    96%{transform:rotate(2deg)}
+    99%{transform:rotate(-1deg)}
+  }
+
+  .why-para{
+    font-family:'Nunito',sans-serif;
+    font-size:.97rem;color:#555;
+    line-height:1.85;font-weight:600;
+    margin-bottom:16px;
+  }
+  .why-para strong{color:#222;font-weight:900}
+
+  /* Pills */
+  .why-pills{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 28px}
+  .why-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:900;
+    padding:8px 18px;border-radius:999px;cursor:default;
+    transition:transform .2s;
+  }
+  .why-pill:hover{transform:scale(1.08) rotate(-2deg)}
+  .wp-green{background:rgba(204,221,84,.25);color:#5a7000;border:2px solid rgba(204,221,84,.5)}
+  .wp-aqua{background:rgba(115,205,221,.2);color:#1a6a7a;border:2px solid rgba(115,205,221,.45)}
+  .wp-yellow{background:rgba(254,207,10,.2);color:#7a5800;border:2px solid rgba(254,207,10,.5)}
+
+  /* CTA */
+  .why-cta{
+    display:inline-flex;align-items:center;gap:12px;
+    background:linear-gradient(135deg,#CCDD54,#73CDDD);
+    color:#fff;font-family:'Nunito',sans-serif;
+    font-weight:900;font-size:.95rem;
+    padding:16px 34px;border-radius:999px;
+    text-decoration:none;
+    box-shadow:0 10px 30px rgba(115,205,221,.35);
+    transition:transform .25s,box-shadow .25s;
+    position:relative;overflow:hidden;
+  }
+  .why-cta::before{
+    content:'';position:absolute;inset:0;
+    background:rgba(255,255,255,.15);
+    transform:translateX(-100%);
+    transition:transform .3s;
+  }
+  .why-cta:hover::before{transform:translateX(0)}
+  .why-cta:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 18px 40px rgba(115,205,221,.4)}
+  .why-cta i{transition:transform .3s}
+  .why-cta:hover i{transform:translateX(6px)}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:900px){
+    .why-inner{grid-template-columns:1fr;gap:40px}
+    .why-text-col{order:-1}
+    .why-photo{max-width:100%}
+    .why-section{padding:64px 24px 72px}
+  }
+  @media(max-width:480px){
+    .why-section{padding:48px 16px 60px}
+    .why-sticker{font-size:.72rem;padding:8px 14px}
+  }
+  </style>
 
 </div><!-- /kids-page -->
 
@@ -776,86 +1190,19 @@
 </footer>
 
 <script>
+/* Polaroid marquee — clone cards for seamless infinite scroll */
 (function(){
-  var track=document.getElementById('rvTrack');
-  var prevBtn=document.getElementById('rvPrev');
-  var nextBtn=document.getElementById('rvNext');
-  var dotsEl=document.getElementById('rvDots');
-  var section=document.getElementById('kids-reviews');
-  if(!track||!prevBtn)return;
-
-  var cards=Array.from(track.querySelectorAll('.rv-card'));
-  var total=cards.length;
-  var current=0;
-  var autoTimer=null;
-  var GAP=20;
-
-  function cpv(){
-    if(window.innerWidth<=640)return 1;
-    if(window.innerWidth<=900)return 2;
-    return 3;
-  }
-  function maxIdx(){return Math.max(0,total-cpv());}
-  function cardW(){
-    var vp=track.parentElement;
-    var n=cpv();
-    return(vp.offsetWidth-GAP*(n-1))/n;
-  }
-  function updateDots(){
-    dotsEl.querySelectorAll('.rv-dot').forEach(function(d,i){d.classList.toggle('active',i===current);});
-  }
-  function goTo(idx,instant){
-    /* loop around */
-    if(idx>maxIdx())idx=0;
-    if(idx<0)idx=maxIdx();
-    current=idx;
-    if(instant){
-      track.style.transition='none';
-      track.style.transform='translateX(-'+(current*(cardW()+GAP))+'px)';
-      track.offsetHeight; /* force reflow */
-      track.style.transition='transform .45s cubic-bezier(.4,0,.2,1)';
-    }else{
-      track.style.transform='translateX(-'+(current*(cardW()+GAP))+'px)';
-    }
-    updateDots();
-  }
-  function buildDots(){
-    dotsEl.innerHTML='';
-    var pages=maxIdx()+1;
-    for(var i=0;i<pages;i++){
-      (function(idx){
-        var d=document.createElement('button');
-        d.className='rv-dot'+(idx===0?' active':'');
-        d.setAttribute('aria-label','Review '+(idx+1));
-        d.addEventListener('click',function(){goTo(idx,true);resetAuto();});
-        dotsEl.appendChild(d);
-      })(i);
-    }
-  }
-  function resetAuto(){
-    clearInterval(autoTimer);
-    autoTimer=setInterval(function(){
-      goTo(current+1,true);
-    },3000);
-  }
-
-  prevBtn.addEventListener('click',function(){goTo(current-1,true);resetAuto();});
-  nextBtn.addEventListener('click',function(){goTo(current+1,true);resetAuto();});
-
-  /* Pause on hover */
-  if(section){
-    section.addEventListener('mouseenter',function(){clearInterval(autoTimer);});
-    section.addEventListener('mouseleave',resetAuto);
-  }
-
-  window.addEventListener('resize',function(){
-    buildDots();
-    goTo(Math.min(current,maxIdx()),true);
+  var track=document.getElementById('polTrack');
+  if(!track)return;
+  var cards=Array.from(track.querySelectorAll('.pol-card'));
+  /* Duplicate cards 3x so the marquee never looks empty */
+  [1,2,3].forEach(function(){
+    cards.forEach(function(c){
+      var cl=c.cloneNode(true);
+      cl.setAttribute('aria-hidden','true');
+      track.appendChild(cl);
+    });
   });
-
-  buildDots();
-  goTo(0,true);
-  resetAuto();
 })();
 </script>
 <script>
@@ -925,6 +1272,18 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 <script src="{% static 'js/script.js' %}"></script>
+<script>
+/* Apply data-bg as background color and data-href as click navigation */
+document.querySelectorAll('[data-bg]').forEach(function(el){
+  el.style.background=el.getAttribute('data-bg');
+});
+document.querySelectorAll('[data-href]').forEach(function(el){
+  el.style.cursor='pointer';
+  el.addEventListener('click',function(e){
+    if(!e.target.closest('button'))window.location.href=el.getAttribute('data-href');
+  });
+});
+</script>
 </body>
 </html>
 
