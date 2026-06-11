@@ -173,21 +173,9 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
 }
 </style>
 </head>
-<body>
+<body style="padding-top:68px">
 
-<!-- NAV -->
-<nav class="ab-nav">
-  <div class="ab-nav-logo">
-    <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola"></a>
-  </div>
-  <div class="ab-nav-links">
-    <a href="/">Home</a>
-    <a href="/shop/">Shop</a>
-    <a href="/about/" class="active">About</a>
-    <a href="/blog/">Blog</a>
-    <a href="/shop/" class="ab-nav-shop">Shop Now</a>
-  </div>
-</nav>
+{% include 'store/includes/site_nav.html' %}
 
 <!-- HERO -->
 <div class="hero">
@@ -431,14 +419,7 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
   </div>
 </div>
 
-<!-- FOOTER -->
-<div class="footer-strip">
-  <p>© 2025 Malola Healthy Snacks · "A Mom's Yes!" ·
-    <a href="/">Home</a> ·
-    <a href="/shop/">Shop</a> ·
-    <a href="/blog/">Blog</a>
-  </p>
-</div>
+{% include 'store/includes/site_footer.html' %}
 
 </body>
 </html>

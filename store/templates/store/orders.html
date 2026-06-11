@@ -106,45 +106,7 @@
 </head>
 <body class="orders-body">
 
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- NAV -->
-<nav id="mainNav" class="nav-scrolled">
-  <div class="logo">
-    <a href="/" style="display:flex;align-items:center">
-      <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="nav-logo-img">
-    </a>
-  </div>
-  <ul class="nav-links">
-    <li><a href="/">Home</a></li>
-    <li><a href="/shop/">Shop</a></li>
-    <li><a href="/orders/" style="color:var(--aqua2);font-weight:800"><i class="fa-solid fa-bag-shopping"></i> My Orders</a></li>
-    <li><a href="/#kids-contact">Contact</a></li>
-  </ul>
-  <div class="nav-actions">
-    <span class="nav-user-pill" style="color:var(--kids-dark)"><i class="fa-solid fa-circle-user" style="color:var(--aqua2)"></i> {{ user.first_name|default:user.username }}</span>
-    <button class="btn-login" id="navLogoutBtn" style="color:var(--kids-dark);border-color:rgba(13,43,107,.25)">Logout</button>
-    <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
-  </div>
-</nav>
-
-<!-- MOBILE MENU -->
-<div class="mob-menu-overlay" id="mobMenuOverlay"></div>
-<div class="mob-menu" id="mobMenu">
-  <div class="mob-menu-head">
-    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="mob-logo">
-    <button class="mob-menu-close" id="mobMenuClose"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <ul class="mob-nav-links">
-    <li><a href="/">Home</a></li>
-    <li><a href="/shop/">Shop</a></li>
-    <li><a href="/orders/">My Orders</a></li>
-    <li><a href="/#kids-contact">Contact</a></li>
-  </ul>
-  <div class="mob-menu-actions">
-    <button class="mob-login-btn" id="mobLogoutBtn">Logout</button>
-  </div>
-</div>
+{% include 'store/includes/site_nav.html' %}
 
 <!-- MAIN -->
 <main class="orders-main">
@@ -309,5 +271,7 @@ async function confirmCancel(){
   document.querySelectorAll('.mob-nav-links a').forEach(a=>a.addEventListener('click',closeMob));
 })();
 </script>
+
+{% include 'store/includes/site_footer.html' %}
 </body>
 </html>

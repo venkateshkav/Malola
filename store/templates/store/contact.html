@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="csrf-token" content="{{ csrf_token }}">
+<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
+<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
+<title>Contact Us — Malola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Shadows+Into+Light&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+/* BANNER */
+.page-banner{background:#c5ecf7;position:relative;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center;}
+.page-banner-bg{position:absolute;bottom:0;left:0;width:100%;height:auto;display:block;z-index:0;pointer-events:none;}
+.page-banner-inner{position:relative;z-index:2;text-align:center;padding:100px 24px 90px;}
+.page-banner-inner h1{font-family:'Fredoka One',cursive;font-size:clamp(2rem,5vw,3.2rem);color:#0d2b6b;font-weight:400;margin-bottom:10px;}
+.page-banner-crumb{font-size:.82rem;font-weight:700;color:#555;}
+.page-banner-crumb a{color:#0d2b6b;text-decoration:none;}
+.page-banner-crumb a:hover{color:#c97c1a;}
+.page-banner-crumb span{color:#c97c1a;}
+/* BODY */
+.ct-body{max-width:1100px;margin:0 auto;padding:60px 24px 40px;}
+.ct-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:40px;}
+/* SECTION HEADERS */
+.ct-section-title{font-family:'Shadows Into Light',cursive;font-size:1.6rem;color:#222;margin-bottom:4px;}
+.ct-section-sub{color:#73CDDD;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:24px;border-bottom:2px solid #73CDDD;padding-bottom:8px;}
+/* FAQ ACCORDION */
+.faq-item{border-bottom:1px solid #eee;}
+.faq-btn{width:100%;background:none;border:none;text-align:left;padding:16px 0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Nunito',sans-serif;font-size:.93rem;font-weight:700;color:#222;transition:color .2s;}
+.faq-btn:hover{color:#0d2b6b;}
+.faq-btn .faq-icon{width:22px;height:22px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .2s,background .2s;font-size:.65rem;color:#888;}
+.faq-btn.open .faq-icon{border-color:#73CDDD;background:#73CDDD;color:#fff;}
+.faq-answer{display:none;padding:0 0 16px;font-size:.88rem;color:#555;font-weight:600;line-height:1.75;}
+.faq-answer.show{display:block;}
+/* CONTACT FORM */
+.ct-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 4px 20px rgba(0,0,0,.06);}
+.ct-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ct-form-group{display:flex;flex-direction:column;gap:6px;}
+.ct-form-group label{font-size:.8rem;font-weight:800;color:#555;letter-spacing:.03em;}
+.ct-form-group label .req{color:#e53935;margin-left:2px;}
+.ct-form-group input,.ct-form-group select,.ct-form-group textarea{padding:11px 14px;border:1.5px solid #e0e4ea;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;color:#222;background:#fafbfc;transition:border-color .2s;outline:none;}
+.ct-form-group input:focus,.ct-form-group select:focus,.ct-form-group textarea:focus{border-color:#73CDDD;}
+.ct-form-group textarea{resize:vertical;min-height:120px;}
+.ct-form-full{margin-bottom:14px;}
+.ct-submit-btn{width:100%;background:#0d2b6b;color:#fff;border:none;padding:14px 20px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:6px;}
+.ct-submit-btn:hover{background:#1a4a9a;}
+.ct-success{background:#e8f5e9;border:1.5px solid #a5d6a7;color:#2e7d32;border-radius:12px;padding:16px 20px;font-size:.9rem;font-weight:700;margin-bottom:20px;display:none;align-items:center;gap:10px;}
+.ct-success.show{display:flex;}
+/* MAP */
+.ct-map{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:40px;}
+.ct-map iframe{width:100%;height:380px;border:none;display:block;}
+@media(max-width:768px){
+  .ct-grid{grid-template-columns:1fr;}
+  .ct-card{padding:24px 20px;}
+  .ct-form-row{grid-template-columns:1fr;}
+  .page-banner-inner{padding-top:80px;padding-bottom:70px;}
+}
+</style>
+</head>
+<body>
+
+{% include 'store/includes/site_nav.html' %}
+
+<div class="page-banner">
+  <img class="page-banner-bg" src="{% static 'images/footer.png' %}" alt="">
+  <div class="page-banner-inner">
+    <h1>Contact Us</h1>
+    <div class="page-banner-crumb"><a href="/">Home</a> / <span>Contact Us</span></div>
+  </div>
+</div>
+
+<div class="ct-body">
+  <div class="ct-grid">
+
+    <!-- LEFT: FAQ -->
+    <div>
+      <div class="ct-section-title">Information Questions</div>
+      <div class="ct-section-sub">Frequently Asked Questions</div>
+
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          What makes Malola different from other healthy food brands?
+          <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
+        </button>
+        <div class="faq-answer">Malola combines the goodness of millets with bold flavours, fun formats, and family-friendly recipes ensuring every product is both tasty and nutritious.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          Are Malola products suitable for all age groups?
+          <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
+        </button>
+        <div class="faq-answer">Yes! Malola products are crafted to be enjoyed by kids, adults, and the elderly alike. Our snacks are made with natural ingredients and no harmful preservatives, making them a healthy choice for the whole family.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          What ingredients does Malola use?
+          <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
+        </button>
+        <div class="faq-answer">We use 100% natural ingredients—millets, lentils, cold-pressed oils, and natural spices. No artificial colours, no MSG, no preservatives. Just clean, wholesome food.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          Where can I purchase Malola products?
+          <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
+        </button>
+        <div class="faq-answer">You can order directly through our website. We deliver Pan-India. You can also find us on select online marketplaces.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          Are Malola products vegetarian?
+          <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
+        </button>
+        <div class="faq-answer">Yes, all Malola products are 100% vegetarian. We are committed to providing plant-based, wholesome snacks that align with vegetarian values.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: CONTACT FORM -->
+    <div>
+      <div class="ct-section-title">Information About Us</div>
+      <div class="ct-section-sub">Contact Us For Any Enquiries</div>
+
+      <div class="ct-card">
+        {% if success %}
+        <div class="ct-success show">
+          <i class="fa-solid fa-circle-check"></i> Thank you! We'll get back to you within 24 hours.
+        </div>
+        {% endif %}
+
+        <form method="post" action="/contact/" id="ctForm">
+          {% csrf_token %}
+          <div class="ct-form-row">
+            <div class="ct-form-group">
+              <label>Your Name <span class="req">*</span></label>
+              <input type="text" name="name" placeholder="Enter your full name" required>
+            </div>
+            <div class="ct-form-group">
+              <label>Your Email <span class="req">*</span></label>
+              <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
+          </div>
+          <div class="ct-form-row">
+            <div class="ct-form-group">
+              <label>Confirm Email <span class="req">*</span></label>
+              <input type="email" name="confirm_email" placeholder="Re-enter your email" required>
+            </div>
+            <div class="ct-form-group">
+              <label>Phone Number <span class="req">*</span></label>
+              <input type="tel" name="phone" placeholder="Enter your 10-digit mobile number" required>
+            </div>
+          </div>
+          <div class="ct-form-row">
+            <div class="ct-form-group">
+              <label>Feedback Type <span class="req">*</span></label>
+              <select name="feedback_type" required>
+                <option value="" disabled selected>Select type</option>
+                <option>Satisfied with Product</option>
+                <option>Product Query</option>
+                <option>Order Issue</option>
+                <option>Refund / Return</option>
+                <option>Shipping Query</option>
+                <option>General Enquiry</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="ct-form-group">
+              <label>Your City</label>
+              <input type="text" name="city" placeholder="Enter your city">
+            </div>
+          </div>
+          <div class="ct-form-full ct-form-group">
+            <label>Your Message <span class="req">*</span></label>
+            <textarea name="message" placeholder="Write your enquiry or feedback" required></textarea>
+          </div>
+          <button type="submit" class="ct-submit-btn">Submit</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAP -->
+  <div class="ct-map">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3906.3734!2d78.1534!3d11.6643!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3babf1be80f7ec4b%3A0x99d3f2b05e4bde4c!2sMalola%20foods!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+      allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </div>
+</div>
+
+{% include 'store/includes/site_footer.html' %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
+<script>
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const icon = btn.querySelector('.faq-icon i');
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-btn.open').forEach(b => {
+    b.classList.remove('open');
+    b.nextElementSibling.classList.remove('show');
+    b.querySelector('.faq-icon i').className = 'fa-solid fa-plus';
+  });
+  if (!isOpen) {
+    btn.classList.add('open');
+    answer.classList.add('show');
+    icon.className = 'fa-solid fa-minus';
+  }
+}
+</script>
+</body>
+</html>

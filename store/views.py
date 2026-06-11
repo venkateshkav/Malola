@@ -308,12 +308,14 @@ def home(request):
     db_whats_new    = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     db_reviews      = Review.objects.filter(is_active=True)
     db_videos       = SiteVideo.objects.filter(is_active=True)
+    db_categories   = Category.objects.filter(is_active=True).order_by('sort_order', 'name')
     return render(request, 'store/index.html', {
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
         'db_whats_new':    db_whats_new,
         'db_reviews':      db_reviews,
         'db_videos':       db_videos,
+        'db_categories':   db_categories,
     })
 
 
@@ -349,11 +351,13 @@ def shop(request):
         .filter(product_count__gt=0)
         .order_by('sort_order', 'name')
     )
+    db_whats_new = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     return render(request, 'store/shop.html', {
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
         'categories':      categories,
         'shop_filters':    SHOP_FILTERS,
+        'db_whats_new':    db_whats_new,
     })
 
 
@@ -436,11 +440,13 @@ def product(request):
                 },
             }
             db_product_json = json.dumps(data)
+    db_whats_new = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     return render(request, 'store/product.html', {
         'db_new_arrivals':  db_new_arrivals,
         'db_our_products':  db_our_products,
         'db_product':       db_product,
         'db_product_json':  db_product_json,
+        'db_whats_new':     db_whats_new,
     })
 
 
@@ -448,7 +454,9 @@ def orders_page(request):
     if not request.user.is_authenticated:
         return redirect('/?login=1')
     orders = Order.objects.filter(user=request.user)
-    return render(request, 'store/orders.html', {'orders': orders})
+    ctx = _nav_ctx()
+    ctx['orders'] = orders
+    return render(request, 'store/orders.html', ctx)
 
 
 # ── admin product manager ─────────────────────────────────────────────────────
@@ -1168,17 +1176,56 @@ def manage_toggle_video(request, pk):
 
 def blog_list(request):
     posts = BlogPost.objects.filter(is_published=True)
-    return render(request, 'store/blog_list.html', {'posts': posts})
+    ctx = _nav_ctx()
+    ctx['posts'] = posts
+    return render(request, 'store/blog_list.html', ctx)
 
 
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
     recent = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:4]
-    return render(request, 'store/blog_detail.html', {'post': post, 'recent': recent})
+    ctx = _nav_ctx()
+    ctx.update({'post': post, 'recent': recent})
+    return render(request, 'store/blog_detail.html', ctx)
 
 
 def about_page(request):
-    return render(request, 'store/about.html')
+    return render(request, 'store/about.html', _nav_ctx())
+
+
+def _nav_ctx():
+    return {
+        'db_our_products': Product.objects.filter(category='our_products', is_active=True),
+        'db_new_arrivals': Product.objects.filter(category='new_arrival',  is_active=True),
+        'db_whats_new':    Product.objects.filter(is_active=True).order_by('-created_at')[:4],
+    }
+
+
+def shipping_policy(request):
+    return render(request, 'store/shipping_policy.html', _nav_ctx())
+
+
+def privacy_policy(request):
+    return render(request, 'store/privacy_policy.html', _nav_ctx())
+
+
+def terms_page(request):
+    return render(request, 'store/terms.html', _nav_ctx())
+
+
+def refund_policy(request):
+    return render(request, 'store/refund_policy.html', _nav_ctx())
+
+
+def contact_page(request):
+    ctx = _nav_ctx()
+    if request.method == 'POST':
+        ctx['success'] = True
+    return render(request, 'store/contact.html', ctx)
+
+
+def faq_page(request):
+    return render(request, 'store/faq.html', _nav_ctx())
 
 
 # ── admin blog ────────────────────────────────────────────────────────────────
@@ -1272,25 +1319,21 @@ def submit_review(request, order_pk):
         return HttpResponseForbidden(
             '<h2 style="font-family:sans-serif;padding:40px">403 — This review link does not belong to your account.</h2>'
         )
+    def _ctx(**kw):
+        c = _nav_ctx(); c['order'] = order; c.update(kw); return c
     already = hasattr(order, 'review') and order.review is not None
     if already:
-        return render(request, 'store/submit_review.html', {
-            'order': order, 'already_reviewed': True,
-        })
+        return render(request, 'store/submit_review.html', _ctx(already_reviewed=True))
     if request.method == 'POST':
         name   = request.POST.get('name', '').strip() or order.name
         text   = request.POST.get('review_text', '').strip()
         rating = request.POST.get('rating', '5')
         photo  = request.FILES.get('photo')
         if not text:
-            return render(request, 'store/submit_review.html', {
-                'order': order, 'error': 'Please write your review before submitting.',
-            })
+            return render(request, 'store/submit_review.html', _ctx(error='Please write your review before submitting.'))
         img_err = _validate_image(photo)
         if img_err:
-            return render(request, 'store/submit_review.html', {
-                'order': order, 'error': img_err,
-            })
+            return render(request, 'store/submit_review.html', _ctx(error=img_err))
         if text:
             rev = Review(
                 order=order, name=name, review_text=text,
@@ -1300,13 +1343,9 @@ def submit_review(request, order_pk):
             if photo:
                 rev.photo = photo
             rev.save()
-            return render(request, 'store/submit_review.html', {
-                'order': order, 'success': True,
-            })
-        return render(request, 'store/submit_review.html', {
-            'order': order, 'error': 'Please write your review before submitting.',
-        })
-    return render(request, 'store/submit_review.html', {'order': order})
+            return render(request, 'store/submit_review.html', _ctx(success=True))
+        return render(request, 'store/submit_review.html', _ctx(error='Please write your review before submitting.'))
+    return render(request, 'store/submit_review.html', _ctx())
 
 
 # ── checkout & payment ────────────────────────────────────────────────────────

@@ -1,0 +1,527 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="csrf-token" content="{{ csrf_token }}">
+<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
+<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
+<title>FAQ &amp; Millet Quiz — Malola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Shadows+Into+Light&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+/* ── BANNER ── */
+.page-banner{background:#c5ecf7;position:relative;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center;}
+.page-banner-bg{position:absolute;bottom:0;left:0;width:100%;height:auto;display:block;z-index:0;pointer-events:none;}
+.page-banner-inner{position:relative;z-index:2;text-align:center;padding:100px 24px 90px;}
+.page-banner-inner h1{font-family:'Fredoka One',cursive;font-size:clamp(2rem,5vw,3.2rem);color:#0d2b6b;font-weight:400;margin-bottom:10px;}
+.page-banner-crumb{font-size:.82rem;font-weight:700;color:#555;}
+.page-banner-crumb a{color:#0d2b6b;text-decoration:none;}
+.page-banner-crumb a:hover{color:#c97c1a;}
+.page-banner-crumb span{color:#c97c1a;}
+@media(max-width:600px){.page-banner-inner{padding-top:80px;padding-bottom:70px;}}
+
+/* ── PAGE BODY ── */
+.faq-page-body{max-width:900px;margin:0 auto;padding:70px 24px 80px;}
+
+/* ── FAQ SECTION ── */
+.faq-section-title{font-family:'Shadows Into Light',cursive;font-size:2rem;color:#0d2b6b;margin-bottom:6px;}
+.faq-section-sub{color:#73CDDD;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:32px;padding-bottom:10px;border-bottom:2px solid #73CDDD;display:inline-block;}
+.faq-cats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px;}
+.faq-cat-btn{padding:7px 18px;border-radius:999px;border:2px solid #0d2b6b;background:transparent;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;color:#0d2b6b;cursor:pointer;transition:all .2s;}
+.faq-cat-btn.active,.faq-cat-btn:hover{background:#0d2b6b;color:#FECF0A;}
+.faq-group{display:none;}
+.faq-group.active{display:block;}
+.faq-item{border-bottom:1px solid #e8ecf2;overflow:hidden;}
+.faq-btn{width:100%;background:none;border:none;text-align:left;padding:18px 0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;color:#222;transition:color .2s;}
+.faq-btn:hover{color:#0d2b6b;}
+.faq-icon{width:26px;height:26px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .25s;font-size:.7rem;color:#888;}
+.faq-btn.open .faq-icon{border-color:#0d2b6b;background:#0d2b6b;color:#FECF0A;}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .25s ease;padding:0;}
+.faq-answer-inner{padding:0 0 18px;font-size:.9rem;color:#555;font-weight:600;line-height:1.8;}
+.faq-item.open .faq-answer{max-height:400px;padding-top:2px;}
+
+/* ── QUIZ SECTION ── */
+.quiz-section{background:linear-gradient(135deg,#0d2b6b 0%,#1a4a9a 100%);border-radius:28px;padding:52px 48px;margin-top:70px;position:relative;overflow:hidden;}
+.quiz-section::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:rgba(254,207,10,.08);pointer-events:none;}
+.quiz-section::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;border-radius:50%;background:rgba(115,205,221,.1);pointer-events:none;}
+.quiz-header{text-align:center;margin-bottom:40px;position:relative;z-index:2;}
+.quiz-eyebrow{display:inline-block;background:#FECF0A;color:#0d2b6b;font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:5px 16px;border-radius:999px;margin-bottom:12px;}
+.quiz-title{font-family:'Fredoka One',cursive;font-size:clamp(1.6rem,4vw,2.4rem);color:#fff;margin-bottom:8px;font-weight:400;}
+.quiz-sub{font-size:.88rem;color:rgba(255,255,255,.7);font-weight:600;}
+.quiz-progress{background:rgba(255,255,255,.15);border-radius:999px;height:6px;margin-bottom:32px;position:relative;z-index:2;}
+.quiz-progress-bar{height:100%;background:#FECF0A;border-radius:999px;transition:width .4s ease;}
+.quiz-q-label{font-size:.75rem;font-weight:900;color:#FECF0A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:2;}
+.quiz-question{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:24px;line-height:1.5;position:relative;z-index:2;}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:2;}
+.quiz-opt{padding:14px 18px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:#fff;transition:all .22s;display:flex;align-items:center;gap:10px;text-align:left;}
+.quiz-opt:hover:not(.disabled){background:rgba(254,207,10,.15);border-color:#FECF0A;transform:translateY(-2px);}
+.quiz-opt .opt-letter{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;flex-shrink:0;}
+.quiz-opt.correct{background:rgba(46,125,50,.3);border-color:#66bb6a;}
+.quiz-opt.wrong{background:rgba(198,40,40,.3);border-color:#ef5350;}
+.quiz-opt.disabled{cursor:default;pointer-events:none;}
+.quiz-feedback{margin-top:16px;padding:14px 18px;border-radius:12px;font-size:.88rem;font-weight:700;display:none;position:relative;z-index:2;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.correct{background:rgba(46,125,50,.25);color:#a5d6a7;}
+.quiz-feedback.wrong{background:rgba(198,40,40,.2);color:#ef9a9a;}
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:28px;position:relative;z-index:2;}
+.quiz-counter{font-size:.8rem;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:.05em;}
+.quiz-next-btn{background:#FECF0A;color:#0d2b6b;border:none;padding:12px 28px;border-radius:12px;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .15s,box-shadow .15s;box-shadow:3px 3px 0 rgba(0,0,0,.2);}
+.quiz-next-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 rgba(0,0,0,.2);}
+.quiz-next-btn:disabled{opacity:.4;cursor:default;transform:none;box-shadow:3px 3px 0 rgba(0,0,0,.2);}
+
+/* RESULTS */
+.quiz-result{text-align:center;position:relative;z-index:2;display:none;}
+.quiz-result.show{display:block;}
+.quiz-score-ring{width:120px;height:120px;border-radius:50%;border:5px solid #FECF0A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 24px;}
+.quiz-score-num{font-family:'Fredoka One',cursive;font-size:2.4rem;color:#FECF0A;line-height:1;}
+.quiz-score-denom{font-size:.75rem;font-weight:900;color:rgba(255,255,255,.6);}
+.quiz-result-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:#fff;margin-bottom:8px;}
+.quiz-result-msg{font-size:.9rem;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:28px;line-height:1.6;}
+.quiz-retry-btn{background:transparent;border:2px solid #FECF0A;color:#FECF0A;padding:12px 32px;border-radius:12px;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;transition:all .2s;}
+.quiz-retry-btn:hover{background:#FECF0A;color:#0d2b6b;}
+
+@media(max-width:640px){
+  .quiz-section{padding:36px 24px;}
+  .quiz-options{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .faq-page-body{padding:50px 16px 60px;}
+}
+</style>
+</head>
+<body>
+
+{% include 'store/includes/site_nav.html' %}
+
+<!-- BANNER -->
+<div class="page-banner">
+  <img class="page-banner-bg" src="{% static 'images/footer.png' %}" alt="">
+  <div class="page-banner-inner">
+    <h1>FAQ &amp; Millet Quiz</h1>
+    <div class="page-banner-crumb"><a href="/">Home</a> / <span>FAQ's</span></div>
+  </div>
+</div>
+
+<div class="faq-page-body">
+
+  <!-- ══ FAQ SECTION ══ -->
+  <div class="faq-section-title">Got Questions?</div>
+  <div class="faq-section-sub">Frequently Asked Questions</div>
+
+  <!-- Category filter tabs -->
+  <div class="faq-cats">
+    <button class="faq-cat-btn active" onclick="switchFaqCat(this,'all')">All</button>
+    <button class="faq-cat-btn" onclick="switchFaqCat(this,'products')">Products</button>
+    <button class="faq-cat-btn" onclick="switchFaqCat(this,'orders')">Orders &amp; Shipping</button>
+    <button class="faq-cat-btn" onclick="switchFaqCat(this,'returns')">Returns &amp; Refunds</button>
+    <button class="faq-cat-btn" onclick="switchFaqCat(this,'payment')">Payment</button>
+  </div>
+
+  <!-- ALL FAQs (shown when "All" tab is active) -->
+  <div class="faq-group active" id="faq-all">
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What makes Malola different from other snack brands?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Malola combines the goodness of ancient millets with bold modern flavours. Every product is made with 100% natural ingredients — no artificial colours, no MSG, no preservatives. We believe healthy eating should be fun, not boring!</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Are Malola products suitable for children?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Absolutely! Malola products are crafted to be safe and nutritious for kids, adults, and the elderly alike. Our snacks use natural spices in kid-friendly quantities, making them a wholesome choice for the whole family — that's the meaning of "A Mom's Yes!"</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What millets do you use in your products?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">We use a variety of millets including Foxtail Millet, Ragi (Finger Millet), Jowar (Sorghum), Little Millet, and Bajra depending on the product. Each millet brings its own nutritional profile — high fibre, calcium, iron, and protein — making our snacks truly power-packed.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Are all Malola products vegetarian?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Yes! All Malola products are 100% vegetarian. We are committed to providing plant-based, wholesome snacks that align with vegetarian values and lifestyle choices.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Where can I buy Malola products?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">You can order directly from our website and we deliver Pan-India. You can also find us on select online marketplaces. For the freshest stock and exclusive website-only offers, ordering here is always your best bet!</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How long does delivery take?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Orders are typically processed and dispatched within 24–48 hours of confirmation. Standard delivery takes 3–7 business days depending on your location. You'll receive a tracking number once your order ships.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Can I cancel my order after placing it?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Yes, you can cancel your order any time before it is dispatched. Once dispatched, cancellation is no longer guaranteed, but you can refuse delivery. Refunds for prepaid orders are initiated within 24 hours of cancellation.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What payment methods are accepted?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">We accept all major payment methods: Credit/Debit Cards, UPI (PhonePe, Google Pay, Paytm), Net Banking, Digital Wallets, and Cash on Delivery (COD) — subject to your location and order value.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How do I return a product?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">If you received a damaged, defective, or incorrect item, go to <strong>My Orders</strong> → select the order → click <strong>Request Return</strong>. Or reach us at malolafoods@gmail.com with photos. Returns must be initiated within 7 days of delivery.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How long does a refund take?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Once your return is approved, refunds are processed within 1 business day. The amount typically reflects in your account within 3–15 working days depending on your bank or payment provider.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Do you offer free shipping?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Yes! We offer free shipping on orders above a minimum order value. Check our current promotions on the shop page for the latest free-shipping threshold. COD orders may have a small convenience fee.</div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Are discount coupons available?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Yes! We regularly share discount codes through our newsletter and social media. Subscribe to our newsletter in the footer to get exclusive offers directly in your inbox.</div></div>
+    </div>
+
+  </div><!-- /faq-all -->
+
+  <!-- Products FAQs -->
+  <div class="faq-group" id="faq-products">
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What millets do you use in your products?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">We use Foxtail Millet, Ragi, Jowar, Little Millet, and Bajra across our product range. Each product page lists the specific grains used.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Are Malola products gluten-free?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Most of our millet-based products are naturally gluten-free. However, products may be processed in a facility that also handles gluten-containing ingredients. Please check individual product labels.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Do your products contain artificial preservatives?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">No! Malola uses zero artificial preservatives, colours, or flavours. Our products stay fresh through natural ingredients, proper packaging, and optimised shelf-life formulation.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What is the shelf life of Malola products?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Shelf life varies by product — typically 3 to 6 months from manufacture. You'll find the exact best-before date printed on every pack. Store in a cool, dry place away from direct sunlight.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Are Malola snacks suitable for diabetics?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Millets have a lower glycemic index than refined grains, making many Malola snacks a better choice than conventional snacks. However, we recommend consulting your doctor for specific dietary advice.</div></div>
+    </div>
+  </div>
+
+  <!-- Orders & Shipping FAQs -->
+  <div class="faq-group" id="faq-orders">
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How long does delivery take?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Orders are dispatched within 24–48 hours and delivered in 3–7 business days across India. Remote areas may take slightly longer.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How can I track my order?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Once your order ships, you'll receive a tracking number via SMS/email. You can also check order status in the <strong>My Orders</strong> section of your account.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Do you deliver outside India?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Currently, Malola delivers Pan-India only. We are working towards international shipping — stay tuned!</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What if my order is delayed?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">If your order hasn't arrived within the expected window, please contact us at malolafoods@gmail.com or +91 95009 90045. We'll investigate with the courier and ensure resolution.</div></div>
+    </div>
+  </div>
+
+  <!-- Returns FAQs -->
+  <div class="faq-group" id="faq-returns">
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What is the return window?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Returns must be initiated within 7 days of delivery. Products must be unused, in original packaging, with all tags intact.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">How do I initiate a return?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Go to <strong>My Orders</strong> → select the item → click <strong>Request Return</strong>. Alternatively, email us at malolafoods@gmail.com with your order ID and photos of the issue.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">When will I get my refund?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Refunds are processed within 1 business day of approval and typically appear in your account within 3–15 working days.</div></div>
+    </div>
+  </div>
+
+  <!-- Payment FAQs -->
+  <div class="faq-group" id="faq-payment">
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">What payment methods are accepted?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Cards, UPI, Net Banking, Wallets, and Cash on Delivery (COD) — subject to location and order value.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Is it safe to pay online on Malola?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Yes! All online payments are processed via Razorpay — a PCI-DSS compliant payment gateway with end-to-end encryption. We never store your card details.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">My payment failed but money was deducted — what now?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Don't worry! If payment was deducted but the order wasn't confirmed, the amount will be automatically refunded by your bank within 5–7 business days. If not, contact us immediately with your bank reference number.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="toggleFaqItem(this)">Can I use multiple coupons on one order?<span class="faq-icon"><i class="fa-solid fa-plus"></i></span></button>
+      <div class="faq-answer"><div class="faq-answer-inner">Only one coupon code can be applied per order. Make sure to use the coupon with the highest value for maximum savings!</div></div>
+    </div>
+  </div>
+
+
+  <!-- ══ QUIZ SECTION ══ -->
+  <div class="quiz-section">
+    <div class="quiz-header">
+      <div class="quiz-eyebrow">🌾 Fun &amp; Learn</div>
+      <div class="quiz-title">The Millet &amp; Malola Quiz!</div>
+      <div class="quiz-sub">Test your knowledge of millets, healthy eating &amp; Malola. 5 random questions each time!</div>
+    </div>
+
+    <div class="quiz-progress"><div class="quiz-progress-bar" id="quizProgressBar" style="width:0%"></div></div>
+
+    <!-- Question area -->
+    <div id="quizArea">
+      <div class="quiz-q-label" id="quizQLabel">Question 1 of 5</div>
+      <div class="quiz-question" id="quizQuestion">Loading…</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-nav">
+        <div class="quiz-counter" id="quizCounter">Score: 0</div>
+        <button class="quiz-next-btn" id="quizNextBtn" disabled onclick="nextQuestion()">Next <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="quiz-result" id="quizResult">
+      <div class="quiz-score-ring"><div class="quiz-score-num" id="quizFinalScore">0</div><div class="quiz-score-denom" id="quizFinalDenom">/ 5</div></div>
+      <div class="quiz-result-title" id="quizResultTitle">Great job!</div>
+      <div class="quiz-result-msg" id="quizResultMsg">You really know your millets!</div>
+      <button class="quiz-retry-btn" onclick="startQuiz()">Play Again <i class="fa-solid fa-rotate-right"></i></button>
+    </div>
+  </div><!-- /quiz -->
+
+</div><!-- /faq-page-body -->
+
+{% include 'store/includes/site_footer.html' %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
+<script>
+/* ── FAQ TABS ── */
+function switchFaqCat(btn, cat) {
+  document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.faq-group').forEach(g => g.classList.remove('active'));
+  document.getElementById('faq-' + cat).classList.add('active');
+}
+
+function toggleFaqItem(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  // close all in this group
+  item.closest('.faq-group').querySelectorAll('.faq-item.open').forEach(i => {
+    i.classList.remove('open');
+    i.querySelector('.faq-icon i').className = 'fa-solid fa-plus';
+    i.querySelector('.faq-btn').classList.remove('open');
+  });
+  if (!isOpen) {
+    item.classList.add('open');
+    btn.classList.add('open');
+    btn.querySelector('.faq-icon i').className = 'fa-solid fa-minus';
+  }
+}
+
+/* ── QUIZ ── */
+const ALL_QUESTIONS = [
+  {
+    q: 'What does Malola\'s tagline "A Mom\'s Yes!" signify?',
+    opts: ['Products made only by moms', 'Products safe and healthy enough for a mom to approve', 'Products launched on Mother\'s Day', 'A brand only for mothers'],
+    ans: 1,
+    fact: 'Every Malola product earns a mom\'s approval for being nutritious, natural, and delicious!'
+  },
+  {
+    q: 'Which millet is known as the "richest plant source of calcium"?',
+    opts: ['Foxtail Millet', 'Jowar', 'Ragi (Finger Millet)', 'Bajra'],
+    ans: 2,
+    fact: 'Ragi contains up to 344 mg of calcium per 100g — more than most dairy-free sources!'
+  },
+  {
+    q: 'Where is Malola Foods headquartered?',
+    opts: ['Chennai', 'Coimbatore', 'Salem, Tamil Nadu', 'Madurai'],
+    ans: 2,
+    fact: 'Malola Foods is based in Salem, Tamil Nadu — bringing the love of millets from the heart of South India!'
+  },
+  {
+    q: 'Which of these does Malola NOT use in its products?',
+    opts: ['Artificial colours', 'Millets', 'Cold-pressed oils', 'Natural spices'],
+    ans: 0,
+    fact: 'Malola uses ZERO artificial colours, MSG, or preservatives. Just clean, wholesome ingredients!'
+  },
+  {
+    q: 'Jowar (Sorghum) is best known for being…',
+    opts: ['High in Vitamin C', 'Gluten-free and high in dietary fibre', 'Rich in Omega-3 fatty acids', 'Low in protein'],
+    ans: 1,
+    fact: 'Jowar is a powerhouse — gluten-free, high in fibre, and packed with B-vitamins and antioxidants.'
+  },
+  {
+    q: 'Approximately how many products does Malola currently offer?',
+    opts: ['5+', '10+', '20+', '50+'],
+    ans: 2,
+    fact: 'Malola has 20+ products and is always growing — from millet bites to granola and heritage soups!'
+  },
+  {
+    q: 'Which millet is also called "Foxtail Millet" in English?',
+    opts: ['Bajra', 'Thinai', 'Jowar', 'Kodo Millet'],
+    ans: 1,
+    fact: 'Thinai is the Tamil name for Foxtail Millet — one of the oldest cultivated crops in Asia!'
+  },
+  {
+    q: 'Which of these is a key health benefit of eating millets regularly?',
+    opts: ['They cause blood sugar spikes', 'They are high in gluten', 'They have a low glycemic index', 'They have low fibre content'],
+    ans: 2,
+    fact: 'Millets have a low glycemic index, making them ideal for managing blood sugar and sustained energy!'
+  },
+  {
+    q: 'Malola delivers its products to…',
+    opts: ['Salem only', 'Tamil Nadu only', 'South India only', 'Pan-India'],
+    ans: 3,
+    fact: 'Malola delivers across India so everyone can enjoy the goodness of millets!'
+  },
+  {
+    q: 'What is Bajra also known as in English?',
+    opts: ['Pearl Millet', 'Finger Millet', 'Little Millet', 'Proso Millet'],
+    ans: 0,
+    fact: 'Bajra (Pearl Millet) is one of the most widely grown millets — high in iron, protein, and fibre.'
+  },
+  {
+    q: 'Which statement about Malola products is TRUE?',
+    opts: ['They contain MSG for flavour', 'They are 100% vegetarian', 'They use refined white flour as a base', 'They are only for children'],
+    ans: 1,
+    fact: 'All Malola products are 100% vegetarian — no exceptions!'
+  },
+  {
+    q: 'Which millet is most commonly used in traditional South Indian dishes like "Ragi Mudde"?',
+    opts: ['Jowar', 'Foxtail Millet', 'Ragi (Finger Millet)', 'Bajra'],
+    ans: 2,
+    fact: 'Ragi Mudde is a traditional Karnataka dish — rich in calcium, iron, and amino acids!'
+  }
+];
+
+const QUIZ_Q_COUNT = 5;
+let quizQuestions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  quizQuestions = shuffle(ALL_QUESTIONS).slice(0, QUIZ_Q_COUNT);
+  current = 0;
+  score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.getElementById('quizResult').classList.remove('show');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = quizQuestions[current];
+  const total = QUIZ_Q_COUNT;
+
+  document.getElementById('quizProgressBar').style.width = ((current / total) * 100) + '%';
+  document.getElementById('quizQLabel').textContent = 'Question ' + (current + 1) + ' of ' + total;
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizCounter').textContent = 'Score: ' + score;
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizFeedback').textContent = '';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const optionsEl = document.getElementById('quizOptions');
+  optionsEl.innerHTML = q.opts.map((opt, i) =>
+    `<button class="quiz-opt" onclick="selectAnswer(this,${i})">
+       <span class="opt-letter">${letters[i]}</span>${opt}
+     </button>`
+  ).join('');
+
+  const nextBtn = document.getElementById('quizNextBtn');
+  nextBtn.disabled = true;
+  nextBtn.innerHTML = current + 1 === total
+    ? 'See Results <i class="fa-solid fa-trophy"></i>'
+    : 'Next <i class="fa-solid fa-arrow-right"></i>';
+}
+
+function selectAnswer(btn, idx) {
+  if (answered) return;
+  answered = true;
+  const q = quizQuestions[current];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const fb = document.getElementById('quizFeedback');
+  if (idx === q.ans) {
+    score++;
+    btn.classList.add('correct');
+    fb.className = 'quiz-feedback correct show';
+    fb.innerHTML = '<i class="fa-solid fa-circle-check"></i> Correct! ' + q.fact;
+  } else {
+    btn.classList.add('wrong');
+    opts[q.ans].classList.add('correct');
+    fb.className = 'quiz-feedback wrong show';
+    fb.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Not quite! ' + q.fact;
+  }
+  document.getElementById('quizCounter').textContent = 'Score: ' + score;
+  document.getElementById('quizNextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= QUIZ_Q_COUNT) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('quizProgressBar').style.width = '100%';
+  document.getElementById('quizArea').style.display = 'none';
+  const resultEl = document.getElementById('quizResult');
+  resultEl.classList.add('show');
+  document.getElementById('quizFinalScore').textContent = score;
+  document.getElementById('quizFinalDenom').textContent = '/ ' + QUIZ_Q_COUNT;
+
+  const pct = score / QUIZ_Q_COUNT;
+  let title, msg;
+  if (pct === 1) {
+    title = '🏆 Perfect Score!';
+    msg = 'You\'re a true Millet Master! Malola is proud of you.';
+  } else if (pct >= 0.8) {
+    title = '⭐ Excellent!';
+    msg = 'You really know your millets! Almost a perfect run.';
+  } else if (pct >= 0.6) {
+    title = '👍 Good Job!';
+    msg = 'Solid knowledge! Keep snacking smart with Malola.';
+  } else if (pct >= 0.4) {
+    title = '🌱 Keep Learning!';
+    msg = 'A good start! Read our blog to learn more about millets.';
+  } else {
+    title = '😊 Don\'t Give Up!';
+    msg = 'Every expert was once a beginner. Try again!';
+  }
+  document.getElementById('quizResultTitle').textContent = title;
+  document.getElementById('quizResultMsg').textContent = msg;
+}
+
+// Start quiz on page load
+startQuiz();
+</script>
+</body>
+</html>

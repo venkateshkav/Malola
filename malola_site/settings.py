@@ -84,30 +84,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'malola_site.wsgi.application'
 
 
-# Database — PostgreSQL in production, SQLite in dev
+# Database — PostgreSQL
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-_db_url = os.environ.get('DATABASE_URL', '')
-if _db_url:
-    import urllib.parse as _up
-    _p = _up.urlparse(_db_url)
-    DATABASES = {
-        'default': {
-            'ENGINE':   'django.db.backends.postgresql',
-            'NAME':     _p.path.lstrip('/'),
-            'USER':     _p.username,
-            'PASSWORD': _p.password,
-            'HOST':     _p.hostname,
-            'PORT':     str(_p.port or 5432),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.postgresql',
+        'NAME':     'malola_dp',
+        'USER':     'root',
+        'PASSWORD': 'root',
+        'HOST':     'localhost',
+        'PORT':     '5432',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME':   BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation

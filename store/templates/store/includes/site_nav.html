@@ -1,0 +1,265 @@
+{% load static %}
+<!-- ══ SEARCH OVERLAY ══ -->
+<div class="search-overlay" id="searchOverlay"></div>
+
+<!-- ══ SEARCH WIDGET ══ -->
+<div class="search-modal" id="searchModal" aria-hidden="true">
+  <div class="sm-header">
+    <button class="sm-back" id="smBack" aria-label="Close search"><i class="fa-solid fa-arrow-left"></i></button>
+    <div class="sm-input-wrap">
+      <i class="fa-solid fa-magnifying-glass sm-icon"></i>
+      <input type="text" id="smInput" placeholder='Search for "Millet Choco"' autocomplete="off" spellcheck="false"/>
+      <button class="sm-clear" id="smClear" aria-label="Clear"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div class="sm-body" id="smBody">
+    <div class="sm-section">
+      <div class="sm-sec-title"><i class="fa-solid fa-arrow-trend-up"></i> Popular Searches</div>
+      <div class="sm-tags">
+        <span class="sm-tag" data-q="Millet Vanilla">Millet Vanilla</span>
+        <span class="sm-tag" data-q="Millet Choco">Millet Choco</span>
+        <span class="sm-tag" data-q="Blueberry Pancake">Blueberry Pancake</span>
+        <span class="sm-tag" data-q="Quinoa Puffs">Quinoa Puffs</span>
+        <span class="sm-tag" data-q="Millet">Millet Snacks</span>
+        <span class="sm-tag" data-q="Puffs">Puff Snacks</span>
+      </div>
+    </div>
+    <div class="sm-section">
+      <div class="sm-sec-title">What's New <span class="sm-sparkle">✨</span></div>
+      <div class="sm-new-grid">
+        {% for p in db_whats_new %}
+        <div class="sm-new-card" data-href="/product/?id={{ p.slug }}">
+          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
+          <div class="sm-new-name">{{ p.title }}</div>
+          <div class="sm-new-sub">{{ p.short_description|default:"New Arrival" }}</div>
+          <div class="sm-new-foot">
+            <span class="sm-new-price">₹{{ p.price }}</span>
+            {% if p.image %}<button class="sm-add-btn add-to-cart-btn" data-name="{{ p.title }}" data-price="{{ p.price }}" data-slug="{{ p.slug }}" data-image="{{ p.image.url }}" data-mrp="{{ p.discount_price|default:'' }}">ADD</button>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="sm-results" id="smResults"></div>
+</div>
+
+<!-- ══ CART SIDEBAR ══ -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-sidebar" id="cartSidebar" aria-label="Shopping cart">
+  <div class="cart-header">
+    <div class="cart-title">Your Cart <span class="cart-count-badge" id="cartCountBadge"></span></div>
+    <button class="cart-close" id="cartClose" aria-label="Close cart">&#10005;</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty" id="cartEmpty">
+      <p class="cart-empty-msg">It feels so light! Let's add some items!</p>
+      <a href="/shop/" class="cart-empty-btn" onclick="closeCart()">Explore products</a>
+    </div>
+  </div>
+  <div id="cartBottom" style="display:none">
+    <div class="cart-coupon-section">
+      <div class="cart-coupon-row">
+        <i class="fa-solid fa-tag coupon-tag-icon"></i>
+        <input type="text" id="cartCouponInput" class="cart-coupon-input" placeholder="Enter Coupon Code" autocomplete="off">
+        <button id="cartCouponApply" class="cart-coupon-apply-btn">APPLY</button>
+      </div>
+      <div id="cartCouponMsg" class="cart-coupon-msg" style="display:none"></div>
+    </div>
+    <div class="cart-savings-bar" id="cartSavingsBar" style="display:none">
+      <i class="fa-solid fa-piggy-bank"></i><span id="cartSavingsText"></span>
+    </div>
+    <div class="cart-footer" id="cartFooter">
+      <div class="cart-total-row">
+        <div class="cart-total-label"><i class="fa-solid fa-receipt"></i> Estimated Total</div>
+        <div class="cart-total-right">
+          <span class="cart-total-mrp" id="cartTotalMrp"></span>
+          <strong id="cartTotal">&#8377;0</strong>
+          <span class="cart-total-pct" id="cartTotalPct"></span>
+        </div>
+      </div>
+      <button class="checkout-btn">Place My Order &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+      <p class="cart-delivery-note"><i class="fa-solid fa-truck-fast"></i> Orders delivered within 3–5 days after dispatch.</p>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ AUTH MODAL ══ -->
+<div class="auth-overlay" id="authOverlay"></div>
+<div class="auth-modal" id="authModal" role="dialog" aria-modal="true">
+  <button class="auth-close" id="authClose" aria-label="Close">&#10005;</button>
+  <div class="auth-brand">
+    <div class="auth-logo-ring">M</div>
+    <div class="auth-logo-text">Malola<small>Healthy Snacks</small></div>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" data-tab="login">Login</button>
+    <button class="auth-tab" data-tab="register">Register</button>
+  </div>
+  <form class="auth-form" id="loginForm" novalidate>
+    <div class="form-group"><label>Email Address</label><div class="input-icon-wrap"><i class="fa-solid fa-envelope"></i><input type="email" placeholder="you@email.com" required></div></div>
+    <div class="form-group"><label>Password</label><div class="input-icon-wrap"><i class="fa-solid fa-lock"></i><input type="password" placeholder="••••••••" required></div></div>
+    <button type="submit" class="auth-submit">Login &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+    <p class="auth-switch">Don't have an account? <a href="#" class="switch-link" data-switch="register">Register</a></p>
+  </form>
+  <form class="auth-form" id="registerForm" style="display:none" novalidate>
+    <div class="form-group"><label>Full Name</label><div class="input-icon-wrap"><i class="fa-solid fa-user"></i><input type="text" placeholder="Your full name" required></div></div>
+    <div class="form-group"><label>Email Address</label><div class="input-icon-wrap"><i class="fa-solid fa-envelope"></i><input type="email" placeholder="you@email.com" required></div></div>
+    <div class="form-group"><label>Password</label><div class="input-icon-wrap"><i class="fa-solid fa-lock"></i><input type="password" placeholder="Min. 8 characters" required></div></div>
+    <button type="submit" class="auth-submit">Create Account &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+    <p class="auth-switch">Already have an account? <a href="#" class="switch-link" data-switch="login">Login</a></p>
+  </form>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══ MAIN NAV ══ -->
+<nav id="mainNav">
+  <div class="logo">
+    <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="nav-logo-img"></a>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/shop/">Shop All</a></li>
+    <li class="has-mega">
+      <a href="/shop/" class="mega-trigger">Our Products <i class="fa-solid fa-chevron-down nav-caret"></i></a>
+      <div class="nav-mega">
+        <div class="mega-inner">
+          <div class="mega-header">
+            <span>Our Products</span>
+            <a href="/shop/" class="mega-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="mega-grid">
+            {% for p in db_our_products|slice:":4" %}
+            <div class="mega-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+              <div class="mega-item-text">
+                <div class="mega-item-cat">{{ p.product_category.name|default:"Product" }}</div>
+                <div class="mega-item-name">{{ p.title }}</div>
+                <div class="mega-item-price">₹{{ p.price }}</div>
+              </div>
+              {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="mega-item-img">{% endif %}
+            </div>
+            {% endfor %}
+            <div class="mega-item mega-soon">
+              <div class="mega-item-text"><div class="mega-item-cat">Dry Nut</div><div class="mega-item-name">Organic Walnuts</div><div class="mega-soon-tag">Coming Soon</div></div>
+              <div class="mega-item-emoji">🌰</div>
+            </div>
+            <div class="mega-item mega-soon">
+              <div class="mega-item-text"><div class="mega-item-cat">Premium Nut</div><div class="mega-item-name">Roasted Pistachios</div><div class="mega-soon-tag">Coming Soon</div></div>
+              <div class="mega-item-emoji">🫘</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="has-drop">
+      <a href="#" class="drop-trigger">New Arrivals <i class="fa-solid fa-chevron-down nav-caret"></i></a>
+      <div class="nav-drop">
+        {% if db_new_arrivals %}
+        <div class="drop-head">🆕 New Arrivals</div>
+        <div class="drop-items">
+          {% for p in db_new_arrivals|slice:":4" %}
+          <div class="drop-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+            <img src="{{ p.image.url }}" alt="{{ p.title }}" style="width:40px;height:40px;object-fit:contain;border-radius:10px;padding:4px;flex-shrink:0">
+            <div class="drop-item-body">
+              <div class="drop-item-name">{{ p.title }}</div>
+              <div class="drop-item-sub">₹{{ p.price }}</div>
+            </div>
+            <div class="drop-badge drop-badge-hot">New</div>
+          </div>
+          {% endfor %}
+        </div>
+        <a href="/shop/" class="drop-notify-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px">🆕 View All New Arrivals</a>
+        {% else %}
+        <div class="drop-head">🆕 Coming This Season</div>
+        <div class="drop-items">
+          <div class="drop-item"><div class="drop-item-emoji">🌰</div><div class="drop-item-body"><div class="drop-item-name">Organic Walnuts</div><div class="drop-item-sub">Californian · Cold-Pressed</div></div><div class="drop-badge">Soon</div></div>
+          <div class="drop-item"><div class="drop-item-emoji">🫘</div><div class="drop-item-body"><div class="drop-item-name">Roasted Pistachios</div><div class="drop-item-sub">Iranian · Lightly Salted</div></div><div class="drop-badge">Soon</div></div>
+        </div>
+        {% endif %}
+      </div>
+    </li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/contact/">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div class="nav-search-wrap" id="navSearchWrap">
+      <button class="nav-search-btn" id="navSearchBtn" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <div class="nav-search-box" id="navSearchBox">
+        <input type="text" id="navSearchInput" placeholder="Search products..." autocomplete="off"/>
+        <button class="nav-search-close" id="navSearchClose"><i class="fa-solid fa-xmark"></i></button>
+        <div class="nav-search-results" id="navSearchResults"></div>
+      </div>
+    </div>
+    <button class="nav-cart-btn" id="navCartBtn" aria-label="Open cart">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+    </button>
+    {% if user.is_authenticated %}
+    <div class="nav-profile-wrap" id="navProfileWrap">
+      <button class="nav-profile-btn" id="navProfileBtn">
+        <span class="nav-profile-avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+        <span class="nav-profile-name">{{ user.first_name|default:user.username }}</span>
+        <i class="fa-solid fa-chevron-down nav-profile-caret"></i>
+      </button>
+      <div class="nav-profile-drop">
+        <div class="npd-header">
+          <div class="npd-avatar-lg">{{ user.first_name|default:user.username|slice:":1"|upper }}</div>
+          <div class="npd-info">
+            <div class="npd-name">{{ user.get_full_name|default:user.username }}</div>
+            <div class="npd-email">{{ user.email }}</div>
+          </div>
+        </div>
+        <div class="npd-divider"></div>
+        <a href="/orders/" class="npd-item"><i class="fa-solid fa-bag-shopping"></i> My Orders</a>
+        <div class="npd-divider"></div>
+        <button class="npd-item npd-logout" id="navLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+    {% else %}
+    <button class="btn-login" id="navLoginBtn">Login</button>
+    <button class="btn-signup" id="navSignupBtn">Sign Up</button>
+    {% endif %}
+    <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ══ MOBILE MENU ══ -->
+<div class="mob-menu-overlay" id="mobMenuOverlay"></div>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-head">
+    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="mob-logo">
+    <button class="mob-menu-close" id="mobMenuClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="mob-search-wrap">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="mobSearchInput" placeholder="Search products..."/>
+  </div>
+  <div class="mob-quick-row">
+    <button class="mob-quick-btn" id="mobCartBtn" onclick="closeMobMenu();document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').classList.add('visible')">
+      <i class="fa-solid fa-basket-shopping"></i><span>Cart</span>
+      <span class="mob-cart-badge" id="mobCartBadge" style="display:none">0</span>
+    </button>
+    <button class="mob-quick-btn" onclick="closeMobMenu();openSearch()">
+      <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+    </button>
+  </div>
+  <ul class="mob-nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/shop/">Shop All</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/contact/">Contact</a></li>
+  </ul>
+  <div class="mob-menu-actions">
+    {% if user.is_authenticated %}
+    <a href="/orders/" style="text-decoration:none;width:100%"><button class="mob-signup-btn" style="width:100%"><i class="fa-solid fa-bag-shopping"></i> My Orders</button></a>
+    <button class="mob-login-btn" id="mobLogoutBtn" style="width:100%">Logout</button>
+    {% else %}
+    <button class="mob-login-btn" id="mobLoginBtn">Login</button>
+    <button class="mob-signup-btn" id="mobSignupBtn">Sign Up</button>
+    {% endif %}
+  </div>
+</div>
