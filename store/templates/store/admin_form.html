@@ -336,6 +336,27 @@ body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height
               </div>
             </div>
 
+            <div class="af-field-row">
+              <div class="af-field">
+                <label class="af-label" for="maxOrderQty">Max Qty Per Order <span class="af-hint-inline">0 = no limit</span></label>
+                <input type="number" name="max_order_qty" id="maxOrderQty" class="af-input"
+                       placeholder="0" value="{{ product.max_order_qty|default:'0' }}" min="0">
+              </div>
+              <div class="af-field">
+                <label class="af-label" for="gstRate">GST % <span class="af-hint-inline">price is GST-inclusive</span></label>
+                <input type="number" name="gst_rate" id="gstRate" class="af-input" step="0.01"
+                       placeholder="5" value="{{ product.gst_rate|default:'5' }}" min="0">
+              </div>
+            </div>
+
+            <div class="af-field-row">
+              <div class="af-field" style="display:flex;align-items:center;gap:10px;padding-top:6px">
+                <input type="checkbox" name="track_inventory" id="trackInv" style="width:18px;height:18px;accent-color:#1976D2"
+                       {% if product.track_inventory %}checked{% endif %}>
+                <label for="trackInv" style="font-weight:700;color:#0d2b6b;cursor:pointer">Track inventory <span class="af-hint-inline">(enforce stock; 0 = out of stock)</span></label>
+              </div>
+            </div>
+
             <div class="af-field">
               <label class="af-label" for="prodCatSelect">Product Category <span class="af-hint-inline">e.g. Bites &amp; Crunchies — <a href="/manage/categories/" target="_blank" style="color:#1565C0;font-weight:700">Manage categories</a></span></label>
               <select name="product_category" id="prodCatSelect" class="af-select">
@@ -419,6 +440,13 @@ body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height
               <input type="text" name="ingredients" class="af-input"
                      placeholder="Whole Millet, Natural Vanilla, Jaggery, Rice Flour"
                      value="{{ product.ingredients|default:'' }}">
+            </div>
+
+            <div class="af-field">
+              <label class="af-label">Shop Filter Tags <span class="af-hint-inline">comma-separated — powers the shop sidebar filters</span></label>
+              <input type="text" name="tags" class="af-input"
+                     placeholder="Kids, Sugar Free, Ragi, Protein Rich, Travel Friendly"
+                     value="{{ product.tags|default:'' }}">
             </div>
 
             <div class="af-field">

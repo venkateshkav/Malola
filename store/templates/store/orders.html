@@ -62,6 +62,25 @@
 .order-addr{font-size:.8rem;font-weight:600;color:rgba(13,43,107,.45);max-width:340px;display:flex;align-items:flex-start;gap:6px}
 .order-addr i{margin-top:2px;flex-shrink:0;color:var(--aqua2)}
 
+.order-cancel-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#c62828;border:2px solid rgba(198,40,40,.3);border-radius:999px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:900;cursor:pointer;transition:all .2s;white-space:nowrap}
+.order-cancel-btn:hover{background:rgba(198,40,40,.07);border-color:#c62828}
+.order-invoice-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#1565c0;border:2px solid rgba(21,101,192,.3);border-radius:999px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:900;cursor:pointer;transition:all .2s;white-space:nowrap;text-decoration:none}
+.order-invoice-btn:hover{background:rgba(21,101,192,.07);border-color:#1565c0}
+
+/* Cancel confirm modal */
+.cancel-modal-overlay{position:fixed;inset:0;background:rgba(10,31,94,.5);z-index:4000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.cancel-modal-overlay.open{opacity:1;pointer-events:all}
+.cancel-modal{background:#fff;border-radius:24px;padding:36px 32px;max-width:400px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.25)}
+.cancel-modal-icon{width:64px;height:64px;border-radius:50%;background:rgba(198,40,40,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.6rem;color:#c62828}
+.cancel-modal h3{font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--kids-dark);margin-bottom:8px}
+.cancel-modal p{font-size:.88rem;font-weight:600;color:rgba(13,43,107,.5);margin-bottom:28px;line-height:1.6}
+.cancel-modal-actions{display:flex;gap:12px;justify-content:center}
+.cancel-modal-back{flex:1;padding:13px;border:2px solid rgba(13,43,107,.2);border-radius:999px;background:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;color:var(--kids-dark);cursor:pointer;transition:border-color .2s}
+.cancel-modal-back:hover{border-color:rgba(13,43,107,.5)}
+.cancel-modal-confirm{flex:1;padding:13px;border:none;border-radius:999px;background:#c62828;color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;transition:background .2s}
+.cancel-modal-confirm:hover{background:#b71c1c}
+.cancel-modal-confirm:disabled{opacity:.6;cursor:not-allowed}
+
 #mainNav{background:#fff;box-shadow:0 2px 20px rgba(13,43,107,.08)}
 @media(max-width:600px){
   .orders-main{padding:84px 16px 60px}
@@ -181,6 +200,14 @@
               <a href="/review/{{ order.id }}/" class="order-review-btn"><i class="fa-solid fa-pen-to-square"></i> Write a Review</a>
             {% endif %}
           {% endif %}
+          {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'processing' %}
+            <button class="order-cancel-btn" data-order-id="{{ order.id }}" onclick="openCancelModal({{ order.id }})">
+              <i class="fa-solid fa-xmark"></i> Cancel Order
+            </button>
+          {% endif %}
+          {% if order.status != 'pending' or order.payment_status == 'paid' or order.payment_status == 'cod' %}
+            <a href="/orders/{{ order.id }}/invoice/" target="_blank" class="order-invoice-btn"><i class="fa-solid fa-file-arrow-down"></i> Invoice</a>
+          {% endif %}
           <div class="order-addr"><i class="fa-solid fa-location-dot"></i><span>{{ order.address }}</span></div>
         </div>
       </div>
@@ -196,6 +223,19 @@
     </div>
   {% endif %}
 </main>
+
+<!-- Cancel Confirmation Modal -->
+<div class="cancel-modal-overlay" id="cancelModalOverlay">
+  <div class="cancel-modal">
+    <div class="cancel-modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3>Cancel Order?</h3>
+    <p>Are you sure you want to cancel this order?<br>This action cannot be undone.</p>
+    <div class="cancel-modal-actions">
+      <button class="cancel-modal-back" onclick="closeCancelModal()">Go Back</button>
+      <button class="cancel-modal-confirm" id="cancelConfirmBtn" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
 function showToast(html,duration=3000){
@@ -213,6 +253,50 @@ const logoutBtn=document.getElementById('navLogoutBtn');
 if(logoutBtn)logoutBtn.addEventListener('click',doLogout);
 const mobLogoutBtn=document.getElementById('mobLogoutBtn');
 if(mobLogoutBtn)mobLogoutBtn.addEventListener('click',doLogout);
+
+/* ── Cancel Order ── */
+let _cancelOrderId = null;
+function openCancelModal(orderId){
+  _cancelOrderId = orderId;
+  document.getElementById('cancelModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCancelModal(){
+  _cancelOrderId = null;
+  document.getElementById('cancelModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('cancelModalOverlay').addEventListener('click', e => {
+  if(e.target === e.currentTarget) closeCancelModal();
+});
+async function confirmCancel(){
+  if(!_cancelOrderId) return;
+  const btn = document.getElementById('cancelConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Cancelling…';
+  try {
+    const resp = await fetch('/api/cancel-order/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':getCSRF()},
+      body: JSON.stringify({order_id: _cancelOrderId}),
+    });
+    const data = await resp.json();
+    if(data.success){
+      closeCancelModal();
+      let msg = '<i class="fa-solid fa-circle-check"></i> Order cancelled.';
+      if(data.refunded)        msg = '<i class="fa-solid fa-indian-rupee-sign"></i> Order cancelled — refund initiated to your payment method.';
+      else if(data.refund_pending) msg = '<i class="fa-solid fa-clock"></i> Order cancelled. Your refund is being processed manually and will reflect soon.';
+      showToast(msg, 4500);
+      setTimeout(()=>window.location.reload(), 1600);
+    } else {
+      showToast('<i class="fa-solid fa-circle-exclamation"></i> '+(data.error||'Could not cancel order.'),4000);
+      btn.disabled = false; btn.textContent = 'Yes, Cancel';
+    }
+  } catch(e){
+    showToast('<i class="fa-solid fa-circle-exclamation"></i> Something went wrong.',3000);
+    btn.disabled = false; btn.textContent = 'Yes, Cancel';
+  }
+}
 
 /* Mobile hamburger */
 (function(){

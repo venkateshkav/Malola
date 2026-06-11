@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Verification — Malola</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',-apple-system,Segoe UI,sans-serif;background:#0d2b6b;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#fff;border-radius:20px;padding:38px 34px;max-width:400px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}
+  .lock{width:64px;height:64px;border-radius:50%;background:#eef3ff;color:#1565c0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 18px}
+  h1{font-size:1.4rem;color:#0d2b6b;margin-bottom:6px}
+  p.sub{font-size:.88rem;color:#667;font-weight:600;line-height:1.55;margin-bottom:22px}
+  p.sub b{color:#0d2b6b}
+  .otp-input{width:100%;height:54px;border:2px solid #dde3f0;border-radius:12px;font-size:1.4rem;font-weight:800;text-align:center;letter-spacing:.4em;color:#0d2b6b;outline:none;transition:border-color .2s}
+  .otp-input:focus{border-color:#1565c0}
+  .btn{width:100%;height:50px;border:none;border-radius:12px;background:#0d2b6b;color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:14px;transition:background .2s}
+  .btn:hover{background:#163a8a}
+  .resend{margin-top:16px;font-size:.82rem;font-weight:700;color:#1565c0;background:none;border:none;cursor:pointer;text-decoration:underline}
+  .msg{margin-top:14px;font-size:.82rem;font-weight:700;padding:9px 12px;border-radius:9px}
+  .msg.err{background:#fdecea;color:#c0392b}
+  .msg.ok{background:#eafaf1;color:#2e7d32}
+  .logout{display:block;margin-top:22px;font-size:.78rem;color:#99a;text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="lock"><i class="fa-solid fa-shield-halved"></i></div>
+    <h1>Admin Verification</h1>
+    <p class="sub">Enter the 6-digit code we emailed to<br><b>{{ email_masked }}</b></p>
+
+    {% if sent %}<div class="msg ok"><i class="fa-solid fa-paper-plane"></i> A fresh code has been sent.</div>{% endif %}
+    {% if error %}<div class="msg err"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>{% endif %}
+
+    <form method="post" action="/manage/verify/" style="margin-top:18px">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <input type="text" name="otp" class="otp-input" inputmode="numeric" maxlength="6"
+             pattern="[0-9]{6}" placeholder="······" autocomplete="one-time-code" autofocus required>
+      <button type="submit" class="btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> &nbsp;Verify &amp; Continue</button>
+    </form>
+
+    <form method="post" action="/manage/verify/">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" name="action" value="send" class="resend">Didn't get it? Resend code</button>
+    </form>
+
+    <a href="/" class="logout">← Back to site</a>
+  </div>
+  <script>
+    const i = document.querySelector('.otp-input');
+    if (i) i.addEventListener('input', () => { i.value = i.value.replace(/\D/g,'').slice(0,6); });
+  </script>
+</body>
+</html>

@@ -9,6 +9,7 @@ urlpatterns = [
     path('orders/', views.orders_page, name='orders'),
 
     # product admin panel
+    path('manage/verify/',                  views.manage_verify,        name='manage_verify'),
     path('manage/',                         views.manage_products,      name='manage_products'),
     path('manage/add/',                     views.manage_add_product,   name='manage_add'),
     path('manage/edit/<int:pk>/',           views.manage_edit_product,  name='manage_edit'),
@@ -17,6 +18,7 @@ urlpatterns = [
     # orders admin
     path('manage/orders/',                   views.manage_orders,         name='manage_orders'),
     path('manage/orders/<int:pk>/status/',   views.manage_order_status,   name='manage_order_status'),
+    path('manage/orders/<int:pk>/refund/',   views.manage_refund_order,   name='manage_refund_order'),
     path('manage/orders/export/csv/',        views.export_orders_csv,     name='export_orders_csv'),
     path('manage/orders/export/excel/',      views.export_orders_excel,   name='export_orders_excel'),
     path('manage/orders/export/print/',      views.export_orders_print,   name='export_orders_print'),
@@ -53,6 +55,8 @@ urlpatterns = [
 
     # order API
     path('api/place-order/',             views.place_order,       name='place_order'),
+    path('api/cancel-order/',            views.cancel_order,      name='cancel_order'),
+    path('orders/<int:order_id>/invoice/', views.order_invoice,   name='order_invoice'),
     path('api/orders/<int:order_id>/',   views.get_order,         name='get_order'),
     path('api/saved-address/',           views.get_saved_address, name='saved_address'),
 

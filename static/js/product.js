@@ -48,12 +48,25 @@ const productCatalog = {
 };
 
 /* ══ TOAST ══ */
-function showToast(html,duration=3000){
+function showToast(html,duration=3000,type=''){
   const container=document.getElementById('toastContainer');
-  const t=document.createElement('div');t.className='toast';t.innerHTML=html;
+  const t=document.createElement('div');t.className='toast'+(type?' toast--'+type:'');t.innerHTML=html;
   container.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),420);},duration);
+}
+
+/* Map a place-order error response to an icon + toast colour */
+function showOrderError(data){
+  const map={
+    out_of_stock:       {icon:'fa-ban',                  type:'error'},
+    insufficient_stock: {icon:'fa-layer-group',          type:'warn'},
+    max_qty_reached:    {icon:'fa-circle-exclamation',   type:'warn'},
+    product_unavailable:{icon:'fa-triangle-exclamation', type:'error'},
+    invalid_input:      {icon:'fa-circle-xmark',         type:'error'},
+  };
+  const m=map[data&&data.code]||{icon:'fa-circle-exclamation',type:'error'};
+  showToast('<i class="fa-solid '+m.icon+'"></i> '+((data&&data.error)||'Something went wrong. Please try again.'),3800,m.type);
 }
 
 /* ══ CART ══ */
@@ -66,7 +79,7 @@ const cartFooterEl=document.getElementById('cartFooter');
 const cartTotalEl =document.getElementById('cartTotal');
 const cartBadgeEl =document.getElementById('cartBadge');
 
-function openCart(){cartSidebar.classList.add('open');cartOverlay.classList.add('open');document.body.style.overflow='hidden';}
+function openCart(){cartSidebar.classList.add('open');cartOverlay.classList.add('open');document.body.style.overflow='hidden';refreshCartPrices();}
 function closeCart(){cartSidebar.classList.remove('open');cartOverlay.classList.remove('open');document.body.style.overflow='';}
 
 document.getElementById('navCartBtn').addEventListener('click',openCart);
@@ -75,11 +88,35 @@ cartOverlay.addEventListener('click',closeCart);
 
 let cartCoupon={code:'',discount:0};
 
-function addToCart(name,price,image,slug,mrp){
-  const existing=cart.find(i=>i.slug&&i.slug===slug||i.name===name);
+function addToCart(name,price,image,slug,mrp,weight,ratio){
+  const w=weight||'';
+  const existing=cart.find(i=>(i.slug&&i.slug===slug&&(i.weight||'')===w)||(!slug&&i.name===name));
   if(existing){existing.qty+=1;}
-  else{cart.push({name,price:parseFloat(price),image,slug:slug||'',mrp:mrp?parseFloat(mrp):null,qty:1});}
+  else{cart.push({name,price:parseFloat(price),image,slug:slug||'',mrp:mrp?parseFloat(mrp):null,weight:w,ratio:ratio||1,qty:1});}
   renderCart();
+}
+
+/* Re-fetch current prices when the cart opens so a stale localStorage price
+   (admin changed it since "add") can never silently differ at checkout.
+   Weight variants are rescaled by their stored ratio (grams/base_grams). */
+let _priceRefreshAt=0;
+function refreshCartPrices(){
+  if(!cart.length)return;
+  if(Date.now()-_priceRefreshAt<15000)return;   // throttle
+  _priceRefreshAt=Date.now();
+  fetch('/api/products/').then(r=>r.json()).then(d=>{
+    const map={};(d.products||[]).forEach(p=>{map[p.id]={price:p.price,mrp:p.mrp};});
+    let changed=false;
+    cart.forEach(it=>{
+      if(!it.slug||!map[it.slug])return;
+      const r=it.ratio||1;
+      const np=Math.round(map[it.slug].price*r);
+      const nm=map[it.slug].mrp?Math.round(map[it.slug].mrp*r):null;
+      if(np!==it.price){it.price=np;changed=true;}
+      it.mrp=nm;
+    });
+    if(changed){renderCart();showToast('<i class="fa-solid fa-tag"></i> Some prices were updated to the latest.',3500,'warn');}
+  }).catch(()=>{});
 }
 
 function renderCart(){
@@ -111,9 +148,9 @@ function renderCart(){
       <div class="cart-item-body">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-prices">
-          ${hasMrp?`<span class="cart-item-mrp">&#8377;${parseFloat(item.mrp).toFixed(0)}</span>`:''}
-          <span class="cart-item-price">&#8377;${item.price.toFixed(0)}</span>
-          ${pct>0?`<span class="cart-item-off">${pct}% OFF</span>`:''}
+          ${hasMrp?`<span class="cart-item-mrp">&#8377;${parseFloat(item.mrp).toFixed(2)}</span>`:''}
+          <span class="cart-item-price">&#8377;${item.price.toFixed(2)}</span>
+          ${pct>0?`<span class="cart-item-off">(${pct}% OFF)</span>`:''}
         </div>
         <div class="cart-item-actions">
           <div class="cart-qty">
@@ -310,7 +347,7 @@ window.addEventListener('scroll',()=>{mainNav.classList.add('nav-scrolled');},{p
   const mob=document.getElementById('mobMenu');
   const overlay=document.getElementById('mobMenuOverlay');
   const close=document.getElementById('mobMenuClose');
-  if(!ham||!mob)return;
+  if(!ham||!mob||!overlay||!close)return;
   function openMob(){mob.classList.add('open');overlay.classList.add('open');ham.classList.add('open');document.body.style.overflow='hidden';}
   function closeMob(){mob.classList.remove('open');overlay.classList.remove('open');ham.classList.remove('open');document.body.style.overflow='';}
   ham.addEventListener('click',openMob);
@@ -328,97 +365,42 @@ window.addEventListener('scroll',()=>{mainNav.classList.add('nav-scrolled');},{p
 /* ══ CHECKOUT ══ */
 let _coSaved=null;
 const _esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const _iStyle='width:100%;padding:13px 16px;border:2px solid rgba(21,101,192,.2);border-radius:14px;font-size:.9rem;font-family:\'Nunito\',sans-serif;font-weight:700;outline:none;box-sizing:border-box;transition:border-color .2s';
-const _bStyle='width:100%;height:56px;background:var(--yellow);border:none;border-radius:999px;font-family:\'Fredoka One\',cursive;font-size:1.15rem;color:var(--kids-dark);cursor:pointer;box-shadow:0 8px 28px rgba(254,207,10,.45)';
 
 async function _coSubmit(name,phone,address){
   const btn=document.getElementById('coSubmit')||document.getElementById('coConfirmBtn');
   if(btn){btn.disabled=true;btn.innerHTML='Proceeding… <i class="fa-solid fa-spinner fa-spin"></i>';}
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const payload={name,phone,address,items:cart.map(i=>({name:i.name,slug:i.slug,qty:i.qty,image:i.image})),total,coupon_code:cartCoupon.code||''};
+  const payload={name,phone,address,items:cart.map(i=>({name:i.name,slug:i.slug,qty:i.qty,image:i.image,weight:i.weight||''})),total,coupon_code:cartCoupon.code||''};
   try{
     const resp=await fetch('/api/place-order/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await resp.json();
-    if(data.success){cart=[];cartCoupon={code:'',discount:0};renderCart();closeCart();closeCheckoutModal();window.location.href=data.redirect;}
-    else throw new Error(data.error||'Unknown error');
+    if(data.success){
+      if(data.price_changed){showToast('<i class="fa-solid fa-tag"></i> Prices updated — your total is now ₹'+Math.round(data.server_total)+'.',4000,'warn');}
+      cart=[];cartCoupon={code:'',discount:0};renderCart();closeCart();closeCheckoutModal();
+      setTimeout(()=>{window.location.href=data.redirect;}, data.price_changed?1200:0);
+      return;
+    }
+    if(btn){btn.disabled=false;btn.innerHTML='Proceed to Payment <i class="fa-solid fa-arrow-right"></i>';}
+    showOrderError(data);
   }catch(err){
     if(btn){btn.disabled=false;btn.innerHTML='Proceed to Payment <i class="fa-solid fa-arrow-right"></i>';}
-    showToast('<i class="fa-solid fa-circle-exclamation"></i> '+err.message,3000);
+    showToast('<i class="fa-solid fa-wifi"></i> Network error — please check your connection and try again.',3500,'error');
   }
 }
 
-function _coRenderSaved(){
-  const a=_coSaved;
-  document.getElementById('coAddrSection').innerHTML=`
-    <div>
-      <div style="font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:rgba(13,43,107,.4);margin-bottom:10px;display:flex;align-items:center;gap:6px">
-        <i class="fa-solid fa-location-dot" style="color:#1565C0"></i> Saved Delivery Address
-      </div>
-      <div style="border:2px solid rgba(21,101,192,.15);border-radius:18px;padding:16px 18px;background:#f7f9ff;margin-bottom:12px">
-        <div style="font-weight:900;font-size:.92rem;color:#0d2b6b;margin-bottom:3px">${_esc(a.name)}</div>
-        <div style="font-size:.78rem;color:rgba(13,43,107,.45);font-weight:700;margin-bottom:8px">${_esc(a.phone)}</div>
-        <div style="font-size:.82rem;color:rgba(13,43,107,.6);font-weight:600;line-height:1.55;margin-bottom:14px">${(()=>{const p=_coParseAddress(a.address);const ad=[p.addr1,p.area,p.landmark?'Near: '+p.landmark:'',`${p.city}${p.pincode?' - '+p.pincode:''}${p.state?', '+p.state:''}`].filter(Boolean).join(', ');return _esc(ad||a.address);})()}</div>
-        <button id="coDeliverBtn" style="width:100%;height:46px;background:#0d2b6b;border:none;border-radius:999px;color:#FECF0A;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-          <i class="fa-solid fa-check"></i> Deliver Here
-        </button>
-      </div>
-      <div style="text-align:center">
-        <button id="coNewAddrBtn" style="background:transparent;border:none;font-size:.8rem;font-weight:800;color:rgba(13,43,107,.4);cursor:pointer;text-decoration:underline;padding:4px">
-          + Use a different address
-        </button>
-      </div>
-    </div>`;
-  document.getElementById('coDeliverBtn').addEventListener('click',_coConfirm);
-  document.getElementById('coNewAddrBtn').addEventListener('click',()=>_coRenderForm(false));
-}
-
-function _coConfirm(){
-  const a=_coSaved;
-  const parsed=_coParseAddress(a.address);
-  const addrDisplay=[parsed.addr1,parsed.area,parsed.landmark?'Near: '+parsed.landmark:'',`${parsed.city}${parsed.pincode?' - '+parsed.pincode:''}${parsed.state?', '+parsed.state:''}`].filter(Boolean).join(', ');
-  const typeIcon={Home:'🏠',Work:'🏢',Other:'📍'}[parsed.addrType]||'📍';
-  document.getElementById('coAddrSection').innerHTML=`
-    <div style="background:#f0f9f0;border:1.5px solid rgba(46,125,50,.25);border-radius:16px;padding:14px 18px;margin-bottom:14px">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#2e7d32;margin-bottom:6px;display:flex;align-items:center;gap:6px">
-            <i class="fa-solid fa-circle-check"></i> Delivering to &nbsp;<span style="background:#d4edda;color:#155724;border-radius:999px;padding:1px 8px">${typeIcon} ${_esc(parsed.addrType||'Home')}</span>
-          </div>
-          <div style="font-weight:900;font-size:.9rem;color:#0d2b6b;margin-bottom:3px">${_esc(a.name)} &nbsp;·&nbsp; <span style="font-weight:700">${_esc(a.phone)}</span></div>
-          <div style="font-size:.78rem;color:rgba(13,43,107,.55);font-weight:600;line-height:1.65;margin-top:3px">${_esc(addrDisplay)}</div>
-        </div>
-        <button id="coChangeBtn" style="background:#fff;border:1.5px solid rgba(13,43,107,.15);border-radius:10px;padding:6px 12px;font-size:.72rem;font-weight:800;color:rgba(13,43,107,.5);cursor:pointer;white-space:nowrap;flex-shrink:0">
-          ✏ Change
-        </button>
-      </div>
-    </div>
-    <button id="coConfirmBtn" style="${_bStyle}">
-      Proceed to Payment &nbsp;<i class="fa-solid fa-arrow-right"></i>
-    </button>`;
-  document.getElementById('coChangeBtn').addEventListener('click',()=>_coRenderForm(true));
-  document.getElementById('coConfirmBtn').addEventListener('click',()=>_coSubmit(a.name,a.phone,a.address));
-}
-
 function _coParseAddress(raw){
-  /* Parse a stored structured address back into components */
   const def={addr1:'',area:'',city:'',pincode:'',state:'',landmark:'',addrType:'Home'};
   if(!raw)return def;
   const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
   if(lines.length<2)return{...def,addr1:raw};
-  def.addr1=lines[0]||'';
-  def.area=lines[1]||'';
-  /* third line may be landmark or city */
+  def.addr1=lines[0]||'';def.area=lines[1]||'';
   let idx=2;
   if(lines[idx]&&lines[idx].startsWith('Landmark:')){def.landmark=lines[idx].replace('Landmark:','').trim();idx++;}
-  const cityLine=lines[idx]||'';
-  /* format: "City - 600001, Tamil Nadu" */
-  const cm=cityLine.match(/^(.+?)\s*-\s*(\d{4,6}),\s*(.+)$/);
-  if(cm){def.city=cm[1].trim();def.pincode=cm[2].trim();def.state=cm[3].trim();}else{def.city=cityLine;}
-  const typeLine=lines[idx+1]||'';
-  def.addrType=typeLine.replace(/\[|\]/g,'').trim()||'Home';
+  const cm=(lines[idx]||'').match(/^(.+?)\s*-\s*(\d{4,6}),\s*(.+)$/);
+  if(cm){def.city=cm[1].trim();def.pincode=cm[2].trim();def.state=cm[3].trim();}else{def.city=lines[idx]||'';}
+  def.addrType=(lines[idx+1]||'').replace(/\[|\]/g,'').trim()||'Home';
   return def;
 }
-
 function _coFormatAddress(addr1,area,city,pincode,state,landmark,addrType){
   const parts=[addr1,area];
   if(landmark)parts.push('Landmark: '+landmark);
@@ -427,95 +409,190 @@ function _coFormatAddress(addr1,area,city,pincode,state,landmark,addrType){
   return parts.filter(Boolean).join('\n');
 }
 
+function _coRenderSaved(){
+  const a=_coSaved;
+  const p=_coParseAddress(a.address);
+  const addrText=[p.addr1,p.area,p.landmark?'Near: '+p.landmark:'',`${p.city}${p.pincode?' - '+p.pincode:''}${p.state?', '+p.state:''}`].filter(Boolean).join(', ');
+  document.getElementById('coAddrSection').innerHTML=`
+    <div class="co-sec-head"><i class="fa-solid fa-location-dot"></i> Saved Address</div>
+    <div class="co-saved-card">
+      <div style="font-weight:900;font-size:.92rem;color:#0d2b6b;margin-bottom:2px">${_esc(a.name)}</div>
+      <div style="font-size:.78rem;color:rgba(13,43,107,.45);font-weight:700;margin-bottom:8px">${_esc(a.phone)}</div>
+      <div style="font-size:.82rem;color:rgba(13,43,107,.6);font-weight:600;line-height:1.55;margin-bottom:14px">${_esc(addrText||a.address)}</div>
+      <button id="coDeliverBtn" class="co-deliver-btn"><i class="fa-solid fa-check"></i> Deliver Here</button>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button id="coNewAddrBtn" class="co-saved-link">+ Use a different address</button>
+    </div>`;
+  document.getElementById('coDeliverBtn').addEventListener('click',_coConfirm);
+  document.getElementById('coNewAddrBtn').addEventListener('click',()=>_coRenderForm(false));
+}
+
+function _coConfirm(){
+  const a=_coSaved;
+  const p=_coParseAddress(a.address);
+  const addrText=[p.addr1,p.area,p.landmark?'Near: '+p.landmark:'',`${p.city}${p.pincode?' - '+p.pincode:''}${p.state?', '+p.state:''}`].filter(Boolean).join(', ');
+  const icon={Home:'🏠',Work:'🏢',Other:'📍'}[p.addrType]||'📍';
+  document.getElementById('coAddrSection').innerHTML=`
+    <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#15803d;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+        <i class="fa-solid fa-circle-check"></i> Delivering to ${icon} ${_esc(p.addrType||'Home')}
+      </div>
+      <div style="font-weight:900;font-size:.9rem;color:#0d2b6b;margin-bottom:3px">${_esc(a.name)} · ${_esc(a.phone)}</div>
+      <div style="font-size:.78rem;color:rgba(13,43,107,.55);font-weight:600;line-height:1.65">${_esc(addrText)}</div>
+      <button id="coChangeBtn" style="margin-top:10px;background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:.72rem;font-weight:800;color:#6b7280;cursor:pointer">✏ Change</button>
+    </div>
+    <button id="coConfirmBtn" class="co-submit">Proceed to Payment &nbsp;<i class="fa-solid fa-arrow-right"></i></button>`;
+  document.getElementById('coChangeBtn').addEventListener('click',()=>_coRenderForm(true));
+  document.getElementById('coConfirmBtn').addEventListener('click',()=>_coSubmit(a.name,a.phone,a.address));
+}
+
+function _setFieldErr(id,msg){
+  const inp=document.getElementById(id);
+  const err=document.getElementById(id+'Err');
+  if(!inp)return;
+  if(msg){inp.classList.add('co-err');if(err){err.textContent=msg;err.classList.add('show');}}
+  else{inp.classList.remove('co-err');if(err)err.classList.remove('show');}
+}
+function _clearAllErr(){
+  document.querySelectorAll('#coForm .co-input').forEach(i=>i.classList.remove('co-err'));
+  document.querySelectorAll('#coForm .co-field-err').forEach(e=>e.classList.remove('show'));
+}
+
+function _coField(id,value,placeholder,type='text',maxlength=''){
+  return `<div class="co-field">
+    <input class="co-input" type="${type}" id="${id}" value="${_esc(value)}" placeholder="${placeholder}" autocomplete="off"${maxlength?` maxlength="${maxlength}"`:''}/>
+    <div class="co-field-err" id="${id}Err"></div>
+  </div>`;
+}
+
+/* Most frequent non-empty value in a list (handles pincodes spanning districts) */
+function _coMajority(arr){
+  const counts={};let best='',bestN=0;
+  arr.filter(Boolean).forEach(v=>{counts[v]=(counts[v]||0)+1;if(counts[v]>bestN){bestN=counts[v];best=v;}});
+  return best;
+}
+
+/* Auto-fill State + City/District from pincode via India Post API */
+function _coBindPincode(){
+  const pin=document.getElementById('coPincode');
+  if(pin){
+    pin.addEventListener('input',()=>{
+      const v=pin.value.replace(/\D/g,'').slice(0,6);
+      if(pin.value!==v)pin.value=v;
+      if(v.length===6)_coLookupPincode(v);
+    });
+  }
+  const phone=document.getElementById('coPhone');
+  if(phone){
+    phone.addEventListener('input',()=>{
+      const v=phone.value.replace(/\D/g,'').slice(0,10);
+      if(phone.value!==v)phone.value=v;
+    });
+    phone.addEventListener('keypress',e=>{if(!/[0-9]/.test(e.key))e.preventDefault();});
+  }
+}
+async function _coLookupPincode(pincode){
+  const stateEl=document.getElementById('coState');
+  const cityEl=document.getElementById('coCity');
+  const errEl=document.getElementById('coPincodeErr');
+  const suggEl=document.getElementById('coAreaSuggest');
+  _setFieldErr('coPincode','');
+  if(suggEl)suggEl.innerHTML='';
+  if(errEl){errEl.textContent='Looking up…';errEl.style.color='#1976D2';errEl.classList.add('show');}
+  try{
+    const r=await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+    const d=await r.json();
+    const rec=d&&d[0];
+    if(rec&&rec.Status==='Success'&&rec.PostOffice&&rec.PostOffice.length){
+      const district=_coMajority(rec.PostOffice.map(po=>po.District));
+      const state=_coMajority(rec.PostOffice.map(po=>po.State));
+      if(stateEl){stateEl.value=state||stateEl.value;stateEl.classList.remove('co-err');}
+      if(cityEl){cityEl.value=district||cityEl.value;cityEl.classList.remove('co-err');}
+      if(errEl){errEl.classList.remove('show');errEl.style.color='';}
+      _coRenderAreaSuggest(rec.PostOffice);
+    }else if(errEl){errEl.style.color='';errEl.classList.remove('show');}
+  }catch{if(errEl){errEl.style.color='';errEl.classList.remove('show');}}
+}
+function _coRenderAreaSuggest(postOffices){
+  const suggEl=document.getElementById('coAreaSuggest');
+  const areaEl=document.getElementById('coArea');
+  if(!suggEl||!areaEl)return;
+  const names=[...new Set(postOffices.map(po=>po.Name).filter(Boolean))];
+  if(!names.length){suggEl.innerHTML='';areaEl.removeAttribute('list');return;}
+  suggEl.innerHTML=`<datalist id="coAreaList">${names.map(n=>`<option value="${_esc(n)}">`).join('')}</datalist>
+    <div class="co-area-hint"><i class="fa-solid fa-circle-info"></i> ${names.length} ${names.length===1?'locality':'localities'} found — type or pick from the list above.</div>`;
+  areaEl.setAttribute('list','coAreaList');
+  areaEl.setAttribute('placeholder','Type or choose your area *');
+}
+
 function _coRenderForm(prefill){
   const n=prefill&&_coSaved?_coSaved.name:'';
   const ph=prefill&&_coSaved?_coSaved.phone:'';
-  const parsed=prefill&&_coSaved?_coParseAddress(_coSaved.address):{addr1:'',area:'',city:'',pincode:'',state:'',landmark:'',addrType:'Home'};
-
-  const iS='width:100%;height:46px;border:2px solid rgba(21,101,192,.12);border-radius:12px;padding:0 14px;font-family:\'Nunito\',sans-serif;font-size:.88rem;font-weight:700;color:#0d2b6b;background:#fff;outline:none;box-sizing:border-box;transition:border-color .2s,box-shadow .2s';
-  const iF="this.style.borderColor='#FECF0A';this.style.boxShadow='0 0 0 3px rgba(254,207,10,.15)'";
-  const iB="this.style.borderColor='rgba(21,101,192,.12)';this.style.boxShadow='none'";
-  const row2='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px';
-  const secH='font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:rgba(13,43,107,.38);margin:16px 0 10px;display:flex;align-items:center;gap:6px';
-
+  const p=prefill&&_coSaved?_coParseAddress(_coSaved.address):{addr1:'',area:'',city:'',pincode:'',state:'',landmark:'',addrType:'Home'};
   document.getElementById('coAddrSection').innerHTML=`
-    ${_coSaved&&!prefill?`<div style="margin-bottom:10px"><button id="coBackSaved" style="background:transparent;border:none;font-size:.78rem;font-weight:800;color:rgba(13,43,107,.4);cursor:pointer;display:flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-left"></i> Use saved address</button></div>`:''}
+    ${_coSaved&&!prefill?`<button id="coBackSaved" class="co-saved-link" style="margin-bottom:12px"><i class="fa-solid fa-arrow-left"></i> Use saved address</button>`:''}
     <form id="coForm" novalidate>
-
-      <div style="${secH}"><i class="fa-solid fa-user" style="color:#1565C0"></i> Contact Information</div>
-
-      <div style="${row2}">
-        <input type="text" id="coName" value="${_esc(n)}" placeholder="Full Name *" required style="${iS}" onfocus="${iF}" onblur="${iB}">
-        <input type="tel" id="coPhone" value="${_esc(ph)}" placeholder="Mobile Number *" required maxlength="10" pattern="[6-9][0-9]{9}" style="${iS}" onfocus="${iF}" onblur="${iB}">
+      <div class="co-sec-head"><i class="fa-solid fa-user"></i> Contact Information</div>
+      <div class="co-row2">
+        ${_coField('coName',n,'Full Name *')}
+        ${_coField('coPhone',ph,'Mobile Number *','tel','10')}
       </div>
-
-      <div style="${secH}"><i class="fa-solid fa-location-dot" style="color:#1565C0"></i> Delivery Address</div>
-
-      <div style="${row2}">
-        <input type="text" id="coPincode" value="${_esc(parsed.pincode)}" placeholder="Pincode *" required maxlength="6" pattern="[0-9]{6}" style="${iS}" onfocus="${iF}" onblur="${iB}">
-        <input type="text" id="coState" value="${_esc(parsed.state)}" placeholder="State *" required style="${iS}" onfocus="${iF}" onblur="${iB}">
+      <div class="co-sec-head"><i class="fa-solid fa-location-dot"></i> Delivery Address</div>
+      <div class="co-row2">
+        ${_coField('coPincode',p.pincode,'Pincode *','text','6')}
+        ${_coField('coState',p.state,'State *')}
       </div>
-      <div style="margin-bottom:10px">
-        <input type="text" id="coAddr1" value="${_esc(parsed.addr1)}" placeholder="House/Flat No., Building, Society *" required style="${iS}" onfocus="${iF}" onblur="${iB}">
+      ${_coField('coAddr1',p.addr1,'House/Flat No., Building, Society *')}
+      ${_coField('coArea',p.area,'Area / Colony / Street / Sector *')}
+      <div id="coAreaSuggest" class="co-area-suggest"></div>
+      <div class="co-row2">
+        ${_coField('coCity',p.city,'City / District *')}
+        ${_coField('coLandmark',p.landmark,'Landmark (optional)')}
       </div>
-      <div style="margin-bottom:10px">
-        <input type="text" id="coArea" value="${_esc(parsed.area)}" placeholder="Area / Colony / Street / Sector *" required style="${iS}" onfocus="${iF}" onblur="${iB}">
+      <div class="co-sec-head"><i class="fa-solid fa-tag"></i> Save As</div>
+      <div class="co-addr-type-row">
+        ${['Home','Work','Other'].map(t=>`<label class="co-type-label${p.addrType===t?' active':''}" id="coLbl${t}">
+          <input type="radio" name="coAddrType" value="${t}" ${p.addrType===t?'checked':''} style="display:none">
+          ${{Home:'🏠 Home',Work:'🏢 Work',Other:'📍 Other'}[t]}
+        </label>`).join('')}
       </div>
-      <div style="${row2}">
-        <input type="text" id="coCity" value="${_esc(parsed.city)}" placeholder="City / District *" required style="${iS}" onfocus="${iF}" onblur="${iB}">
-        <input type="text" id="coLandmark" value="${_esc(parsed.landmark)}" placeholder="Landmark (optional)" style="${iS}" onfocus="${iF}" onblur="${iB}">
-      </div>
-
-      <div style="${secH}"><i class="fa-solid fa-tag" style="color:#1565C0"></i> Save Address As</div>
-      <div style="display:flex;gap:10px;margin-bottom:18px">
-        ${['Home','Work','Other'].map(t=>`
-          <label style="flex:1;border:2px solid rgba(21,101,192,.14);border-radius:12px;padding:10px 8px;cursor:pointer;text-align:center;font-size:.78rem;font-weight:800;color:#0d2b6b;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px" id="coTypeLabel${t}">
-            <input type="radio" name="coAddrType" value="${t}" ${parsed.addrType===t?'checked':''} style="display:none" onchange="document.querySelectorAll('[id^=coTypeLabel]').forEach(l=>l.style.cssText=l.style.cssText.replace('background:#fffde7;border-color:#FECF0A',''));this.parentElement.style.background='#fffde7';this.parentElement.style.borderColor='#FECF0A'">
-            ${{Home:'🏠 Home',Work:'🏢 Work',Other:'📍 Other'}[t]}
-          </label>`).join('')}
-      </div>
-
-      <div id="coFormError" style="display:none;background:#fce8e6;border:1.5px solid #e53935;border-radius:10px;padding:10px 14px;font-size:.8rem;font-weight:700;color:#b71c1c;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-        <i class="fa-solid fa-circle-exclamation"></i><span id="coFormErrorMsg"></span>
-      </div>
-
-      <button type="submit" id="coSubmit" style="${_bStyle}">
+      <button type="submit" id="coSubmit" class="co-submit">
         Proceed to Payment &nbsp;<i class="fa-solid fa-arrow-right"></i>
       </button>
     </form>`;
 
-  /* Highlight the pre-selected address type */
-  const checkedType=document.querySelector('[name="coAddrType"]:checked');
-  if(checkedType){checkedType.parentElement.style.background='#fffde7';checkedType.parentElement.style.borderColor='#FECF0A';}
-
+  document.querySelectorAll('[name="coAddrType"]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      document.querySelectorAll('.co-type-label').forEach(l=>l.classList.remove('active'));
+      r.parentElement.classList.add('active');
+    });
+  });
+  _coBindPincode();
   const backBtn=document.getElementById('coBackSaved');
   if(backBtn)backBtn.addEventListener('click',_coRenderSaved);
 
   document.getElementById('coForm').addEventListener('submit',async e=>{
     e.preventDefault();
-    const name   =document.getElementById('coName').value.trim();
-    const phone  =document.getElementById('coPhone').value.trim();
-    const pincode=document.getElementById('coPincode').value.trim();
-    const state  =document.getElementById('coState').value.trim();
-    const addr1  =document.getElementById('coAddr1').value.trim();
-    const area   =document.getElementById('coArea').value.trim();
-    const city   =document.getElementById('coCity').value.trim();
+    _clearAllErr();
+    const name    =document.getElementById('coName').value.trim();
+    const phone   =document.getElementById('coPhone').value.trim();
+    const pincode =document.getElementById('coPincode').value.trim();
+    const state   =document.getElementById('coState').value.trim();
+    const addr1   =document.getElementById('coAddr1').value.trim();
+    const area    =document.getElementById('coArea').value.trim();
+    const city    =document.getElementById('coCity').value.trim();
     const landmark=document.getElementById('coLandmark').value.trim();
     const addrType=(document.querySelector('[name="coAddrType"]:checked')||{}).value||'Home';
-
-    const errEl=document.getElementById('coFormError');
-    const errMsg=document.getElementById('coFormErrorMsg');
-    function showErr(msg){errEl.style.display='flex';errMsg.textContent=msg;errEl.scrollIntoView({behavior:'smooth',block:'nearest'});}
-
-    if(!name){showErr('Please enter your full name.');return;}
-    if(!/^[6-9][0-9]{9}$/.test(phone)){showErr('Enter a valid 10-digit Indian mobile number.');return;}
-    if(!/^[0-9]{6}$/.test(pincode)){showErr('Enter a valid 6-digit pincode.');return;}
-    if(!state){showErr('Please enter your state.');return;}
-    if(!addr1){showErr('Please enter your house/flat number and building.');return;}
-    if(!area){showErr('Please enter your area/colony/street.');return;}
-    if(!city){showErr('Please enter your city/district.');return;}
-
-    errEl.style.display='none';
+    let ok=true;
+    if(!name){_setFieldErr('coName','Please enter your full name.');ok=false;}
+    if(!/^[6-9][0-9]{9}$/.test(phone)){_setFieldErr('coPhone','Enter a valid 10-digit mobile number.');ok=false;}
+    if(!/^[0-9]{6}$/.test(pincode)){_setFieldErr('coPincode','Enter a valid 6-digit pincode.');ok=false;}
+    if(!state){_setFieldErr('coState','Please enter your state.');ok=false;}
+    if(!addr1){_setFieldErr('coAddr1','Please enter house/flat and building.');ok=false;}
+    if(!area){_setFieldErr('coArea','Please enter area/street/sector.');ok=false;}
+    if(!city){_setFieldErr('coCity','Please enter your city/district.');ok=false;}
+    if(!ok){document.querySelector('#coForm .co-err')?.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
     const address=_coFormatAddress(addr1,area,city,pincode,state,landmark,addrType);
     await _coSubmit(name,phone,address);
   });
@@ -525,11 +602,26 @@ async function buildCheckoutModal(){
   const existing=document.getElementById('checkoutModal');if(existing)existing.remove();
   if(cart.length===0){showToast('<i class="fa-solid fa-basket-shopping"></i> Your cart is empty!');return;}
   _coSaved=null;
-  const itemsHtml=cart.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed rgba(21,101,192,.15)"><span style="font-weight:700;font-size:.88rem;color:var(--kids-dark);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px">${_esc(i.name)} <span style="color:rgba(13,43,107,.4)">×${i.qty}</span></span><span style="font-family:'Fredoka One',cursive;font-size:1rem;color:var(--aqua2);flex-shrink:0">&#8377;${(i.price*i.qty).toFixed(0)}</span></div>`).join('');
-  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const modal=document.createElement('div');modal.id='checkoutModal';
-  modal.style.cssText='position:fixed;inset:0;z-index:3500;display:flex;align-items:center;justify-content:center;background:rgba(10,31,94,.55);backdrop-filter:blur(6px);padding:16px';
-  modal.innerHTML=`<div style="background:#fff;border-radius:28px;padding:32px 28px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.3)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><h2 style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--kids-dark);margin:0"><i class="fa-solid fa-basket-shopping" style="color:var(--aqua2);margin-right:10px"></i>Your Order</h2><button id="coClose" style="background:rgba(13,43,107,.08);border:none;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;color:var(--kids-dark);display:flex;align-items:center;justify-content:center">&times;</button></div><div style="margin-bottom:18px;max-height:180px;overflow-y:auto">${itemsHtml}</div><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-bottom:22px;border-top:2.5px solid var(--yellow)"><span style="font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(13,43,107,.5)">Total</span><span style="font-family:'Fredoka One',cursive;font-size:2rem;color:var(--kids-dark)">&#8377;${total.toFixed(0)}</span></div><div id="coAddrSection"><div style="text-align:center;padding:24px;color:rgba(13,43,107,.35)"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div>`;
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const total=Math.max(0,subtotal-cartCoupon.discount);
+  const itemsHtml=cart.map(i=>`<div class="co-item-row">
+    <span class="co-item-name">${_esc(i.name)} <span>×${i.qty}</span></span>
+    <span class="co-item-price">&#8377;${(i.price*i.qty).toFixed(0)}</span>
+  </div>`).join('');
+  const modal=document.createElement('div');modal.id='checkoutModal';modal.className='co-overlay';
+  modal.innerHTML=`<div class="co-card">
+    <div class="co-head">
+      <h2 class="co-title"><i class="fa-solid fa-basket-shopping"></i>Your Order</h2>
+      <button id="coClose" class="co-close-btn">&times;</button>
+    </div>
+    <div class="co-items">${itemsHtml}</div>
+    <div class="co-divider"></div>
+    <div class="co-total-row">
+      <span class="co-total-label">Total</span>
+      <span class="co-total-val">&#8377;${total.toFixed(0)}</span>
+    </div>
+    <div id="coAddrSection"><div style="text-align:center;padding:24px;color:rgba(13,43,107,.35)"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+  </div>`;
   document.body.appendChild(modal);document.body.style.overflow='hidden';
   document.getElementById('coClose').addEventListener('click',closeCheckoutModal);
   modal.addEventListener('click',e=>{if(e.target===modal)closeCheckoutModal();});
@@ -644,8 +736,9 @@ document.querySelectorAll('.mega-item[data-pdp]').forEach(item=>{
     const activeBtn=weightsEl.querySelector('.pdp-w-btn.active');
     const selectedWeight=activeBtn.textContent;
     const selectedGrams=parseInt(selectedWeight);
-    const currentMrp=product.discountPrice?Math.round(product.discountPrice*selectedGrams/baseGrams):null;
-    for(let i=0;i<qty;i++)addToCart(product.name+' ('+selectedWeight+')',currentPrice,product.image,product.id,currentMrp);
+    const ratio=selectedGrams/baseGrams;
+    const currentMrp=product.discountPrice?Math.round(product.discountPrice*ratio):null;
+    for(let i=0;i<qty;i++)addToCart(product.name+' ('+selectedWeight+')',currentPrice,product.image,product.id,currentMrp,selectedWeight,ratio);
     openCart();
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+product.name+' added to cart!');
   });

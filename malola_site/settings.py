@@ -191,12 +191,35 @@ SHIPROCKET_DEFAULT_PINCODE = os.environ.get('SHIPROCKET_DEFAULT_PINCODE', '60000
 # ── Site ──────────────────────────────────────────────────────────────────────
 SITE_DOMAIN = os.environ.get('SITE_DOMAIN', 'localhost:8000')
 
-# ── Security headers (production only) ───────────────────────────────────────
+# ── Security headers ─────────────────────────────────────────────────────────
+SESSION_COOKIE_HTTPONLY     = True            # JS cannot read the session cookie
+SESSION_COOKIE_SAMESITE     = 'Lax'
+CSRF_COOKIE_SAMESITE        = 'Lax'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS             = 'DENY'
+
+# CSRF trusted origins — required by Django 4+ for HTTPS POST. Built from
+# ALLOWED_HOSTS (a leading-dot wildcard host → https://*.domain), plus an
+# optional comma-separated env override (DJANGO_CSRF_TRUSTED_ORIGINS).
+def _csrf_origin(h):
+    return f'https://*{h}' if h.startswith('.') else f'https://{h}'
+
+CSRF_TRUSTED_ORIGINS = [
+    _csrf_origin(h) for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '*')
+]
+_extra_csrf = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS += [o.strip() for o in _extra_csrf.split(',') if o.strip()]
+
+# ── Production-only (HTTPS) hardening ────────────────────────────────────────
 if not DEBUG:
-    SECURE_HSTS_SECONDS        = 31536000
+    # Railway terminates TLS at its edge proxy — without this, SECURE_SSL_REDIRECT
+    # loops forever and request.is_secure() reports False.
+    SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS            = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_SSL_REDIRECT        = True
-    SESSION_COOKIE_SECURE      = True
-    CSRF_COOKIE_SECURE         = True
+    SECURE_HSTS_PRELOAD            = True
+    SECURE_SSL_REDIRECT            = True
+    SESSION_COOKIE_SECURE          = True
+    CSRF_COOKIE_SECURE             = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -63,7 +63,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
     <div class="sm-section">
       <div class="sm-sec-title">What's New <span class="sm-sparkle">✨</span></div>
       <div class="sm-new-grid">
-        {% for p in db_new_arrivals|slice:":4" %}
+        {% for p in db_whats_new %}
         <div class="sm-new-card" data-href="product/?id={{ p.slug }}">
           <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
           <div class="sm-new-name">{{ p.title }}</div>
@@ -73,18 +73,6 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
             {% if p.image %}<button class="sm-add-btn add-to-cart-btn" data-name="{{ p.title }}" data-price="{{ p.price }}" data-slug="{{ p.slug }}" data-image="{{ p.image.url }}" data-mrp="{{ p.discount_price|default:'' }}">ADD</button>{% endif %}
           </div>
         </div>
-        {% empty %}
-        {% for p in db_our_products|slice:":4" %}
-        <div class="sm-new-card" data-href="product/?id={{ p.slug }}">
-          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
-          <div class="sm-new-name">{{ p.title }}</div>
-          <div class="sm-new-sub">{{ p.short_description|default:"Our Product" }}</div>
-          <div class="sm-new-foot">
-            <span class="sm-new-price">₹{{ p.price }}</span>
-            {% if p.image %}<button class="sm-add-btn add-to-cart-btn" data-name="{{ p.title }}" data-price="{{ p.price }}" data-slug="{{ p.slug }}" data-image="{{ p.image.url }}" data-mrp="{{ p.discount_price|default:'' }}">ADD</button>{% endif %}
-          </div>
-        </div>
-        {% endfor %}
         {% endfor %}
       </div>
     </div>
@@ -102,9 +90,8 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   </div>
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" id="cartEmpty">
-      <i class="fa-solid fa-seedling"></i>
-      <p>Your cart is empty</p>
-      <span>Add some natural goodness!</span>
+      <p class="cart-empty-msg">It feels so light! Let's add some items!</p>
+      <a href="/shop/" class="cart-empty-btn" onclick="closeCart()">Explore products</a>
     </div>
   </div>
   <div id="cartBottom" style="display:none">
@@ -1191,35 +1178,67 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 <!-- FOOTER -->
 <footer class="kids-footer" id="kids-contact">
   <div class="k-footer-grid">
-    <div>
+
+    <!-- Col 1: Brand -->
+    <div class="k-footer-brand">
       <div class="k-footer-logo">
-        <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="NaturNest" style="height:56px;width:auto;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 2px 8px rgba(254,207,10,.4))">
+        <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:64px;width:auto;object-fit:contain;">
       </div>
-      <p>Bridging health and indulgence through millets, ragi, quinoa and nature's finest ingredients — snacks families trust and kids love.</p>
-      <div class="k-social-links">
-        <a class="k-social-link" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-        <a class="k-social-link" href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+      <p class="k-footer-tagline">From Salem with love, Malola makes snacking smarter and happier. With the power of millets and the magic of flavours, we're here to brighten up your everyday munch moments. So go on, snack guilt-free and smile wide!</p>
+    </div>
+
+    <!-- Col 2: Useful Links -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Useful Links</h4>
+      <ul class="k-footer-list">
+        <li><a href="/">Home</a></li>
+        <li><a href="/shop/">Shop</a></li>
+        <li><a href="/about/">About Us</a></li>
+        <li><a href="/#kids-contact">Contact Us</a></li>
+        <li><a href="/faq/">FAQ's</a></li>
+      </ul>
+    </div>
+
+    <!-- Col 3: Customer Services -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Customer Services</h4>
+      <ul class="k-footer-list">
+        <li><a href="/shipping-policy/">Shipping Policy</a></li>
+        <li><a href="/privacy-policy/">Privacy Policy</a></li>
+        <li><a href="/terms/">Terms &amp; Condition</a></li>
+        <li><a href="/refund-policy/">Refund &amp; Cancellation</a></li>
+      </ul>
+    </div>
+
+    <!-- Col 4: Contact -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Contact Us</h4>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-location-dot"></i>
+        <span>Malola Foods, 1st Floor, Above Siva Coffee Bar, Saradha College road, Salem, Tamil Nadu - 636004</span>
+      </div>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-phone"></i>
+        <a href="tel:+919500990045">+91 95009 90045</a>
+      </div>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-envelope"></i>
+        <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a>
+      </div>
+      <div class="k-social-links" style="margin-top:18px">
         <a class="k-social-link" href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-        <a class="k-social-link" href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+        <a class="k-social-link" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
         <a class="k-social-link" href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
       </div>
     </div>
-    <div>
-      <div class="k-eyebrow" style="background:var(--yellow);color:var(--kids-dark);display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 22px;font-family:'Fredoka One',cursive;font-size:.9rem;margin-bottom:10px">📧 Stay Connected</div>
-      <div class="k-footer-heading">Join the harvest list!</div>
-      <form class="k-footer-form" id="footerForm">
-        <input type="text" placeholder="Your Name" aria-label="Name">
-        <input type="email" placeholder="Email Address" aria-label="Email">
-        <button type="submit">Subscribe &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
-      </form>
-    </div>
+
   </div>
   <div class="k-footer-bottom">
-    <span>© 2025 Malola. All rights reserved.</span>
+    <span>© 2025 Malola Foods. All rights reserved.</span>
     <div class="k-footer-links">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-      <a href="#">Products</a>
+      <a href="/privacy-policy/">Privacy Policy</a>
+      <a href="/terms/">Terms</a>
+      <a href="/refund-policy/">Refund Policy</a>
     </div>
   </div>
 </footer>
@@ -1306,7 +1325,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 </script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script src="{% static 'js/script.js' %}"></script>
+<script src="{% static 'js/script.js' %}?v=11"></script>
 <script>
 /* Apply data-bg as background color and data-href as click navigation */
 document.querySelectorAll('[data-bg]').forEach(function(el){
