@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="csrf-token" content="{{ csrf_token }}">
+<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
+<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
+<title>Shipping Policy — Malola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+/* PAGE BANNER */
+.page-banner{background:#c5ecf7;position:relative;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center;}
+.page-banner-bg{position:absolute;bottom:0;left:0;width:100%;height:auto;display:block;z-index:0;pointer-events:none;}
+.page-banner-inner{position:relative;z-index:2;text-align:center;padding:100px 24px 90px;}
+.page-banner-inner h1{font-family:'Fredoka One',cursive;font-size:clamp(2rem,5vw,3.2rem);color:#0d2b6b;font-weight:400;margin-bottom:10px;}
+.page-banner-crumb{font-size:.82rem;font-weight:700;color:#555;}
+.page-banner-crumb a{color:#0d2b6b;text-decoration:none;}
+.page-banner-crumb a:hover{color:#c97c1a;}
+.page-banner-crumb span{color:#c97c1a;}
+/* CONTENT */
+.pol-content{max-width:820px;margin:0 auto;padding:60px 24px 80px;}
+.pol-content h2{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:900;color:#0d2b6b;margin:36px 0 10px;padding-bottom:8px;border-bottom:2px solid #e8ecf0;}
+.pol-content h2:first-child{margin-top:0;}
+.pol-content p{font-family:'Nunito',sans-serif;font-size:.93rem;color:#444;line-height:1.85;font-weight:600;margin-bottom:12px;}
+.pol-content ul{padding-left:22px;margin:8px 0 16px;}
+.pol-content ul li{font-family:'Nunito',sans-serif;font-size:.93rem;color:#444;line-height:1.85;font-weight:600;margin-bottom:8px;}
+.pol-content strong{color:#222;font-weight:900;}
+.pol-content a{color:#0d2b6b;font-weight:800;}
+@media(max-width:600px){.page-banner-inner{padding-top:80px;padding-bottom:70px;}}
+</style>
+</head>
+<body>
+
+{% include 'store/includes/site_nav.html' %}
+
+<div class="page-banner">
+  <img class="page-banner-bg" src="{% static 'images/footer.png' %}" alt="">
+  <div class="page-banner-inner">
+    <h1>Shipping Policy</h1>
+    <div class="page-banner-crumb"><a href="/">Home</a> / <span>Shipping Policy</span></div>
+  </div>
+</div>
+
+<div class="pol-content">
+
+  <p>At <strong>Malola Foods</strong>, we know how important it is for you to receive your organic and natural foods fresh, safe, and on time. That's why we take extra care to make sure every order—whether it's healthy snacks, cold-pressed oils, or millet-based products—is packed with love and delivered right to your doorstep with trusted delivery partners.</p>
+
+  <h2>Where We Deliver</h2>
+  <ul>
+    <li>We ship <strong>across India</strong>—covering cities, towns, and even rural areas.</li>
+    <li>All products are dispatched directly from our facility in <strong>Salem, Tamil Nadu</strong>, so you enjoy truly farm-fresh food delivery.</li>
+    <li>Have a bulk or wholesale order? Just reach out to our support team, and we'll arrange the best <strong>custom shipping solution</strong> for you.</li>
+  </ul>
+
+  <h2>Processing &amp; Delivery Timeline</h2>
+  <ul>
+    <li>Orders are usually processed within <strong>24–48 hours</strong> after confirmation.</li>
+    <li>Delivery time is typically <strong>3–7 business days</strong>, depending on your location.</li>
+    <li>Customers in metro cities may get their packages a little faster (3–4 days). For remote locations, it might take slightly longer.</li>
+    <li>Once your order is shipped, you'll receive <strong>tracking details via SMS/email</strong> so you can follow your package until it arrives.</li>
+  </ul>
+
+  <h2>Shipping Charges</h2>
+  <ul>
+    <li>Enjoy <strong>free shipping</strong> on prepaid orders above <strong>₹999</strong>.</li>
+    <li>For orders below ₹999, a small shipping fee will be applied at checkout.</li>
+    <li>Cash on Delivery (COD) may be available in certain areas, with a minimal handling fee.</li>
+  </ul>
+
+  <h2>Packaging &amp; Quality Promise</h2>
+  <ul>
+    <li>Every order is packed using <strong>eco-friendly, food-grade, and tamper-proof packaging</strong> to keep your food safe and fresh.</li>
+    <li>Before shipping, each item goes through a <strong>strict quality check</strong>.</li>
+    <li>Our commitment: <strong>No preservatives. No chemicals. Only 100% natural, organic, and healthy food</strong>—delivered with care.</li>
+  </ul>
+
+  <h2>International Shipping</h2>
+  <p>At the moment, we deliver only within <strong>India</strong>. For overseas orders or partnerships, please write to us at <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a></p>
+
+  <h2>Need Help?</h2>
+  <p>We're always here to assist you with any shipping, delivery, or order-related queries.</p>
+  <p>📧 <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a> &nbsp;|&nbsp; 📞 <a href="tel:+919500990045">+91 95009 90045</a></p>
+
+</div>
+
+{% include 'store/includes/site_footer.html' %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
+</body>
+</html>

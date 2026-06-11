@@ -29,9 +29,17 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display  = ('id', 'name', 'sort_order', 'is_active', 'created_at')
-    list_editable = ('sort_order', 'is_active')
-    search_fields = ('name',)
+    list_display   = ('id', 'name', 'image_preview', 'sort_order', 'is_active', 'created_at')
+    list_editable  = ('sort_order', 'is_active')
+    search_fields  = ('name',)
+    readonly_fields = ('image_preview',)
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        from django.utils.html import format_html
+        if obj.image:
+            return format_html('<img src="{}" style="height:60px;border-radius:6px;object-fit:cover">', obj.image.url)
+        return '—'
 
 
 @admin.register(OfferGroup)

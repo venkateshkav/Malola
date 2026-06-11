@@ -106,6 +106,14 @@ urlpatterns = [
     path('blog/<slug:slug>/',    views.blog_detail,       name='blog_detail'),
     path('about/',               views.about_page,        name='about'),
 
+    # policy pages
+    path('shipping-policy/',    views.shipping_policy,   name='shipping_policy'),
+    path('privacy-policy/',     views.privacy_policy,    name='privacy_policy'),
+    path('terms/',              views.terms_page,        name='terms'),
+    path('refund-policy/',      views.refund_policy,     name='refund_policy'),
+    path('contact/',            views.contact_page,      name='contact'),
+    path('faq/',                views.faq_page,          name='faq'),
+
     # admin — blog
     path('manage/blog/',                   views.manage_blog,         name='manage_blog'),
     path('manage/blog/add/',               views.manage_add_blog,     name='manage_add_blog'),

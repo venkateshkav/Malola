@@ -52,20 +52,9 @@
 }
 </style>
 </head>
-<body style="background:#f7f9ff">
+<body style="background:#f7f9ff;padding-top:68px">
 
-<!-- Minimal nav -->
-<nav style="background:#0d2b6b;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 4px 20px rgba(13,43,107,.35)">
-  <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:12px">
-    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:38px">
-  </a>
-  <div style="display:flex;align-items:center;gap:24px">
-    <a href="/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">Home</a>
-    <a href="/shop/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">Shop</a>
-    <a href="/about/" style="color:rgba(255,255,255,.7);text-decoration:none;font-weight:700;font-size:.88rem">About</a>
-    <a href="/blog/" style="color:#FECF0A;text-decoration:none;font-weight:800;font-size:.88rem">Blog</a>
-  </div>
-</nav>
+{% include 'store/includes/site_nav.html' %}
 
 <!-- Hero -->
 <div class="bl-hero">
@@ -108,10 +97,7 @@
   {% endif %}
 </div>
 
-<!-- Footer strip -->
-<div style="background:#73CDDD;padding:28px 24px;text-align:center">
-  <p style="color:rgba(255,255,255,.45);font-size:.8rem;font-weight:700">© 2025 Malola Healthy Snacks · <a href="/" style="color:#FECF0A;text-decoration:none">Back to Home</a></p>
-</div>
+{% include 'store/includes/site_footer.html' %}
 
 </body>
 </html>

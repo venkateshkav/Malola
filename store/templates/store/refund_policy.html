@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="csrf-token" content="{{ csrf_token }}">
+<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
+<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
+<title>Refund &amp; Cancellation — Malola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<style>
+.page-banner{background:#c5ecf7;position:relative;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center;}
+.page-banner-bg{position:absolute;bottom:0;left:0;width:100%;height:auto;display:block;z-index:0;pointer-events:none;}
+.page-banner-inner{position:relative;z-index:2;text-align:center;padding:100px 24px 90px;}
+.page-banner-inner h1{font-family:'Fredoka One',cursive;font-size:clamp(2rem,5vw,3.2rem);color:#0d2b6b;font-weight:400;margin-bottom:10px;}
+.page-banner-crumb{font-size:.82rem;font-weight:700;color:#555;}
+.page-banner-crumb a{color:#0d2b6b;text-decoration:none;}
+.page-banner-crumb a:hover{color:#c97c1a;}
+.page-banner-crumb span{color:#c97c1a;}
+.pol-content{max-width:820px;margin:0 auto;padding:60px 24px 80px;}
+.pol-content h2{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:900;color:#0d2b6b;margin:36px 0 10px;padding-bottom:8px;border-bottom:2px solid #e8ecf0;}
+.pol-content h2:first-child{margin-top:0;}
+.pol-content p{font-family:'Nunito',sans-serif;font-size:.93rem;color:#444;line-height:1.85;font-weight:600;margin-bottom:12px;}
+.pol-content ul{padding-left:22px;margin:8px 0 16px;}
+.pol-content ul li{font-family:'Nunito',sans-serif;font-size:.93rem;color:#444;line-height:1.85;font-weight:600;margin-bottom:8px;}
+.pol-content ul ul{margin-top:6px;}
+.pol-content strong{color:#222;font-weight:900;}
+.pol-content a{color:#0d2b6b;font-weight:800;}
+.pol-table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-family:'Nunito',sans-serif;}
+.pol-table th{background:#0d2b6b;color:#fff;padding:11px 16px;font-size:.83rem;font-weight:800;text-align:left;}
+.pol-table td{padding:10px 16px;font-size:.87rem;color:#444;font-weight:600;border-bottom:1px solid #eee;}
+.pol-table tr:last-child td{border-bottom:none;}
+.pol-table tr:nth-child(even) td{background:#f8fafc;}
+@media(max-width:600px){.page-banner-inner{padding-top:80px;padding-bottom:70px;}.pol-table{font-size:.8rem;}}
+</style>
+</head>
+<body>
+
+{% include 'store/includes/site_nav.html' %}
+
+<div class="page-banner">
+  <img class="page-banner-bg" src="{% static 'images/footer.png' %}" alt="">
+  <div class="page-banner-inner">
+    <h1>Refund &amp; Cancellation</h1>
+    <div class="page-banner-crumb"><a href="/">Home</a> / <span>Refund &amp; Cancellation</span></div>
+  </div>
+</div>
+
+<div class="pol-content">
+
+  <p>At <strong>Malola Foods</strong>, your satisfaction is our top priority. From ordering your favourite healthy snacks to receiving farm-fresh groceries, we strive to make every transaction smooth, secure, and stress-free. This Refund &amp; Cancellation Policy outlines how you can cancel orders, request refunds, and return products.</p>
+
+  <h2>1. General</h2>
+  <p>Malola Foods, based in <strong>Salem, Tamil Nadu</strong>, operates malolafoods.com. By purchasing on our platform, you're agreeing to these terms, which work alongside our <a href="/shipping-policy/">Shipping Policy</a> and <a href="/terms/">Terms &amp; Conditions</a>.</p>
+  <p>We are committed to ensuring a positive experience, whether it involves healthy food delivery, online grocery shopping, or any returns and refunds. For any questions, feel free to reach out to us.</p>
+
+  <h2>2. Applicability of Policy</h2>
+  <p>When you place an order or request a cancellation/refund, you're agreeing to these policies. These terms may change over time, so it's best to check back whenever you're ordering to stay updated.</p>
+
+  <h2>3. Cancellation Terms</h2>
+  <ul>
+    <li>You can <strong>cancel your order anytime before it's dispatched</strong>.</li>
+    <li>Once the product is dispatched, cancellation isn't guaranteed—so please reach out immediately via our Customer Support, and while we'll do our best to intercept it, delivery may still occur. You can reject the delivery if it arrives.</li>
+    <li>Cancellation requests can be made through:
+      <ul>
+        <li>The <strong>'My Orders'</strong> section of our website</li>
+        <li>Or by contacting our <strong>customer support team</strong> via email or phone</li>
+      </ul>
+    </li>
+    <li>Once we receive your cancellation, refunds for prepaid orders are initiated within <strong>24 hours</strong>.</li>
+  </ul>
+
+  <h2>4. Return &amp; Refund Terms</h2>
+  <ul>
+    <li>If you receive an item that is <strong>damaged, defective, or incorrect</strong>, you may be eligible to return it. Please check the relevant product's return window ("Returnable Period").</li>
+    <li>Damaged packaging or tampering may waive your return eligibility—so please inspect the package at delivery.</li>
+    <li>To initiate a return: Go to <strong>'My Orders'</strong> → select the order → click <strong>'Request Return'</strong> or contact our support with details and photos.</li>
+    <li>Once verified, refunds will be processed based on the examination outcome—typically within <strong>1 business day</strong> after verification.</li>
+    <li>Refunds are issued to the <strong>original payment method</strong>, or via store credit (if preferred). Depending on your bank or payment provider, it may take additional time for the funds to reflect.</li>
+    <li>If you opted for <strong>Cash on Delivery (COD)</strong>: Refunds may be processed via bank transfer or wallet/store credit, depending on the situation.</li>
+    <li>Non-returnable items (e.g., certain perishable goods) will be clearly marked and are excluded from returns or refunds.</li>
+  </ul>
+
+  <h2>5. Return Conditions — At a Glance</h2>
+  <table class="pol-table">
+    <tr><th>Condition</th><th>Requirement</th></tr>
+    <tr><td>Return Window</td><td>Typically within 7 days of delivery (check product page)</td></tr>
+    <tr><td>Product Condition</td><td>Unused, in original packaging</td></tr>
+    <tr><td>Tags &amp; Labels</td><td>Must be intact and unaltered</td></tr>
+    <tr><td>Odor or Stains</td><td>Not acceptable—product needs to be clean and fresh</td></tr>
+    <tr><td>Accessory Completeness</td><td>All items must be included (e.g., original packaging)</td></tr>
+    <tr><td>Damaged/Defective Reporting</td><td>Feedback with photos or video within return window</td></tr>
+  </table>
+
+  <h2>6. Refund Timeline</h2>
+  <ul>
+    <li><strong>Prepaid Orders:</strong> Once your return is approved, refunds are typically processed within 1 business day, but may take <strong>3–15 working days</strong> to appear in your account depending on the payment method and financial institution processing time.</li>
+    <li><strong>COD Orders:</strong> Refunds may be processed via wallet credits or bank transfers, based on your preference and order type.</li>
+    <li><strong>Store Credit Option:</strong> You may choose store credit if that works better for future shopping.</li>
+  </ul>
+
+  <h2>7. Cancellation Post-Dispatch</h2>
+  <p>Cancellation after dispatch is subject to our discretion. Should you proceed with a return post-delivery, kindly follow the return process—delivery might still come through, but you can refuse receipt or send it back using our return process.</p>
+
+  <h2>Need Help?</h2>
+  <p>Our customer support team is happy to assist you with any order-related concerns.</p>
+  <p>📧 <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a></p>
+  <p>📞 <a href="tel:+919500990045">+91 95009 90045</a></p>
+  <p>🕒 Monday – Saturday, 9:00 AM – 6:00 PM IST</p>
+
+</div>
+
+{% include 'store/includes/site_footer.html' %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
+</body>
+</html>

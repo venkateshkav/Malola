@@ -617,155 +617,115 @@ function showOrderError(data){
   });
 })();
 
-/* ── REELS SLIDER ── */
+/* ── REEL THUMBNAILS: lazy-load videos when section enters viewport ── */
 (function(){
-  const viewport = document.getElementById('reelsViewport');
-  const track    = document.getElementById('reelsTrack');
-  const prevBtn  = document.getElementById('reelPrev');
-  const nextBtn  = document.getElementById('reelNext');
-  const dotsWrap = document.getElementById('reelsDots');
-  if (!track) return;
-
-  const cards = Array.from(track.querySelectorAll('.reel-card'));
-  const total = cards.length;
-  const GAP   = 8;
-  let current  = 1;
-  let dragStartX = 0, dragDelta = 0, dragging = false;
-
-  /* create dots */
-  cards.forEach((_, i) => {
-    const d = document.createElement('button');
-    d.className = 'reels-dot';
-    d.setAttribute('aria-label', 'Reel ' + (i + 1));
-    d.addEventListener('click', () => goTo(i));
-    dotsWrap.appendChild(d);
-  });
-  const dots = Array.from(dotsWrap.querySelectorAll('.reels-dot'));
-
-  function applyCarousel(extraPx) {
-    const cardW  = cards[0].offsetWidth;
-    const slot   = cardW + GAP;
-    const vpW    = viewport.offsetWidth;
-    let offset   = (vpW / 2) - (current * slot) - (cardW / 2);
-    if (extraPx) offset += extraPx;
-    track.style.transform = 'translateX(' + offset + 'px)';
-
-    cards.forEach((card, i) => {
-      const isActive = i === current;
-      card.classList.toggle('active', isActive);
-      const v = card.querySelector('.reel-video');
-      if (isActive && !card.classList.contains('user-paused')) {
-        v.play().catch(() => {});
-      } else if (!isActive) {
-        v.pause();
-        v.load();  /* reset to empty — no frame shown on inactive cards */
-        card.classList.remove('user-paused');
+  const grid = document.getElementById('reelsGrid');
+  if (!grid) return;
+  let loaded = false;
+  const loadReelVideos = () => {
+    if (loaded) return;
+    loaded = true;
+    grid.querySelectorAll('.reel-thumb').forEach(thumb => {
+      const vid = thumb.querySelector('.reel-thumb-vid');
+      if (vid && !vid.src && thumb.dataset.src) {
+        vid.src = thumb.dataset.src;
+        vid.play().catch(() => {});
       }
     });
-
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
-    prevBtn.disabled = current === 0;
-    nextBtn.disabled = current === total - 1;
+  };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) { loadReelVideos(); io.disconnect(); }
+    }, { threshold: 0.1 });
+    io.observe(grid);
+  } else {
+    loadReelVideos();
   }
+})();
 
-  function goTo(idx) {
-    if (idx < 0 || idx >= total) return;
+/* ── REELS MODAL ── */
+(function(){
+  const grid = document.getElementById('reelsGrid');
+  if (!grid) return;
+  const thumbs = Array.from(grid.querySelectorAll('.reel-thumb'));
+  if (!thumbs.length) return;
+
+  const overlay      = document.getElementById('reelModalOverlay');
+  const modalVid     = document.getElementById('reelModalVideo');
+  const muteBtn      = document.getElementById('reelModalMute');
+  const closeBtn     = document.getElementById('reelModalClose');
+  const prevBtn      = document.getElementById('reelModalPrev');
+  const nextBtn      = document.getElementById('reelModalNextBtn');
+  const peekPrev     = document.getElementById('reelPeekPrev');
+  const peekNext     = document.getElementById('reelPeekNext');
+  const peekPrevVid  = document.getElementById('reelPeekPrevVid');
+  const peekNextVid  = document.getElementById('reelPeekNextVid');
+  let current = -1;
+  let muted = true;
+  modalVid.muted = true;
+
+  function openReel(idx) {
     current = idx;
-    applyCarousel();
-  }
+    const t = thumbs[idx];
+    modalVid.src = t.dataset.src;
+    modalVid.muted = muted;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    modalVid.play().catch(() => {});
 
-  prevBtn.addEventListener('click', () => goTo(current - 1));
-  nextBtn.addEventListener('click', () => goTo(current + 1));
-
-  /* click card: center it; click active: pause/resume */
-  cards.forEach(card => {
-    const video   = card.querySelector('.reel-video');
-    const muteBtn = card.querySelector('.reel-mute-btn');
-
-    card.addEventListener('click', e => {
-      if (e.target.closest('.reel-mute-btn') || dragging) return;
-      const idx = parseInt(card.dataset.index);
-      if (idx !== current) { goTo(idx); return; }
-      if (video.paused) {
-        video.play().catch(() => {});
-        card.classList.remove('user-paused');
-      } else {
-        video.pause();
-        card.classList.add('user-paused');
-      }
-    });
-
-    if (muteBtn) {
-      muteBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        video.muted = !video.muted;
-        muteBtn.innerHTML = video.muted
-          ? '<i class="fa-solid fa-volume-xmark"></i>'
-          : '<i class="fa-solid fa-volume-high"></i>';
-      });
+    /* peek: prev */
+    if (thumbs[idx - 1]) {
+      peekPrevVid.src = thumbs[idx - 1].dataset.src;
+      peekPrev.classList.remove('reel-peek-hidden');
+    } else {
+      peekPrevVid.src = '';
+      peekPrev.classList.add('reel-peek-hidden');
+    }
+    /* peek: next */
+    if (thumbs[idx + 1]) {
+      peekNextVid.src = thumbs[idx + 1].dataset.src;
+      peekNext.classList.remove('reel-peek-hidden');
+    } else {
+      peekNextVid.src = '';
+      peekNext.classList.add('reel-peek-hidden');
     }
 
-    /* auto-advance to next reel when video ends */
-    video.addEventListener('ended', () => {
-      const next = (parseInt(card.dataset.index) + 1) % total;
-      goTo(next);
-    });
-  });
-
-  /* touch swipe */
-  viewport.addEventListener('touchstart', e => {
-    dragStartX = e.touches[0].clientX; dragging = false;
-  }, { passive: true });
-  viewport.addEventListener('touchmove', e => {
-    dragDelta = e.touches[0].clientX - dragStartX;
-    if (Math.abs(dragDelta) > 10) dragging = true;
-  }, { passive: true });
-  viewport.addEventListener('touchend', () => {
-    if (Math.abs(dragDelta) > 55) goTo(dragDelta < 0 ? current + 1 : current - 1);
-    dragDelta = 0;
-    setTimeout(() => { dragging = false; }, 50);
-  });
-
-  /* mouse drag */
-  viewport.addEventListener('mousedown', e => {
-    dragStartX = e.clientX; dragging = false;
-    track.classList.add('dragging');
-  });
-  window.addEventListener('mousemove', e => {
-    if (!track.classList.contains('dragging')) return;
-    dragDelta = e.clientX - dragStartX;
-    if (Math.abs(dragDelta) > 8) dragging = true;
-    applyCarousel(dragDelta * 0.65);
-  });
-  window.addEventListener('mouseup', () => {
-    if (!track.classList.contains('dragging')) return;
-    track.classList.remove('dragging');
-    if (Math.abs(dragDelta) > 55) goTo(dragDelta < 0 ? current + 1 : current - 1);
-    else applyCarousel();
-    dragDelta = 0;
-    setTimeout(() => { dragging = false; }, 50);
-  });
-
-  /* pause when section scrolls out of view */
-  const section = document.getElementById('kids-video');
-  if (section) {
-    new IntersectionObserver(entries => {
-      if (!entries[0].isIntersecting) {
-        cards.forEach(c => { const v=c.querySelector('.reel-video'); v.pause(); v.load(); });
-      } else {
-        const v = cards[current].querySelector('.reel-video');
-        if (!cards[current].classList.contains('user-paused')) v.play().catch(() => {});
-      }
-    }, { threshold: 0.2 }).observe(section);
+    prevBtn.disabled = current <= 0;
+    nextBtn.disabled = current >= thumbs.length - 1;
   }
 
-  /* Reset all on init — only active card plays via IntersectionObserver */
-  cards.forEach((c, i) => {
-    const v = c.querySelector('.reel-video');
-    if (i !== current) { v.pause(); v.load(); }
+  function closeReel() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    modalVid.pause(); modalVid.src = '';
+    peekPrevVid.src = ''; peekNextVid.src = '';
+    current = -1;
+  }
+
+  thumbs.forEach((t, i) => t.addEventListener('click', () => openReel(i)));
+  peekPrev.addEventListener('click', () => { if (current > 0) openReel(current - 1); });
+  peekNext.addEventListener('click', () => { if (current < thumbs.length - 1) openReel(current + 1); });
+  closeBtn.addEventListener('click', closeReel);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeReel(); });
+  prevBtn.addEventListener('click', () => { if (current > 0) openReel(current - 1); });
+  nextBtn.addEventListener('click', () => { if (current < thumbs.length - 1) openReel(current + 1); });
+
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    modalVid.muted = muted;
+    muteBtn.querySelector('i').className = muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
   });
-  applyCarousel();
-  window.addEventListener('resize', () => applyCarousel());
+
+  modalVid.addEventListener('ended', () => {
+    if (current < thumbs.length - 1) openReel(current + 1);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape') closeReel();
+    if (e.key === 'ArrowLeft' && current > 0) openReel(current - 1);
+    if (e.key === 'ArrowRight' && current < thumbs.length - 1) openReel(current + 1);
+  });
 })();
 
 /* ── FOOTER FORM ── */

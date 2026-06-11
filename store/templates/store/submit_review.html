@@ -82,14 +82,9 @@ body{font-family:'Nunito',sans-serif;background:#f0f4ff;color:#0d2b6b;min-height
 }
 </style>
 </head>
-<body>
+<body style="padding-top:68px">
 
-<header class="rv-header">
-  <a href="/" class="rv-logo">
-    <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola">
-  </a>
-  <a href="/" class="rv-home-link"><i class="fa-solid fa-house"></i> Back to Home</a>
-</header>
+{% include 'store/includes/site_nav.html' %}
 
 <div class="rv-page">
   <div class="rv-box">
@@ -208,5 +203,7 @@ document.getElementById('photoInput')?.addEventListener('change', function(){
   document.querySelector('#photoZone span').textContent = '';
 });
 </script>
+
+{% include 'store/includes/site_footer.html' %}
 </body>
 </html>

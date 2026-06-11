@@ -1,0 +1,101 @@
+{% load static %}
+<footer class="kids-footer" id="kids-contact">
+  <img class="k-footer-bg-img" src="{% static 'images/footer.png' %}" alt="">
+  <div class="k-footer-inner">
+
+    <!-- ── NEWSLETTER STRIP ── -->
+    <div class="k-footer-newsletter">
+      <div class="k-fnl-left">
+        <div class="k-fnl-title">Stay in the loop with Malola!</div>
+        <div class="k-fnl-sub">Get recipes, offers &amp; new arrivals straight to your inbox.</div>
+      </div>
+      <form class="k-fnl-form" onsubmit="kFooterSubscribe(event)">
+        <input type="email" class="k-fnl-input" placeholder="Enter your email address" required>
+        <button type="submit" class="k-fnl-btn">Subscribe <i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+
+    <!-- ── MAIN GRID ── -->
+    <div class="k-footer-grid">
+
+      <div class="k-footer-brand">
+        <div class="k-footer-logo">
+          <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:70px;width:auto;object-fit:contain;">
+        </div>
+        <div class="k-footer-moms-yes">A Mom's Yes!</div>
+        <p class="k-footer-tagline">From Salem with love, Malola makes snacking smarter and happier. With the power of millets and the magic of flavours, we're here to brighten up your everyday munch moments. So go on, snack guilt-free and smile wide!</p>
+        <div class="k-social-links">
+          <a class="k-social-link" href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a class="k-social-link" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a class="k-social-link" href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <div class="k-footer-col">
+        <h4 class="k-footer-col-title">Useful Links</h4>
+        <ul class="k-footer-list">
+          <li><a href="/">Home</a></li>
+          <li><a href="/shop/">Shop</a></li>
+          <li><a href="/about/">About Us</a></li>
+          <li><a href="/contact/">Contact Us</a></li>
+          <li><a href="/faq/">FAQ's</a></li>
+        </ul>
+      </div>
+
+      <div class="k-footer-col">
+        <h4 class="k-footer-col-title">Customer Services</h4>
+        <ul class="k-footer-list">
+          <li><a href="/shipping-policy/">Shipping Policy</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="/terms/">Terms &amp; Condition</a></li>
+          <li><a href="/refund-policy/">Refund &amp; Cancellation</a></li>
+        </ul>
+      </div>
+
+      <div class="k-footer-col">
+        <h4 class="k-footer-col-title">Contact Us</h4>
+        <div class="k-footer-contact-item">
+          <i class="fa-solid fa-location-dot"></i>
+          <span>Malola Foods, 1st Floor, Above Siva Coffee Bar, Saradha College road, Salem, Tamil Nadu - 636004</span>
+        </div>
+        <div class="k-footer-contact-item">
+          <i class="fa-solid fa-phone"></i>
+          <a href="tel:+919500990045">+91 95009 90045</a>
+        </div>
+        <div class="k-footer-contact-item">
+          <i class="fa-solid fa-envelope"></i>
+          <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a>
+        </div>
+        <div class="k-footer-contact-item">
+          <i class="fa-brands fa-whatsapp"></i>
+          <a href="https://wa.me/919500990045" target="_blank">Chat on WhatsApp</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── BOTTOM BAR ── -->
+    <div class="k-footer-bottom">
+      <span>© 2025 Malola Foods. All rights reserved.</span>
+      <div class="k-footer-links">
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/refund-policy/">Refund Policy</a>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script>
+function kFooterSubscribe(e) {
+  e.preventDefault();
+  const inp = e.target.querySelector('.k-fnl-input');
+  const btn = e.target.querySelector('.k-fnl-btn');
+  btn.textContent = '✓ Subscribed!';
+  btn.style.background = '#2e7d32';
+  inp.value = '';
+  inp.disabled = true;
+  btn.disabled = true;
+}
+</script>

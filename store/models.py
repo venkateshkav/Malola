@@ -21,6 +21,8 @@ class OfferGroup(models.Model):
 class Category(models.Model):
     name        = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=300, blank=True)
+    image       = models.ImageField(upload_to='categories/', blank=True, null=True,
+                                    help_text='Card image shown on the homepage category section')
     sort_order  = models.IntegerField(default=0)
     is_active   = models.BooleanField(default=True)
     created_at  = models.DateTimeField(auto_now_add=True)
