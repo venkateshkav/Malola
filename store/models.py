@@ -65,6 +65,9 @@ class Product(models.Model):
     sku                  = models.CharField(max_length=100, blank=True)
     discount_price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock_quantity       = models.IntegerField(default=0)
+    track_inventory      = models.BooleanField(default=False, help_text='If on, stock_quantity is enforced (0 = out of stock). If off, unlimited stock.')
+    max_order_qty        = models.PositiveIntegerField(default=0, help_text='Max units of this product per order. 0 = no limit.')
+    gst_rate             = models.DecimalField(max_digits=5, decimal_places=2, default=5, help_text='GST %% (prices are GST-inclusive). Snacks are usually 5, 12 or 18.')
     # ── Packaging & origin ──────────────────────────────────────
     package_size         = models.CharField(max_length=100, blank=True)
     country_of_origin    = models.CharField(max_length=100, blank=True, default='India')
@@ -92,6 +95,8 @@ class Product(models.Model):
     cert_vegan           = models.BooleanField(default=False)
     cert_halal           = models.BooleanField(default=False)
     cert_iso             = models.BooleanField(default=False)
+    # ── Shop filters (comma-separated tags, matched against the filter sidebar) ──
+    tags                 = models.TextField(blank=True, help_text='Comma-separated filter tags e.g. Kids, Sugar Free, Ragi, Protein Rich')
     # ── SEO ─────────────────────────────────────────────────────
     seo_title            = models.CharField(max_length=200, blank=True)
     seo_description      = models.TextField(blank=True)
@@ -166,17 +171,25 @@ class Order(models.Model):
     address    = models.TextField()
     items      = models.JSONField()
     total      = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal   = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # taxable value (total − GST)
+    gst_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # GST component of total (inclusive pricing)
     PAYMENT_STATUS = [
         ('pending',     'Pending'),
         ('paid',        'Paid Online'),
         ('cod',         'Cash on Delivery'),
         ('failed',      'Payment Failed'),
     ]
+    PAYMENT_STATUS += [
+        ('partially_refunded', 'Partially Refunded'),
+        ('refunded',           'Refunded'),
+        ('refund_failed',      'Refund Failed — Manual Review'),
+    ]
     status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method      = models.CharField(max_length=50, blank=True, default='')
     payment_status      = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
-    razorpay_order_id   = models.CharField(max_length=100, blank=True)
+    razorpay_order_id   = models.CharField(max_length=100, blank=True, db_index=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True)
+    razorpay_refund_id  = models.CharField(max_length=100, blank=True)
     created_at          = models.DateTimeField(auto_now_add=True)
 
     coupon         = models.ForeignKey(
@@ -184,12 +197,33 @@ class Order(models.Model):
     )
     coupon_code    = models.CharField(max_length=50, blank=True)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # cumulative refunded
+    coupon_released = models.BooleanField(default=False)  # guard so a cancel can't double-decrement coupon usage
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f'Order #{self.id} — {self.name} (₹{self.total})'
+
+
+class OrderStatusLog(models.Model):
+    order       = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_logs')
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status   = models.CharField(max_length=20)
+    changed_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    note        = models.CharField(max_length=255, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'Order #{self.id} — {self.name} (₹{self.total})'
+        return f'Order #{self.order_id}: {self.from_status or "—"} → {self.to_status}'
 
 
 # ── Cart ──────────────────────────────────────────────────────────────────────

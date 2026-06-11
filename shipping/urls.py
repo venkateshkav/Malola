@@ -6,4 +6,5 @@ urlpatterns = [
     path('api/shipping/<int:order_id>/create/',      views.create_shipment,      name='create_shipment'),
     path('api/shipping/<int:order_id>/cancel/',      views.cancel_shipment,      name='cancel_shipment'),
     path('api/shipping/serviceability/',             views.check_serviceability, name='check_serviceability'),
+    path('api/shipping/webhook/',                    views.shiprocket_webhook,   name='shiprocket_webhook'),
 ]

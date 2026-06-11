@@ -1,5 +1,25 @@
+import threading
+from django.db import close_old_connections, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+
+def _run_async(fn, order):
+    """Run a notification handler off the request thread so checkout never blocks
+    on SMTP / Fast2SMS. No Celery/Redis required.
+
+    Gated on transaction.on_commit so it only fires after the order is actually
+    committed (the signal fires inside the checkout transaction) — never for a
+    rolled-back order. Each thread uses its own DB connection, closed when done.
+    """
+    def start():
+        def runner():
+            try:
+                fn(order)
+            finally:
+                close_old_connections()
+        threading.Thread(target=runner, daemon=True).start()
+    transaction.on_commit(start)
 
 
 def _handle_order_created(order):
@@ -44,11 +64,11 @@ def connect_signals():
     @receiver(post_save, sender=Order, dispatch_uid='notifications.order_save')
     def order_notifications(sender, instance, created, **kwargs):
         if created:
-            _handle_order_created(instance)
+            _run_async(_handle_order_created, instance)
         else:
             update_fields = kwargs.get('update_fields') or []
             if 'status' in update_fields:
-                _handle_status_change(instance)
+                _run_async(_handle_status_change, instance)
 
 
 connect_signals()

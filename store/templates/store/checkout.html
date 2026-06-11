@@ -652,15 +652,13 @@ function selectMethod(method) {
     document.getElementById('method-' + m).classList.toggle('selected', m === method);
   });
   const btn = document.getElementById('payBtn');
-  const txt = document.getElementById('payBtnText');
   btn.disabled = false;
-  if (method === 'cod') {
-    txt.textContent = 'Confirm Order — Pay on Delivery';
-    btn.style.background = '#2e7d32';
-  } else {
-    txt.textContent = '₹' + ORDER_TOTAL.toFixed(0) + ' — Pay Securely';
-    btn.style.background = '#0d2b6b';
-  }
+  const label = (method === 'cod')
+    ? 'Confirm Order — Pay on Delivery'
+    : '₹' + ORDER_TOTAL.toFixed(0) + ' — Pay Securely';
+  /* Rebuild innerHTML each time so it survives the "Processing…" state */
+  btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="payBtnText">' + label + '</span>';
+  btn.style.background = (method === 'cod') ? '#2e7d32' : '#0d2b6b';
 }
 
 function selectUPI(app, el) {
@@ -757,13 +755,16 @@ async function handlePayment() {
       description:  'Order #' + ORDER_ID,
       image:        '/static/images/Malola_Logo_600x300-01-1536x768.webp',
       order_id:     rpData.razorpay_order_id,
-      /* Pre-select method based on user's choice */
+      /* Restrict the checkout to ONLY the method the user picked */
       method: {
-        upi:        selectedMethod === 'upi',
-        card:       selectedMethod === 'card',
-        netbanking: selectedMethod === 'netbanking',
-        wallet:     selectedMethod === 'wallet',
-        emi:        false,
+        upi:          selectedMethod === 'upi',
+        card:         selectedMethod === 'card',
+        netbanking:   selectedMethod === 'netbanking',
+        wallet:       selectedMethod === 'wallet',
+        emi:          false,
+        paylater:     false,
+        cardless_emi: false,
+        banktransfer: false,
       },
       theme:        { color: '#0d2b6b' },
       prefill: {

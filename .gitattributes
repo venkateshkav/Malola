@@ -1,0 +1,35 @@
+# Normalise line endings: store everything as LF in the repo, check out LF too.
+# Keeps Windows dev and the Linux (Railway) deploy byte-identical and silences
+# the "LF will be replaced by CRLF" warnings.
+* text=auto eol=lf
+
+# Explicit text types (LF)
+*.py     text eol=lf
+*.html   text eol=lf
+*.css    text eol=lf
+*.js     text eol=lf
+*.json   text eol=lf
+*.txt    text eol=lf
+*.md     text eol=lf
+*.toml   text eol=lf
+*.cfg    text eol=lf
+*.env    text eol=lf
+Procfile text eol=lf
+
+# Binary assets — never touch line endings
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.gif    binary
+*.ico    binary
+*.svg    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.eot    binary
+*.mp4    binary
+*.webm   binary
+*.pdf    binary
+*.sqlite3 binary
+*.db     binary

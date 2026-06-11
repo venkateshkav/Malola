@@ -41,9 +41,8 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   </div>
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" id="cartEmpty">
-      <i class="fa-solid fa-seedling"></i>
-      <p>Your cart is empty</p>
-      <span>Add some natural goodness!</span>
+      <p class="cart-empty-msg">It feels so light! Let's add some items!</p>
+      <a href="/shop/" class="cart-empty-btn">Explore products</a>
     </div>
   </div>
   <div id="cartBottom" style="display:none">
@@ -230,6 +229,61 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 
 <!-- SHOP MAIN -->
 <main class="shop-main">
+ <div class="shop-layout">
+
+  <!-- ── FILTER SIDEBAR ── -->
+  <button class="shop-filter-toggle" id="shopFilterToggle"><i class="fa-solid fa-sliders"></i> Filters</button>
+  <aside class="shop-sidebar" id="shopSidebar">
+    <div class="shop-sidebar-head">
+      <span class="ss-title"><i class="fa-solid fa-sliders"></i> Filter</span>
+      <button class="ss-clear" id="ssClearAll">CLEAR ALL</button>
+      <button class="ss-close" id="ssClose" aria-label="Close filters">&#10005;</button>
+    </div>
+    {% for fg in shop_filters %}
+    <div class="ss-group">
+      <div class="ss-group-title">{{ fg.group }}</div>
+      <div class="ss-options">
+        {% for opt in fg.options %}
+        <label class="ss-opt">
+          <input type="checkbox" class="ss-check" data-group="{{ fg.group }}" value="{{ opt|lower }}">
+          <span>{{ opt }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </aside>
+  <div class="shop-sidebar-overlay" id="shopSidebarOverlay"></div>
+
+  <div class="shop-content">
+
+  <!-- ── TOOLBAR: count + sort ── -->
+  <div class="shop-toolbar">
+    <span class="shop-count" id="shopCount"></span>
+    <div class="shop-sort" id="shopSort">
+      <button class="shop-sort-btn" id="shopSortBtn">
+        <i class="fa-solid fa-arrow-down-wide-short"></i>
+        SORT BY: <strong id="shopSortLabel">Featured</strong>
+        <i class="fa-solid fa-chevron-down shop-sort-caret"></i>
+      </button>
+      <div class="shop-sort-menu" id="shopSortMenu">
+        <button class="shop-sort-opt active" data-sort="featured">Featured</button>
+        <button class="shop-sort-opt" data-sort="bestselling">Best selling</button>
+        <button class="shop-sort-opt" data-sort="az">Alphabetically, A-Z</button>
+        <button class="shop-sort-opt" data-sort="za">Alphabetically, Z-A</button>
+        <button class="shop-sort-opt" data-sort="price-low">Price, low to high</button>
+        <button class="shop-sort-opt" data-sort="price-high">Price, high to low</button>
+        <button class="shop-sort-opt" data-sort="date-old">Date, old to new</button>
+        <button class="shop-sort-opt" data-sort="date-new">Date, new to old</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="shop-no-results" id="shopNoResults" style="display:none">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <p>No products match these filters.</p>
+    <button class="ss-clear-inline" id="ssClearInline">Clear filters</button>
+  </div>
 
   <!-- ── DB: New Arrivals (added via admin panel) ── -->
   {% if db_new_arrivals %}
@@ -242,7 +296,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       </div>
       <div class="shop-grid">
         {% for p in db_new_arrivals %}
-        <div class="shop-card db-card" data-cat="new_arrival" onclick="window.location.href='/product/?id={{ p.slug }}'">
+        <div class="shop-card db-card" data-cat="new_arrival" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" onclick="window.location.href='/product/?id={{ p.slug }}'">
           <div class="shop-card-img-wrap" style="background:{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
             {% if p.badge %}<span class="shop-card-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
@@ -285,7 +339,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       </div>
       <div class="shop-grid">
         {% for p in db_our_products %}
-        <div class="shop-card db-card" data-cat="{{ p.product_category.pk|default:'other' }}" onclick="window.location.href='/product/?id={{ p.slug }}'">
+        <div class="shop-card db-card" data-cat="{{ p.product_category.pk|default:'other' }}" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" onclick="window.location.href='/product/?id={{ p.slug }}'">
           <div class="shop-card-img-wrap" style="background:{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
             {% if p.badge %}<span class="shop-card-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
@@ -317,40 +371,85 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   </div>
   {% endif %}
 
+  <div class="shop-loadmore-wrap">
+    <button id="shopLoadMore" class="shop-loadmore-btn" style="display:none">
+      Load More Products <i class="fa-solid fa-chevron-down"></i>
+    </button>
+  </div>
 
+  </div><!-- /shop-content -->
+ </div><!-- /shop-layout -->
 </main>
 
-<!-- SHOP FOOTER -->
-<footer class="shop-footer">
-  <div class="shop-footer-grid">
-    <div>
-      <div class="sf-brand-name">Malola</div>
-      <p class="sf-brand-sub">Bridging health and indulgence through the power of millets, ragi, quinoa and nature's finest ingredients.</p>
+<!-- SHOP FOOTER (matches home) -->
+<footer class="kids-footer" id="kids-contact">
+  <div class="k-footer-grid">
+
+    <!-- Col 1: Brand -->
+    <div class="k-footer-brand">
+      <div class="k-footer-logo">
+        <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" style="height:64px;width:auto;object-fit:contain;">
+      </div>
+      <p class="k-footer-tagline">From Salem with love, Malola makes snacking smarter and happier. With the power of millets and the magic of flavours, we're here to brighten up your everyday munch moments. So go on, snack guilt-free and smile wide!</p>
     </div>
-    <div>
-      <h4>Quick Links</h4>
-      <ul>
+
+    <!-- Col 2: Useful Links -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Useful Links</h4>
+      <ul class="k-footer-list">
         <li><a href="/">Home</a></li>
-        <li><a href="/shop/">All Products</a></li>
-        <li><a href="/#kids-about">About Us</a></li>
-        <li><a href="/#kids-video">Videos</a></li>
+        <li><a href="/shop/">Shop</a></li>
+        <li><a href="/about/">About Us</a></li>
+        <li><a href="/#kids-contact">Contact Us</a></li>
+        <li><a href="/faq/">FAQ's</a></li>
       </ul>
     </div>
-    <div>
-      <h4>Stay Updated</h4>
-      <form class="sf-newsletter" id="footerForm">
-        <input type="email" placeholder="your@email.com" required>
-        <button type="submit">Subscribe 🌿</button>
-      </form>
+
+    <!-- Col 3: Customer Services -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Customer Services</h4>
+      <ul class="k-footer-list">
+        <li><a href="/shipping-policy/">Shipping Policy</a></li>
+        <li><a href="/privacy-policy/">Privacy Policy</a></li>
+        <li><a href="/terms/">Terms &amp; Condition</a></li>
+        <li><a href="/refund-policy/">Refund &amp; Cancellation</a></li>
+      </ul>
     </div>
+
+    <!-- Col 4: Contact -->
+    <div class="k-footer-col">
+      <h4 class="k-footer-col-title">Contact Us</h4>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-location-dot"></i>
+        <span>Malola Foods, 1st Floor, Above Siva Coffee Bar, Saradha College road, Salem, Tamil Nadu - 636004</span>
+      </div>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-phone"></i>
+        <a href="tel:+919500990045">+91 95009 90045</a>
+      </div>
+      <div class="k-footer-contact-item">
+        <i class="fa-solid fa-envelope"></i>
+        <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a>
+      </div>
+      <div class="k-social-links" style="margin-top:18px">
+        <a class="k-social-link" href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+        <a class="k-social-link" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a class="k-social-link" href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+
   </div>
-  <div class="sf-bottom">
-    <span>© 2025 Malola. All rights reserved.</span>
-    <span>Made with love for healthy living 🌿</span>
+  <div class="k-footer-bottom">
+    <span>© 2025 Malola Foods. All rights reserved.</span>
+    <div class="k-footer-links">
+      <a href="/privacy-policy/">Privacy Policy</a>
+      <a href="/terms/">Terms</a>
+      <a href="/refund-policy/">Refund Policy</a>
+    </div>
   </div>
 </footer>
 
-<script src="{% static 'js/product.js' %}"></script>
+<script src="{% static 'js/product.js' %}?v=11"></script>
 <script>
 /* ── MOB MENU ── */
 function closeMenu(){
@@ -375,32 +474,152 @@ document.querySelectorAll('.db-cart-btn').forEach(btn=>{
   });
 });
 
-/* ── CATEGORY FILTER ── */
-function applyFilter(cat){
-  document.querySelectorAll('.shop-filter-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.cat===cat);
+/* ── UNIFIED FILTER (category bar + tag sidebar) ── */
+let activeCat = 'all';
+
+/* Collect checked tags grouped by their filter group */
+function selectedTagGroups(){
+  const groups = {};
+  document.querySelectorAll('.ss-check:checked').forEach(chk=>{
+    const g = chk.dataset.group;
+    (groups[g] = groups[g] || []).push(chk.value);
   });
+  return groups;  /* { Diet:['sugar free'], Grain:['ragi'] } */
+}
+
+function cardMatches(card){
+  /* category match */
+  if(activeCat!=='all' && card.dataset.cat!==activeCat) return false;
+  /* tag match — AND across groups, OR within a group */
+  const groups = selectedTagGroups();
+  const cardTags = (card.dataset.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+  for(const g in groups){
+    const ok = groups[g].some(v=>cardTags.includes(v));
+    if(!ok) return false;
+  }
+  return true;
+}
+
+/* "Load More" pagination: filter/sort run over the whole catalog, but only
+   shopLimit matching cards are displayed at a time. */
+const SHOP_PAGE = 12;
+let shopLimit = SHOP_PAGE;
+
+function runFilters(){
+  let matched = 0, shown = 0;
   document.querySelectorAll('.db-card').forEach(card=>{
-    card.style.display=(cat==='all'||card.dataset.cat===cat)?'':'none';
+    if(cardMatches(card)){
+      matched++;
+      if(shown < shopLimit){ card.style.display=''; shown++; }
+      else { card.style.display='none'; }
+    } else {
+      card.style.display='none';
+    }
   });
   document.querySelectorAll('.db-admin-section').forEach(section=>{
-    const anyVisible=Array.from(section.querySelectorAll('.db-card')).some(c=>c.style.display!=='none');
-    section.style.display=anyVisible?'':'none';
+    const anyVisible = Array.from(section.querySelectorAll('.db-card')).some(c=>c.style.display!=='none');
+    section.style.display = anyVisible ? '' : 'none';
+  });
+  const noRes = document.getElementById('shopNoResults');
+  if(noRes) noRes.style.display = matched===0 ? '' : 'none';
+  const countEl = document.getElementById('shopCount');
+  if(countEl){
+    countEl.textContent = matched===0 ? 'No products'
+      : (shown < matched ? `Showing ${shown} of ${matched} products` : `${matched} product${matched===1?'':'s'}`);
+  }
+  const lm = document.getElementById('shopLoadMore');
+  if(lm) lm.style.display = (shown < matched) ? '' : 'none';
+}
+
+/* Reset to the first page whenever the result set changes (filter/sort/category) */
+function resetAndFilter(){ shopLimit = SHOP_PAGE; runFilters(); }
+
+/* ── SORT ── */
+/* Capture each card's original position so "Featured" can be restored */
+document.querySelectorAll('.shop-grid').forEach(grid=>{
+  Array.from(grid.children).forEach((card,i)=>{ card.dataset.order = i; });
+});
+
+function sortProducts(mode){
+  const cmp = {
+    featured:    (a,b)=> (+a.dataset.order)   - (+b.dataset.order),
+    bestselling: (a,b)=> (+b.dataset.sales)   - (+a.dataset.sales),
+    az:          (a,b)=> (a.dataset.name||'').localeCompare(b.dataset.name||''),
+    za:          (a,b)=> (b.dataset.name||'').localeCompare(a.dataset.name||''),
+    'price-low': (a,b)=> (+a.dataset.price)   - (+b.dataset.price),
+    'price-high':(a,b)=> (+b.dataset.price)   - (+a.dataset.price),
+    'date-old':  (a,b)=> (+a.dataset.date)    - (+b.dataset.date),
+    'date-new':  (a,b)=> (+b.dataset.date)    - (+a.dataset.date),
+  }[mode] || ((a,b)=>0);
+  document.querySelectorAll('.shop-grid').forEach(grid=>{
+    Array.from(grid.children).sort(cmp).forEach(card=>grid.appendChild(card));
   });
 }
 
+const sortWrap  = document.getElementById('shopSort');
+const sortBtn   = document.getElementById('shopSortBtn');
+const sortMenu  = document.getElementById('shopSortMenu');
+const sortLabel = document.getElementById('shopSortLabel');
+sortBtn.addEventListener('click', e=>{ e.stopPropagation(); sortWrap.classList.toggle('open'); });
+document.addEventListener('click', ()=> sortWrap.classList.remove('open'));
+sortMenu.addEventListener('click', e=>e.stopPropagation());
+document.querySelectorAll('.shop-sort-opt').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('.shop-sort-opt').forEach(o=>o.classList.toggle('active', o===opt));
+    sortLabel.textContent = opt.textContent;
+    sortProducts(opt.dataset.sort);
+    resetAndFilter();
+    sortWrap.classList.remove('open');
+  });
+});
+
+/* Set the initial product count */
+runFilters();
+
+/* Load More */
+const loadMoreBtn = document.getElementById('shopLoadMore');
+if(loadMoreBtn) loadMoreBtn.addEventListener('click', ()=>{ shopLimit += SHOP_PAGE; runFilters(); });
+
+/* Category bar */
 document.querySelectorAll('.shop-filter-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    applyFilter(btn.dataset.cat);
+    activeCat = btn.dataset.cat;
+    document.querySelectorAll('.shop-filter-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    resetAndFilter();
     document.querySelector('.shop-main').scrollIntoView({behavior:'smooth',block:'start'});
   });
 });
 
-/* Auto-activate filter from URL param ?cat=pk */
+/* Tag checkboxes */
+document.querySelectorAll('.ss-check').forEach(chk=>chk.addEventListener('change', resetAndFilter));
+
+/* Clear all */
+function clearAllFilters(){
+  document.querySelectorAll('.ss-check:checked').forEach(c=>c.checked=false);
+  resetAndFilter();
+}
+document.getElementById('ssClearAll').addEventListener('click', clearAllFilters);
+const ssClearInline = document.getElementById('ssClearInline');
+if(ssClearInline) ssClearInline.addEventListener('click', clearAllFilters);
+
+/* Mobile sidebar toggle */
+const ssToggle  = document.getElementById('shopFilterToggle');
+const ssSidebar = document.getElementById('shopSidebar');
+const ssOverlay = document.getElementById('shopSidebarOverlay');
+function openSidebar(){ ssSidebar.classList.add('open'); ssOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
+function closeSidebar(){ ssSidebar.classList.remove('open'); ssOverlay.classList.remove('open'); document.body.style.overflow=''; }
+if(ssToggle)  ssToggle.addEventListener('click', openSidebar);
+if(ssOverlay) ssOverlay.addEventListener('click', closeSidebar);
+document.getElementById('ssClose').addEventListener('click', closeSidebar);
+
+/* Auto-activate category from URL param ?cat=pk */
 (function(){
-  const params=new URLSearchParams(window.location.search);
-  const cat=params.get('cat');
-  if(cat) applyFilter(cat);
+  const cat = new URLSearchParams(window.location.search).get('cat');
+  if(cat){
+    activeCat = cat;
+    document.querySelectorAll('.shop-filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat));
+    resetAndFilter();
+  }
 })();
 </script>
 </body>

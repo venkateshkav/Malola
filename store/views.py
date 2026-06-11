@@ -15,9 +15,10 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import F
+from django.db import transaction
 from django.contrib.auth.models import User as AuthUser
 from django.db.models import Q
-from .models import Order, Product, OfferGroup, Review, SiteVideo, ProductImage, Category, Cart, CartItem, Coupon, BlogPost
+from .models import Order, Product, OfferGroup, Review, SiteVideo, ProductImage, Category, Cart, CartItem, Coupon, BlogPost, OrderStatusLog
 
 
 # ── Rate limiting ────────────────────────────────────────────────────────────
@@ -36,6 +37,52 @@ def _client_ip(request):
     return forwarded.split(',')[0].strip() if forwarded else request.META.get('REMOTE_ADDR', '')
 
 
+# ── Upload validation ─────────────────────────────────────────────────────────
+
+ALLOWED_IMAGE_EXT  = {'.jpg', '.jpeg', '.png', '.webp'}
+ALLOWED_IMAGE_MIME = {'image/jpeg', 'image/png', 'image/webp', 'image/jpg'}
+MAX_IMAGE_MB       = 5
+
+def _parse_grams(label):
+    """Extract a gram quantity from a weight label like '500g', '250 g', '1kg'."""
+    import re
+    if not label:
+        return 0
+    m = re.search(r'([\d.]+)\s*(kg|g)?', str(label).lower())
+    if not m:
+        return 0
+    try:
+        val = float(m.group(1))
+    except ValueError:
+        return 0
+    return val * 1000 if m.group(2) == 'kg' else val
+
+
+def _validate_image(f, max_mb=MAX_IMAGE_MB):
+    """Return an error string if `f` isn't an acceptable image, else None.
+    Checks extension whitelist + size cap + that it actually decodes as an image
+    (defeats a non-image file renamed to .jpg)."""
+    if not f:
+        return None
+    import os
+    ext = os.path.splitext(f.name)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXT:
+        return 'Only JPG, PNG or WEBP images are allowed.'
+    if f.size > max_mb * 1024 * 1024:
+        return f'Image must be under {max_mb} MB.'
+    ctype = getattr(f, 'content_type', '') or ''
+    if ctype and ctype.lower() not in ALLOWED_IMAGE_MIME:
+        return 'Invalid image type.'
+    try:
+        from PIL import Image
+        f.seek(0)
+        Image.open(f).verify()   # raises if not a valid image
+        f.seek(0)
+    except Exception:
+        return 'That file is not a valid image.'
+    return None
+
+
 # ── Razorpay helpers ──────────────────────────────────────────────────────────
 
 def _rp_create_order(amount_paise, receipt):
@@ -51,6 +98,44 @@ def _rp_create_order(amount_paise, receipt):
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read())
+
+
+def _rp_refund(payment_id, amount_paise):
+    """Issue a Razorpay refund via REST API. Returns (refund_dict, error_string)."""
+    creds = base64.b64encode(
+        f'{settings.RAZORPAY_KEY_ID}:{settings.RAZORPAY_KEY_SECRET}'.encode()
+    ).decode()
+    payload = json.dumps({'amount': amount_paise}).encode()
+    req = urllib.request.Request(
+        f'https://api.razorpay.com/v1/payments/{payment_id}/refund',
+        data=payload,
+        headers={'Authorization': f'Basic {creds}', 'Content-Type': 'application/json'},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            return json.loads(resp.read()), None
+    except urllib.error.HTTPError as e:
+        try:
+            body = json.loads(e.read())
+            return None, body.get('error', {}).get('description', str(e))
+        except Exception:
+            return None, f'HTTP {e.code}'
+    except Exception as e:
+        return None, str(e)
+
+
+def _log_status(order, to_status, changed_by=None, note='', from_status=None):
+    """Record a status transition. from_status defaults to the order's current status."""
+    try:
+        OrderStatusLog.objects.create(
+            order=order,
+            from_status=from_status if from_status is not None else (order.status or ''),
+            to_status=to_status,
+            changed_by=changed_by if (changed_by and changed_by.is_authenticated) else None,
+            note=note,
+        )
+    except Exception:
+        pass  # logging must never break the actual transition
 
 
 def _rp_verify(rp_order_id, rp_payment_id, rp_signature):
@@ -83,17 +168,28 @@ def _confirm_order_paid(razorpay_order_id, razorpay_payment_id, amount_paise):
         return
     if order.payment_status == 'paid':
         return  # already confirmed — do nothing
+    prev_status               = order.status
     order.payment_status      = 'paid'
     order.payment_method      = 'online'
     order.razorpay_payment_id = razorpay_payment_id
     order.status              = 'confirmed'
     order.save(update_fields=['payment_status', 'payment_method', 'razorpay_payment_id', 'status'])
+    _log_status(order, 'confirmed', None, note='Payment captured', from_status=prev_status)
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
+ADMIN_OTP_TTL          = 8 * 3600          # re-verify admin email-OTP every 8 hours
+ADMIN_OTP_SESSION_KEY  = 'admin_otp_ok_until'
+
+
+def _admin_otp_ok(request):
+    import time
+    return request.session.get(ADMIN_OTP_SESSION_KEY, 0) > time.time()
+
+
 def _staff_required(func):
-    """Redirect to Django admin login if not authenticated/staff."""
+    """Gate: must be authenticated + staff + email-OTP verified for this session."""
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -103,6 +199,12 @@ def _staff_required(func):
                 '<h2 style="font-family:sans-serif;padding:40px">403 — Staff access only. '
                 '<a href="/admin/login/">Login as admin</a></h2>'
             )
+        if not _admin_otp_ok(request):
+            # AJAX/JSON callers get 403 (the admin page will already be verified
+            # before any AJAX runs); page loads get redirected to the OTP gate.
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Admin verification required', 'verify': '/manage/verify/'}, status=403)
+            return redirect(f'/manage/verify/?next={request.path}')
         return func(request, *args, **kwargs)
     return wrapper
 
@@ -111,25 +213,135 @@ def _pending_orders():
     return Order.objects.filter(status='pending').count()
 
 
+def _send_admin_otp(user, otp):
+    """Email a staff member their admin-access OTP."""
+    try:
+        from django.core.mail import send_mail
+        send_mail(
+            subject='Your Malola admin verification code',
+            message=(f'Your admin access code is: {otp}\n\n'
+                     f'It is valid for 10 minutes. If you did not try to access the '
+                     f'Malola admin panel, change your password immediately.'),
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+
+
+def manage_verify(request):
+    """Email-OTP gate for the /manage admin area. Not wrapped in _staff_required
+    (it must be reachable to clear the gate) but enforces staff itself."""
+    import time, random
+    if not request.user.is_authenticated:
+        return redirect('/admin/login/?next=/manage/')
+    if not request.user.is_staff:
+        return HttpResponseForbidden(
+            '<h2 style="font-family:sans-serif;padding:40px">403 — Staff access only.</h2>')
+
+    nxt = request.POST.get('next') or request.GET.get('next') or '/manage/'
+    if not nxt.startswith('/manage'):   # prevent open-redirect
+        nxt = '/manage/'
+    if _admin_otp_ok(request):
+        return redirect(nxt)
+
+    cache_key    = f'admin_otp:{request.user.id}'
+    attempts_key = f'admin_otp_attempts:{request.user.id}'
+    error = None
+    sent  = False
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'send':
+            if _is_rate_limited(f'admin_otp_send:{request.user.id}', 5, 600):
+                error = 'Too many code requests. Please wait a few minutes.'
+            else:
+                otp = str(random.randint(100000, 999999))
+                cache.set(cache_key, otp, timeout=600)
+                cache.delete(attempts_key)
+                _send_admin_otp(request.user, otp)
+                sent = True
+        else:
+            otp_in = request.POST.get('otp', '').strip()
+            stored = cache.get(cache_key)
+            if _is_rate_limited(f'admin_otp_verify:{request.user.id}', 10, 600):
+                error = 'Too many attempts. Please wait a few minutes.'
+            elif not stored:
+                error = 'Code expired. Request a new one.'
+            elif stored != otp_in:
+                attempts = cache.get(attempts_key, 0) + 1
+                cache.set(attempts_key, attempts, timeout=600)
+                if attempts >= 5:
+                    cache.delete(cache_key); cache.delete(attempts_key)
+                    error = 'Too many incorrect codes. Request a new one.'
+                else:
+                    error = 'Incorrect code. Please try again.'
+            else:
+                cache.delete(cache_key); cache.delete(attempts_key)
+                request.session[ADMIN_OTP_SESSION_KEY] = int(time.time()) + ADMIN_OTP_TTL
+                return redirect(nxt)
+    else:
+        # Auto-send a code on first arrival (if none active and not rate-limited)
+        if not cache.get(cache_key) and not _is_rate_limited(f'admin_otp_send:{request.user.id}', 5, 600):
+            otp = str(random.randint(100000, 999999))
+            cache.set(cache_key, otp, timeout=600)
+            _send_admin_otp(request.user, otp)
+            sent = True
+
+    # Mask the email for display: a***@gmail.com
+    em = request.user.email or ''
+    masked = em
+    if '@' in em:
+        local, dom = em.split('@', 1)
+        masked = (local[0] + '***') if local else '***'
+        masked += '@' + dom
+    return render(request, 'store/admin_verify.html', {
+        'error': error, 'sent': sent, 'next': nxt, 'email_masked': masked,
+    })
+
+
 # ── public pages ─────────────────────────────────────────────────────────────
 
 def home(request):
     db_our_products = Product.objects.filter(category='our_products', is_active=True)
     db_new_arrivals = Product.objects.filter(category='new_arrival',  is_active=True)
+    db_whats_new    = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     db_reviews      = Review.objects.filter(is_active=True)
     db_videos       = SiteVideo.objects.filter(is_active=True)
     return render(request, 'store/index.html', {
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
+        'db_whats_new':    db_whats_new,
         'db_reviews':      db_reviews,
         'db_videos':       db_videos,
     })
 
 
+SHOP_FILTERS = [
+    {'group': 'Stage',    'options': ['Family', 'Kids']},
+    {'group': 'Diet',     'options': ['Dairy Free', 'Gluten Free Grains', 'Nut Free', 'Salt Free', 'Sugar Free']},
+    {'group': 'Grain',    'options': ['Foxtail Millet', 'Jowar', 'Little Millet', 'Oat', 'Ragi']},
+    {'group': 'Benefits', 'options': ['Fibre Rich', 'Healthy Weight Gain', 'Protein Rich', 'Travel Friendly']},
+]
+
+
 def shop(request):
     from django.db.models import Count
-    db_our_products = Product.objects.filter(category='our_products', is_active=True)
-    db_new_arrivals = Product.objects.filter(category='new_arrival',  is_active=True)
+    from collections import defaultdict
+    db_our_products = list(Product.objects.filter(category='our_products', is_active=True))
+    db_new_arrivals = list(Product.objects.filter(category='new_arrival',  is_active=True))
+
+    # Units sold per product slug (for "Best selling" sort)
+    sales = defaultdict(int)
+    for o in Order.objects.filter(payment_status__in=['paid', 'cod']):
+        for it in (o.items or []):
+            try:
+                sales[it.get('slug', '')] += int(it.get('qty', 1))
+            except (TypeError, ValueError):
+                pass
+    for p in db_our_products + db_new_arrivals:
+        p.units_sold = sales.get(p.slug, 0)
+
     categories = (
         Category.objects
         .filter(is_active=True)
@@ -141,6 +353,7 @@ def shop(request):
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
         'categories':      categories,
+        'shop_filters':    SHOP_FILTERS,
     })
 
 
@@ -153,34 +366,81 @@ def product(request):
     db_weights_json     = '["100g","200g","500g"]'
     db_nutrition_json   = '{}'
     db_gallery_json     = '[]'
+    db_product_json = 'null'
     if pid:
         db_product = Product.objects.filter(slug=pid, is_active=True).first()
         if db_product:
             ingredients = [i.strip() for i in db_product.ingredients.split(',') if i.strip()] if db_product.ingredients else []
             weights     = [w.strip() for w in db_product.weights.split(',') if w.strip()] if db_product.weights else ['100g', '200g', '500g']
             nutrition   = {}
-            if db_product.nut_calories:      nutrition['Calories']       = db_product.nut_calories
-            if db_product.nut_protein:       nutrition['Protein']        = db_product.nut_protein
-            if db_product.nut_fat:           nutrition['Fat']            = db_product.nut_fat
-            if db_product.nut_saturated_fat: nutrition['Saturated Fat']  = db_product.nut_saturated_fat
-            if db_product.nut_trans_fat:     nutrition['Trans Fat']      = db_product.nut_trans_fat
-            if db_product.nut_carbs:         nutrition['Carbs']          = db_product.nut_carbs
-            if db_product.nut_fibre:         nutrition['Fibre']          = db_product.nut_fibre
-            if db_product.nut_sugar:         nutrition['Sugar']          = db_product.nut_sugar
-            if db_product.nut_sodium:        nutrition['Sodium']         = db_product.nut_sodium
+            if db_product.nut_calories:      nutrition['Calories']      = db_product.nut_calories
+            if db_product.nut_protein:       nutrition['Protein']       = db_product.nut_protein
+            if db_product.nut_fat:           nutrition['Fat']           = db_product.nut_fat
+            if db_product.nut_saturated_fat: nutrition['Saturated Fat'] = db_product.nut_saturated_fat
+            if db_product.nut_trans_fat:     nutrition['Trans Fat']     = db_product.nut_trans_fat
+            if db_product.nut_carbs:         nutrition['Carbs']         = db_product.nut_carbs
+            if db_product.nut_fibre:         nutrition['Fibre']         = db_product.nut_fibre
+            if db_product.nut_sugar:         nutrition['Sugar']         = db_product.nut_sugar
+            if db_product.nut_sodium:        nutrition['Sodium']        = db_product.nut_sodium
             gallery = [img.image.url for img in db_product.gallery_images.all()]
-            db_ingredients_json = json.dumps(ingredients)
-            db_weights_json     = json.dumps(weights)
-            db_nutrition_json   = json.dumps(nutrition)
-            db_gallery_json     = json.dumps(gallery)
+            recipe = None
+            if db_product.recipe_name:
+                recipe = {
+                    'name':         db_product.recipe_name,
+                    'prepTime':     db_product.recipe_prep_time,
+                    'cookTime':     db_product.recipe_cook_time,
+                    'servings':     db_product.recipe_servings,
+                    'ingredients':  db_product.recipe_ingredients,
+                    'instructions': db_product.recipe_instructions,
+                    'image':        db_product.recipe_image.url if db_product.recipe_image else '',
+                    'videoUrl':     db_product.recipe_video_url,
+                }
+            data = {
+                'id':            db_product.slug,
+                'name':          db_product.title,
+                'category':      db_product.product_type or db_product.get_category_display(),
+                'categoryId':    db_product.category,
+                'price':         float(db_product.price),
+                'discountPrice': float(db_product.discount_price) if db_product.discount_price else None,
+                'badge':         db_product.badge,
+                'badgeColor':    db_product.badge_color,
+                'bg':            db_product.card_bg,
+                'image':         db_product.image.url if db_product.image else '',
+                'imageBack':     db_product.image.url if db_product.image else '',
+                'description':   db_product.description,
+                'ingredients':   ingredients,
+                'nutrition':     nutrition,
+                'weights':       weights,
+                'galleryImages': gallery,
+                'rating':        float(db_product.rating),
+                'reviewCount':   db_product.reviews_count,
+                'stockQuantity': db_product.stock_quantity,
+                'brand':         db_product.brand,
+                'sku':           db_product.sku,
+                'shortDesc':     db_product.short_description,
+                'healthBenefits':db_product.health_benefits,
+                'certifications':{
+                    'organic': db_product.cert_organic,
+                    'nonGmo':  db_product.cert_non_gmo,
+                    'vegan':   db_product.cert_vegan,
+                    'halal':   db_product.cert_halal,
+                    'iso':     db_product.cert_iso,
+                },
+                'recipe': recipe,
+                'productInfo': {
+                    'packageSize':         db_product.package_size,
+                    'countryOfOrigin':     db_product.country_of_origin,
+                    'shelfLife':           db_product.shelf_life,
+                    'storageInstructions': db_product.storage_instructions,
+                    'manufacturerDetails': db_product.manufacturer_details,
+                },
+            }
+            db_product_json = json.dumps(data)
     return render(request, 'store/product.html', {
-        'db_new_arrivals':     db_new_arrivals,
-        'db_our_products':     db_our_products,
-        'db_product':          db_product,
-        'db_ingredients_json': db_ingredients_json,
-        'db_weights_json':     db_weights_json,
-        'db_nutrition_json':   db_nutrition_json,
-        'db_gallery_json':     db_gallery_json,
+        'db_new_arrivals':  db_new_arrivals,
+        'db_our_products':  db_our_products,
+        'db_product':       db_product,
+        'db_product_json':  db_product_json,
     })
 
 
@@ -247,6 +507,15 @@ def _product_from_post(post, files, product=None):
         stock_quantity = int(post.get('stock_quantity', '0') or '0')
     except ValueError:
         stock_quantity = 0
+    track_inventory = post.get('track_inventory') == 'on'
+    try:
+        max_order_qty = max(0, int(post.get('max_order_qty', '0') or '0'))
+    except ValueError:
+        max_order_qty = 0
+    try:
+        gst_rate = max(0.0, float(post.get('gst_rate', '5') or '5'))
+    except ValueError:
+        gst_rate = 5.0
     package_size         = post.get('package_size', '').strip()
     country_of_origin    = post.get('country_of_origin', '').strip()
     shelf_life           = post.get('shelf_life', '').strip()
@@ -273,6 +542,7 @@ def _product_from_post(post, files, product=None):
     seo_title            = post.get('seo_title', '').strip()
     seo_description      = post.get('seo_description', '').strip()
     seo_keywords         = post.get('seo_keywords', '').strip()
+    tags                 = post.get('tags', '').strip()
     try:
         rating = float(post.get('rating', '4.5') or '4.5')
         rating = max(0.0, min(5.0, rating))
@@ -302,6 +572,10 @@ def _product_from_post(post, files, product=None):
         return None, 'Title, slug, description and price are all required.'
     if not image and not product:
         return None, 'A product image is required.'
+    for _f in (image, recipe_image):
+        _err = _validate_image(_f)
+        if _err:
+            return None, _err
 
     data = dict(
         title=title, slug=slug, description=description, price=price,
@@ -313,6 +587,7 @@ def _product_from_post(post, files, product=None):
         rating=rating, reviews_count=reviews_count, offer_group=offer_group,
         short_description=short_description, brand=brand, sku=sku,
         discount_price=discount_price, stock_quantity=stock_quantity,
+        track_inventory=track_inventory, max_order_qty=max_order_qty, gst_rate=gst_rate,
         package_size=package_size, country_of_origin=country_of_origin,
         shelf_life=shelf_life, storage_instructions=storage_instructions,
         manufacturer_details=manufacturer_details,
@@ -326,6 +601,7 @@ def _product_from_post(post, files, product=None):
         cert_organic=cert_organic, cert_non_gmo=cert_non_gmo,
         cert_vegan=cert_vegan, cert_halal=cert_halal, cert_iso=cert_iso,
         seo_title=seo_title, seo_description=seo_description, seo_keywords=seo_keywords,
+        tags=tags,
     )
     if image:
         data['image'] = image
@@ -346,13 +622,16 @@ def manage_add_product(request):
             if Product.objects.filter(slug=slug).exists():
                 error = f'A product with the slug "{slug}" already exists. Choose a different one.'
             else:
-                try:
-                    product = Product.objects.create(**data)
-                    for gf in request.FILES.getlist('gallery_images'):
-                        ProductImage.objects.create(product=product, image=gf)
-                    return redirect('manage_products')
-                except Exception as exc:
-                    error = str(exc)
+                gallery_files = request.FILES.getlist('gallery_images')
+                error = next((_validate_image(gf) for gf in gallery_files if _validate_image(gf)), None)
+                if not error:
+                    try:
+                        product = Product.objects.create(**data)
+                        for gf in gallery_files:
+                            ProductImage.objects.create(product=product, image=gf)
+                        return redirect('manage_products')
+                    except Exception as exc:
+                        error = str(exc)
     return render(request, 'store/admin_form.html', {
         'action': 'Add', 'error': error,
         'offer_groups': OfferGroup.objects.filter(is_active=True),
@@ -367,12 +646,15 @@ def manage_edit_product(request, pk):
     error = None
     if request.method == 'POST':
         data, error = _product_from_post(request.POST, request.FILES, product)
+        gallery_files = request.FILES.getlist('gallery_images')
+        if not error:
+            error = next((_validate_image(gf) for gf in gallery_files if _validate_image(gf)), None)
         if not error:
             for field, value in data.items():
                 setattr(product, field, value)
             try:
                 product.save()
-                for gf in request.FILES.getlist('gallery_images'):
+                for gf in gallery_files:
                     ProductImage.objects.create(product=product, image=gf)
                 return redirect('manage_products')
             except Exception as exc:
@@ -642,13 +924,91 @@ def manage_order_status(request, pk):
         order = get_object_or_404(Order, pk=pk)
         new_status = request.POST.get('status', '')
         valid = [s[0] for s in Order.STATUS_CHOICES]
-        if new_status in valid:
+        if new_status in valid and new_status != order.status:
+            prev = order.status
             order.status = new_status
             order.save(update_fields=['status'])
+            _log_status(order, new_status, request.user, note='Status changed by admin', from_status=prev)
     status_back = request.POST.get('status_filter', '')
     if status_back in [s[0] for s in Order.STATUS_CHOICES]:
         return redirect(f'/manage/orders/?status={status_back}')
     return redirect('manage_orders')
+
+
+@_staff_required
+@require_POST
+def manage_refund_order(request, pk):
+    """Admin partial/full refund: refund selected items×qty via Razorpay, restore stock, update status."""
+    order = get_object_or_404(Order, pk=pk)
+    if order.payment_status not in ('paid', 'partially_refunded'):
+        return JsonResponse({'success': False, 'error': 'This order has no captured online payment to refund.'}, status=400)
+    if not order.razorpay_payment_id:
+        return JsonResponse({'success': False, 'error': 'No Razorpay payment id on this order.'}, status=400)
+    try:
+        body    = json.loads(request.body)
+        refunds = body.get('items', [])  # [{index, qty}]
+        if not refunds:
+            return JsonResponse({'success': False, 'error': 'Select at least one item and quantity to refund.'}, status=400)
+
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(pk=pk)
+            items = order.items
+            # discount ratio so we refund what was actually charged, not the pre-discount MRP
+            line_sum = sum(float(i.get('price', 0)) * int(i.get('qty', 1) or 1) for i in items)
+            scale    = (float(order.total) / line_sum) if line_sum > 0 else 1.0
+
+            refund_total = 0.0
+            restore      = []  # (slug, qty)
+            for r in refunds:
+                idx = int(r.get('index', -1))
+                rq  = int(r.get('qty', 0) or 0)
+                if rq <= 0:
+                    continue
+                if idx < 0 or idx >= len(items):
+                    return JsonResponse({'success': False, 'error': 'Invalid item selected.'}, status=400)
+                it       = items[idx]
+                ordered  = int(it.get('qty', 1) or 1)
+                already  = int(it.get('refunded_qty', 0) or 0)
+                if already + rq > ordered:
+                    return JsonResponse({'success': False, 'error': f"Cannot refund {rq} × \"{it.get('name','')}\" — only {ordered - already} left to refund."}, status=400)
+                amt = round(float(it.get('price', 0)) * rq * scale, 2)
+                refund_total += amt
+                it['refunded_qty']    = already + rq
+                it['refunded_amount'] = round(float(it.get('refunded_amount', 0) or 0) + amt, 2)
+                restore.append((it.get('slug', ''), rq))
+
+            if refund_total <= 0:
+                return JsonResponse({'success': False, 'error': 'Nothing to refund.'}, status=400)
+
+            # Cap so cumulative refund never exceeds what was paid
+            remaining = round(float(order.total) - float(order.refunded_amount), 2)
+            refund_total = min(refund_total, remaining)
+
+            # Issue the Razorpay refund (still inside the lock; admin volume is low)
+            refund, err = _rp_refund(order.razorpay_payment_id, int(round(refund_total * 100)))
+            if not (refund and refund.get('id')):
+                return JsonResponse({'success': False, 'error': f'Razorpay refund failed: {err}'}, status=502)
+
+            # Persist item changes + restore stock
+            order.items = items
+            order.refunded_amount = round(float(order.refunded_amount) + refund_total, 2)
+            for slug, rq in restore:
+                Product.objects.filter(slug=slug, track_inventory=True).update(
+                    stock_quantity=F('stock_quantity') + rq
+                )
+            fully = all(int(i.get('refunded_qty', 0) or 0) >= int(i.get('qty', 1) or 1) for i in items)
+            order.payment_status = 'refunded' if fully else 'partially_refunded'
+            order.razorpay_refund_id = refund['id']
+            order.save(update_fields=['items', 'refunded_amount', 'payment_status', 'razorpay_refund_id'])
+            _log_status(order, order.status, request.user,
+                        note=f'Refunded ₹{refund_total:.2f} ({order.get_payment_status_display()})',
+                        from_status=order.status)
+
+        return JsonResponse({'success': True, 'refunded': refund_total,
+                             'payment_status': order.get_payment_status_display(),
+                             'total_refunded': float(order.refunded_amount)})
+    except Exception as exc:
+        return JsonResponse({'success': False, 'error': str(exc)}, status=400)
 
 
 # ── admin offers ──────────────────────────────────────────────────────────────
@@ -922,6 +1282,15 @@ def submit_review(request, order_pk):
         text   = request.POST.get('review_text', '').strip()
         rating = request.POST.get('rating', '5')
         photo  = request.FILES.get('photo')
+        if not text:
+            return render(request, 'store/submit_review.html', {
+                'order': order, 'error': 'Please write your review before submitting.',
+            })
+        img_err = _validate_image(photo)
+        if img_err:
+            return render(request, 'store/submit_review.html', {
+                'order': order, 'error': img_err,
+            })
         if text:
             rev = Review(
                 order=order, name=name, review_text=text,
@@ -1067,13 +1436,114 @@ def confirm_cod(request):
     try:
         data  = json.loads(request.body)
         order = get_object_or_404(Order, id=data['order_id'], user=request.user)
+        prev = order.status
         order.payment_method = 'cod'
         order.payment_status = 'cod'
         order.status         = 'confirmed'
         order.save(update_fields=['payment_method','payment_status','status'])
+        _log_status(order, 'confirmed', request.user, note='COD order confirmed', from_status=prev)
         return JsonResponse({'success': True})
     except Exception as exc:
         return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+
+
+@csrf_exempt
+@require_POST
+def cancel_order(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Login required'}, status=401)
+    try:
+        data  = json.loads(request.body)
+        order = get_object_or_404(Order, id=data['order_id'], user=request.user)
+        CANCELLABLE = ('pending', 'confirmed', 'processing')
+        if order.status not in CANCELLABLE:
+            return JsonResponse({'success': False, 'error': f'Orders that are "{order.status}" cannot be cancelled.'}, status=400)
+
+        refund_note = ''
+        with transaction.atomic():
+            # Lock the order row to avoid a double-cancel race
+            order = Order.objects.select_for_update().get(pk=order.pk)
+            if order.status not in CANCELLABLE:
+                return JsonResponse({'success': False, 'error': 'Order is no longer cancellable.'}, status=400)
+
+            # 1) Restore stock for inventory-tracked products (mirror the checkout decrement)
+            for item in order.items:
+                slug = item.get('slug', '')
+                qty  = int(item.get('qty', 1) or 1)
+                Product.objects.filter(slug=slug, track_inventory=True).update(
+                    stock_quantity=F('stock_quantity') + qty
+                )
+
+            # 2) Release the coupon hold (once)
+            if order.coupon_id and not order.coupon_released:
+                Coupon.objects.filter(pk=order.coupon_id, used_count__gt=0).update(
+                    used_count=F('used_count') - 1
+                )
+                order.coupon_released = True
+
+            # 3) Refund if the order was actually paid online
+            new_payment_status = order.payment_status
+            if order.payment_status == 'paid' and order.razorpay_payment_id:
+                amount_paise = int(round(float(order.total) * 100))
+                if amount_paise > 0:
+                    refund, err = _rp_refund(order.razorpay_payment_id, amount_paise)
+                    if refund and refund.get('id'):
+                        order.razorpay_refund_id = refund['id']
+                        new_payment_status = 'refunded'
+                        refund_note = 'Refund initiated successfully.'
+                    else:
+                        # Do NOT silently fail — cancel the order but flag for manual review
+                        new_payment_status = 'refund_failed'
+                        refund_note = f'Refund FAILED ({err}). Flagged for manual review.'
+                        _alert_admin_refund_failure(order, err)
+                else:
+                    new_payment_status = 'refunded'
+            # 'cod' / 'free' / 'pending' / 'failed' → nothing to refund
+
+            order.payment_status = new_payment_status
+            order.status         = 'cancelled'
+            order.save(update_fields=['status', 'payment_status', 'razorpay_refund_id', 'coupon_released'])
+            _log_status(order, 'cancelled', request.user, note=refund_note or 'Order cancelled by customer.', from_status='confirmed')
+
+        return JsonResponse({
+            'success': True,
+            'refunded': order.payment_status == 'refunded',
+            'refund_pending': order.payment_status == 'refund_failed',
+            'message': refund_note,
+        })
+    except Exception as exc:
+        return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+
+
+def order_invoice(request, order_id):
+    """Download a PDF invoice. Customer can fetch their own; staff can fetch any."""
+    if not request.user.is_authenticated:
+        return redirect('/?login=1')
+    if request.user.is_staff:
+        order = get_object_or_404(Order, id=order_id)
+    else:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+    from .invoice import build_invoice_pdf
+    from django.http import HttpResponse
+    pdf = build_invoice_pdf(order)
+    resp = HttpResponse(pdf, content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="Malola-Invoice-ORD{order.id:04d}.pdf"'
+    return resp
+
+
+def _alert_admin_refund_failure(order, err):
+    """Email staff when an automatic refund fails so it can be handled manually."""
+    try:
+        from django.core.mail import mail_admins
+        mail_admins(
+            subject=f'[Malola] Refund FAILED for Order #{order.id}',
+            message=(f'Automatic Razorpay refund failed for Order #{order.id} '
+                     f'(₹{order.total}, payment {order.razorpay_payment_id}).\n'
+                     f'Error: {err}\n\nPlease refund manually from the Razorpay dashboard.'),
+            fail_silently=True,
+        )
+    except Exception:
+        pass
 
 
 # ── order API ─────────────────────────────────────────────────────────────────
@@ -1083,6 +1553,9 @@ def confirm_cod(request):
 def place_order(request):
     if not request.user.is_authenticated:
         return JsonResponse({'success': False, 'error': 'Login required'}, status=401)
+    # Rate limit: max 5 checkout attempts per user per 10 minutes
+    if _is_rate_limited(f'checkout:{request.user.id}', 5, 600):
+        return JsonResponse({'success': False, 'error': 'Too many checkout attempts. Please wait a few minutes and try again.', 'code': 'rate_limited'}, status=429)
     try:
         data  = json.loads(request.body)
         name    = data.get('name', '').strip()
@@ -1095,69 +1568,141 @@ def place_order(request):
         if not raw_items:
             return JsonResponse({'success': False, 'error': 'Cart is empty.'}, status=400)
 
-        verified_items = []
-        total = 0
-        for item in raw_items:
-            slug = item.get('slug', '').strip()
-            qty  = max(1, int(item.get('qty', 1)))
-            if not slug:
-                return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" has no slug.'}, status=400)
-            product = Product.objects.filter(slug=slug, is_active=True).first()
-            if not product:
-                return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" not found or unavailable.'}, status=400)
-            if product.stock_quantity > 0 and qty > product.stock_quantity:
-                return JsonResponse({'success': False, 'error': f'"{product.title}" only has {product.stock_quantity} unit(s) left in stock.'}, status=400)
-            price = float(product.price)  # discount_price is the crossed-out MRP, not the selling price
-            total += price * qty
-            verified_items.append({
-                'name':  product.title,
-                'slug':  product.slug,
-                'price': price,
-                'qty':   qty,
-                'image': item.get('image', ''),
+        coupon_code = data.get('coupon_code', '').strip().upper()
+
+        # ── Atomic, row-locked stock check → order create → stock decrement ──
+        # select_for_update() locks each Product row for the duration of the
+        # transaction, so two concurrent orders for the last unit cannot both pass.
+        with transaction.atomic():
+            verified_items = []
+            to_decrement   = []   # [(product, qty)] for inventory-tracked products
+            total = 0
+            gross_gst = 0.0       # GST component of the inclusive line totals (pre-discount)
+            for item in raw_items:
+                slug = item.get('slug', '').strip()
+                try:
+                    qty = int(item.get('qty', 1))
+                except (TypeError, ValueError):
+                    return JsonResponse({'success': False, 'error': 'invalid_input'}, status=400)
+                if qty < 1:
+                    return JsonResponse({'success': False, 'error': 'invalid_input'}, status=400)
+                if not slug:
+                    return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" has no slug.'}, status=400)
+
+                product = Product.objects.select_for_update().filter(slug=slug, is_active=True).first()
+                if not product:
+                    return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" not found or unavailable.', 'code': 'product_unavailable'}, status=400)
+
+                # Per-order quantity cap
+                if product.max_order_qty and qty > product.max_order_qty:
+                    return JsonResponse({'success': False, 'error': f'You can order at most {product.max_order_qty} of "{product.title}".', 'code': 'max_qty_reached', 'max': product.max_order_qty}, status=400)
+
+                # Inventory enforcement (only when this product tracks stock)
+                if product.track_inventory:
+                    if product.stock_quantity <= 0:
+                        return JsonResponse({'success': False, 'error': f'"{product.title}" is out of stock.', 'code': 'out_of_stock'}, status=400)
+                    if qty > product.stock_quantity:
+                        return JsonResponse({'success': False, 'error': f'"{product.title}" only has {product.stock_quantity} unit(s) left in stock.', 'code': 'insufficient_stock', 'available': product.stock_quantity}, status=400)
+                    to_decrement.append((product, qty))
+
+                # Price is server-authoritative. For a selected weight variant we
+                # scale the BASE price by grams/base_grams (validated against the
+                # product's own weight list) — never trust the client's price.
+                base_price = float(product.price)
+                price = base_price
+                weight = (item.get('weight') or '').strip()
+                if weight:
+                    allowed = [w.strip() for w in (product.weights or '').split(',') if w.strip()]
+                    if weight in allowed:
+                        grams      = _parse_grams(weight)
+                        base_grams = _parse_grams(allowed[0]) if allowed else grams
+                        if grams and base_grams:
+                            price = round(base_price * grams / base_grams, 2)
+                    else:
+                        weight = ''   # unknown variant → ignore, charge base price
+                rate  = float(product.gst_rate or 0)
+                line  = price * qty
+                total += line
+                # GST-inclusive: tax component = line * rate / (100 + rate)
+                gross_gst += (line * rate / (100 + rate)) if rate else 0.0
+                verified_items.append({
+                    'name':     product.title + (f' ({weight})' if weight else ''),
+                    'slug':     product.slug,
+                    'price':    price,
+                    'qty':      qty,
+                    'weight':   weight,
+                    'gst_rate': rate,   # snapshot — old orders keep their rate if admin changes it later
+                    'image':    item.get('image', ''),
+                })
+
+            # ── Coupon validation (locked so used_count can't be over-redeemed) ──
+            discount_amount = 0.0
+            coupon_obj      = None
+            if coupon_code:
+                from django.utils import timezone
+                coupon_obj = Coupon.objects.select_for_update().filter(
+                    code=coupon_code, is_active=True,
+                    valid_from__lte=timezone.now(), valid_until__gte=timezone.now(),
+                ).first()
+                if coupon_obj and coupon_obj.used_count < coupon_obj.max_uses:
+                    discount_amount = coupon_obj.calculate_discount(total)
+                else:
+                    coupon_obj = None
+
+            final_total = max(0, round(total - discount_amount, 2))
+
+            # GST on the amount actually charged (scale the inclusive tax by the discount ratio)
+            scale       = (final_total / total) if total > 0 else 0
+            gst_amount  = round(gross_gst * scale, 2)
+            subtotal    = round(final_total - gst_amount, 2)
+
+            # ₹0 order (e.g. 100%-off coupon): skip Razorpay, confirm directly
+            is_free = final_total <= 0
+
+            order = Order.objects.create(
+                user            = request.user,
+                name            = name,
+                phone           = phone,
+                address         = address,
+                items           = verified_items,
+                total           = final_total,
+                subtotal        = subtotal,
+                gst_amount      = gst_amount,
+                payment_status  = 'paid' if is_free else 'pending',
+                payment_method  = 'free' if is_free else '',
+                status          = 'confirmed' if is_free else 'pending',
+                coupon          = coupon_obj,
+                coupon_code     = coupon_code if coupon_obj else '',
+                discount_amount = round(discount_amount, 2),
+            )
+            if coupon_obj:
+                Coupon.objects.filter(pk=coupon_obj.pk).update(used_count=F('used_count') + 1)
+            # Decrement stock on the rows we locked above
+            for product, qty in to_decrement:
+                Product.objects.filter(pk=product.pk).update(stock_quantity=F('stock_quantity') - qty)
+            if is_free:
+                _log_status(order, 'confirmed', request.user, note='Free order (₹0) auto-confirmed', from_status='pending')
+
+        # Did the authoritative total differ from what the cart showed the customer?
+        try:
+            client_total = float(data.get('total', 0))
+        except (TypeError, ValueError):
+            client_total = 0
+        price_changed = client_total > 0 and abs(client_total - float(final_total)) > 0.5
+
+        if is_free:
+            return JsonResponse({
+                'success':  True,
+                'order_id': order.id,
+                'redirect': '/orders/',
+                'free':     True,
             })
-
-        # ── Coupon validation ─────────────────────────────────────────
-        coupon_code     = data.get('coupon_code', '').strip().upper()
-        discount_amount = 0.0
-        coupon_obj      = None
-        if coupon_code:
-            from django.utils import timezone
-            coupon_obj = Coupon.objects.filter(
-                code=coupon_code, is_active=True,
-                valid_from__lte=timezone.now(), valid_until__gte=timezone.now(),
-            ).first()
-            if coupon_obj and coupon_obj.used_count < coupon_obj.max_uses:
-                discount_amount = coupon_obj.calculate_discount(total)
-            else:
-                coupon_obj = None
-
-        final_total = max(0, round(total - discount_amount, 2))
-
-        order = Order.objects.create(
-            user            = request.user,
-            name            = name,
-            phone           = phone,
-            address         = address,
-            items           = verified_items,
-            total           = final_total,
-            payment_status  = 'pending',
-            coupon          = coupon_obj,
-            coupon_code     = coupon_code if coupon_obj else '',
-            discount_amount = round(discount_amount, 2),
-        )
-        if coupon_obj:
-            Coupon.objects.filter(pk=coupon_obj.pk).update(used_count=F('used_count') + 1)
-        # Decrement stock for products that track inventory (stock_quantity > 0)
-        for item in verified_items:
-            Product.objects.filter(
-                slug=item['slug'], stock_quantity__gt=0
-            ).update(stock_quantity=F('stock_quantity') - item['qty'])
-
         return JsonResponse({
-            'success':  True,
-            'order_id': order.id,
-            'redirect': f'/checkout/{order.id}/',
+            'success':       True,
+            'order_id':      order.id,
+            'redirect':      f'/checkout/{order.id}/',
+            'price_changed': price_changed,
+            'server_total':  float(final_total),
         })
     except (KeyError, ValueError, json.JSONDecodeError) as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
@@ -1217,9 +1762,11 @@ def get_order(request, order_id):
 
 # ── auth API ──────────────────────────────────────────────────────────────────
 
-@csrf_exempt
 @require_POST
 def register_view(request):
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError
+    from django.db import IntegrityError
     ip = _client_ip(request)
     if _is_rate_limited(f'register:{ip}', max_hits=5, window_seconds=3600):
         return JsonResponse({'success': False, 'error': 'Too many attempts. Try again in an hour.'}, status=429)
@@ -1230,24 +1777,32 @@ def register_view(request):
         password = data.get('password', '')
         if not email or not password:
             return JsonResponse({'success': False, 'error': 'Email and password are required'})
-        if len(password) < 6:
-            return JsonResponse({'success': False, 'error': 'Password must be at least 6 characters'})
+        if '@' not in email or '.' not in email.split('@')[-1]:
+            return JsonResponse({'success': False, 'error': 'Please enter a valid email address'})
         if User.objects.filter(username=email).exists():
             return JsonResponse({'success': False, 'error': 'Email is already registered'})
         parts      = name.split()
         first_name = parts[0] if parts else ''
         last_name  = ' '.join(parts[1:]) if len(parts) > 1 else ''
-        user = User.objects.create_user(
-            username=email, email=email, password=password,
-            first_name=first_name, last_name=last_name,
-        )
+        # Enforce Django's AUTH_PASSWORD_VALIDATORS (length, common, numeric, similarity)
+        try:
+            validate_password(password, User(username=email, email=email, first_name=first_name))
+        except ValidationError as e:
+            return JsonResponse({'success': False, 'error': ' '.join(e.messages)})
+        try:
+            user = User.objects.create_user(
+                username=email, email=email, password=password,
+                first_name=first_name, last_name=last_name,
+            )
+        except IntegrityError:
+            # Race: another request registered the same email between the check and create
+            return JsonResponse({'success': False, 'error': 'Email is already registered'})
         auth_login(request, user)
         return JsonResponse({'success': True, 'name': name or email})
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid data'}, status=400)
 
 
-@csrf_exempt
 @require_POST
 def login_view(request):
     ip = _client_ip(request)
@@ -1267,7 +1822,6 @@ def login_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid data'}, status=400)
 
 
-@csrf_exempt
 @require_POST
 def logout_view(request):
     auth_logout(request)
@@ -1393,24 +1947,47 @@ def request_password_reset(request):
 @csrf_exempt
 @require_POST
 def confirm_password_reset(request):
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError
+    ip = _client_ip(request)
+    # Backstop IP rate limit on the confirm endpoint itself
+    if _is_rate_limited(f'pw_confirm:{ip}', max_hits=10, window_seconds=600):
+        return JsonResponse({'ok': False, 'error': 'Too many attempts. Try again later.'}, status=429)
     try:
         d        = json.loads(request.body)
         email    = d.get('email', '').strip().lower()
         otp      = d.get('otp', '').strip()
-        new_pass = d.get('new_password', '').strip()
+        new_pass = d.get('new_password', '')
         if not email or not otp or not new_pass:
             return JsonResponse({'ok': False, 'error': 'email, otp and new_password are required'}, status=400)
-        if len(new_pass) < 8:
-            return JsonResponse({'ok': False, 'error': 'Password must be at least 8 characters'}, status=400)
+
         stored_otp = cache.get(f'pw_reset_otp:{email}')
-        if not stored_otp or stored_otp != otp:
+        if not stored_otp:
+            return JsonResponse({'ok': False, 'error': 'Invalid or expired OTP. Please request a new one.'}, status=400)
+
+        # Cap OTP guesses: 5 wrong tries → invalidate the OTP (defeats brute force)
+        attempts_key = f'pw_reset_attempts:{email}'
+        if stored_otp != otp:
+            attempts = (cache.get(attempts_key, 0)) + 1
+            cache.set(attempts_key, attempts, timeout=600)
+            if attempts >= 5:
+                cache.delete(f'pw_reset_otp:{email}')
+                cache.delete(attempts_key)
+                return JsonResponse({'ok': False, 'error': 'Too many incorrect attempts. Please request a new OTP.'}, status=400)
             return JsonResponse({'ok': False, 'error': 'Invalid or expired OTP'}, status=400)
+
         user = User.objects.filter(email=email).first() or User.objects.filter(username=email).first()
         if not user:
             return JsonResponse({'ok': False, 'error': 'User not found'}, status=404)
+        # Enforce Django's password validators
+        try:
+            validate_password(new_pass, user)
+        except ValidationError as e:
+            return JsonResponse({'ok': False, 'error': ' '.join(e.messages)}, status=400)
         user.set_password(new_pass)
         user.save()
         cache.delete(f'pw_reset_otp:{email}')
+        cache.delete(attempts_key)
         return JsonResponse({'ok': True, 'message': 'Password reset successfully. Please log in.'})
     except Exception as exc:
         return JsonResponse({'ok': False, 'error': str(exc)}, status=400)

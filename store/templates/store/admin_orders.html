@@ -204,6 +204,19 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
 @media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}.detail-inner{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.stats-row{grid-template-columns:repeat(2,1fr)}.detail-inner{grid-template-columns:1fr}.page{padding:16px 14px 40px}.hd{padding:0 16px}.ap-tabs{padding:0 14px}.col-hide{display:none}}
 @media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr}}
+/* Refund panel */
+.refund-panel{border:1px solid #f0d3d3;background:#fdf6f6;border-radius:10px;padding:12px 14px;margin-top:14px}
+.refund-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed #eee}
+.refund-row:last-of-type{border-bottom:none}
+.refund-name{flex:1;font-size:.82rem;font-weight:700;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.refund-left{font-size:.7rem;font-weight:800;color:#999;white-space:nowrap}
+.refund-qty{width:54px;padding:5px 8px;border:1.5px solid #ddd;border-radius:7px;font-size:.82rem;font-weight:700;text-align:center}
+.refund-btn{margin-top:10px;width:100%;background:#c62828;color:#fff;border:none;border-radius:8px;padding:9px;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.refund-btn:hover{background:#b71c1c}
+.refund-btn:disabled{opacity:.6;cursor:not-allowed}
+.refund-msg{margin-top:8px;font-size:.78rem;font-weight:700}
+.refund-msg.ok{color:#2e7d32}
+.refund-msg.err{color:#c62828}
 </style>
 </head>
 <body>
@@ -424,6 +437,7 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
                     <td>
                       <div class="item-name">{{ item.name }}</div>
                       {% if item.weight %}<div class="item-weight">{{ item.weight }}</div>{% endif %}
+                      {% if item.refunded_qty %}<div style="font-size:.7rem;font-weight:800;color:#c62828">↩ {{ item.refunded_qty }} refunded (₹{{ item.refunded_amount|default:0 }})</div>{% endif %}
                     </td>
                     <td class="item-qty">×{{ item.qty|default:1 }}</td>
                     <td class="item-price">₹{{ item.price }}</td>
@@ -453,6 +467,23 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
                 <div class="coupon-tag"><i class="fa-solid fa-ticket"></i> {{ o.coupon_code }}</div>
                 <div class="discount-line">Discount: −₹{{ o.discount_amount }}</div>
                 {% endif %}
+                {% if o.gst_amount %}<div class="discount-line">Incl. GST: ₹{{ o.gst_amount }}</div>{% endif %}
+                {% if o.refunded_amount %}<div class="discount-line" style="color:#c62828">Refunded: ₹{{ o.refunded_amount }}</div>{% endif %}
+
+                {% if o.payment_status == 'paid' or o.payment_status == 'partially_refunded' %}
+                <div class="dp-spacer refund-panel" id="refundPanel{{ o.pk }}">
+                  <div class="dp-section-title"><i class="fa-solid fa-rotate-left"></i> Refund Items</div>
+                  {% for item in o.items %}
+                  <div class="refund-row" data-index="{{ forloop.counter0 }}" data-ordered="{{ item.qty|default:1 }}" data-refunded="{{ item.refunded_qty|default:0 }}">
+                    <span class="refund-name">{{ item.name }}</span>
+                    <span class="refund-left"></span>
+                    <input type="number" class="refund-qty" min="0" value="0">
+                  </div>
+                  {% endfor %}
+                  <button type="button" class="refund-btn" onclick="submitRefund({{ o.pk }})"><i class="fa-solid fa-indian-rupee-sign"></i> Refund Selected</button>
+                  <div class="refund-msg" id="refundMsg{{ o.pk }}"></div>
+                </div>
+                {% endif %}
 
                 <div class="dp-spacer">
                   <div class="dp-section-title"><i class="fa-solid fa-truck"></i> Order Status</div>
@@ -467,6 +498,13 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
                 <div class="dp-spacer">
                   <div class="dp-section-title"><i class="fa-solid fa-calendar"></i> Placed On</div>
                   <div class="dp-val">{{ o.created_at|date:"d M Y, h:i A" }}</div>
+                </div>
+
+                <div class="dp-spacer">
+                  <a href="/orders/{{ o.pk }}/invoice/" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:7px;background:#0d2b6b;color:#fff;border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:800;text-decoration:none">
+                    <i class="fa-solid fa-file-arrow-down"></i> Download Invoice
+                  </a>
                 </div>
               </div>
 
@@ -521,6 +559,55 @@ document.querySelectorAll('.ord-row').forEach(row => {
     }
   });
 });
+
+/* ── Partial refund ── */
+function getCookie(name){
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}
+/* Show "(N left)" next to each refundable item and cap the input */
+document.querySelectorAll('.refund-row').forEach(row => {
+  const ordered  = parseInt(row.dataset.ordered) || 1;
+  const refunded = parseInt(row.dataset.refunded) || 0;
+  const left = ordered - refunded;
+  const inp = row.querySelector('.refund-qty');
+  inp.max = left;
+  row.querySelector('.refund-left').textContent = left + ' left';
+  if (left <= 0){ inp.disabled = true; row.style.opacity = .5; }
+});
+async function submitRefund(pk){
+  const panel = document.getElementById('refundPanel' + pk);
+  const msg   = document.getElementById('refundMsg' + pk);
+  const items = [];
+  panel.querySelectorAll('.refund-row').forEach(row => {
+    const qty = parseInt(row.querySelector('.refund-qty').value) || 0;
+    if (qty > 0) items.push({ index: parseInt(row.dataset.index), qty });
+  });
+  if (!items.length){ msg.textContent = 'Enter a quantity to refund.'; msg.className = 'refund-msg err'; return; }
+  if (!confirm('Issue a Razorpay refund for the selected items? This cannot be undone.')) return;
+  const btn = panel.querySelector('.refund-btn');
+  btn.disabled = true; btn.textContent = 'Refunding…';
+  try {
+    const r = await fetch(`/manage/orders/${pk}/refund/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body: JSON.stringify({ items }),
+    });
+    const d = await r.json();
+    if (d.success){
+      msg.textContent = `✔ Refunded ₹${d.refunded.toFixed(2)} — ${d.payment_status}`;
+      msg.className = 'refund-msg ok';
+      setTimeout(() => location.reload(), 1400);
+    } else {
+      msg.textContent = d.error || 'Refund failed.';
+      msg.className = 'refund-msg err';
+      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-indian-rupee-sign"></i> Refund Selected';
+    }
+  } catch(e){
+    msg.textContent = 'Network error.'; msg.className = 'refund-msg err';
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-indian-rupee-sign"></i> Refund Selected';
+  }
+}
 </script>
 </body>
 </html>

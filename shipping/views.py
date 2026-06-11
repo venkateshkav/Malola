@@ -1,10 +1,24 @@
 import json
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
-from store.models import Order
+from store.models import Order, OrderStatusLog
 from .models import Shipment
 from . import shiprocket
+
+
+# Map Shiprocket status text → our Order.status, with a forward-only rank so an
+# out-of-order webhook (e.g. "delivered" before "shipped") can't move us backwards.
+_STATUS_RANK = {'confirmed': 1, 'processing': 2, 'shipped': 3, 'delivered': 4}
+
+def _map_shiprocket_status(text):
+    t = (text or '').strip().lower()
+    if 'delivered' in t:
+        return 'delivered'
+    if any(k in t for k in ('out for delivery', 'in transit', 'shipped', 'pickup', 'picked up', 'dispatch')):
+        return 'shipped'
+    return None  # unknown / pending — ignore
 
 
 def _staff_only(view_fn):
@@ -72,8 +86,12 @@ def create_shipment(request, order_id):
             'tracking_url': f'https://www.shiprocket.in/shipment-tracking/?id={awb}' if awb else '',
         },
     )
+    prev = order.status
     order.status = 'shipped'
     order.save(update_fields=['status'])
+    OrderStatusLog.objects.create(order=order, from_status=prev, to_status='shipped',
+                                  changed_by=request.user if request.user.is_authenticated else None,
+                                  note=f'Shipment created — AWB {awb}' if awb else 'Shipment created')
     return JsonResponse({'message': 'Shipment created', 'awb': awb, 'shipment_id': ship.pk})
 
 
@@ -93,6 +111,50 @@ def cancel_shipment(request, order_id):
     order.status = 'cancelled'
     order.save(update_fields=['status'])
     return JsonResponse({'message': 'Shipment cancelled'})
+
+
+@csrf_exempt
+@require_POST
+def shiprocket_webhook(request):
+    """
+    Receives Shiprocket tracking updates and advances the order's status.
+    Configure the URL + token in Shiprocket → Settings → API → Webhooks.
+    Always returns 200 (after auth) so Shiprocket doesn't retry forever.
+    """
+    # Optional shared-secret check (Shiprocket sends the token you set as `x-api-key`)
+    expected = getattr(settings, 'SHIPROCKET_WEBHOOK_TOKEN', '')
+    if expected:
+        token = request.META.get('HTTP_X_API_KEY', '')
+        if token != expected:
+            return JsonResponse({'error': 'unauthorized'}, status=401)
+
+    try:
+        payload = json.loads(request.body or '{}')
+        awb     = str(payload.get('awb') or payload.get('awb_code') or '').strip()
+        status_text = (payload.get('current_status') or payload.get('shipment_status')
+                       or payload.get('status') or '')
+        new_status = _map_shiprocket_status(status_text)
+
+        shipment = Shipment.objects.filter(awb_number=awb).select_related('order').first() if awb else None
+        if shipment:
+            shipment.status = str(status_text)[:100]
+            shipment.save(update_fields=['status', 'updated_at'])
+            order = shipment.order
+            if order and new_status:
+                cur_rank = _STATUS_RANK.get(order.status, 0)
+                new_rank = _STATUS_RANK.get(new_status, 0)
+                if new_rank > cur_rank:   # forward-only
+                    prev = order.status
+                    order.status = new_status
+                    order.save(update_fields=['status'])
+                    OrderStatusLog.objects.create(
+                        order=order, from_status=prev, to_status=new_status,
+                        changed_by=None, note=f'Shiprocket: {status_text}',
+                    )
+    except Exception:
+        pass  # never 5xx after auth — Shiprocket would keep retrying
+
+    return JsonResponse({'status': 'ok'})
 
 
 @require_GET
