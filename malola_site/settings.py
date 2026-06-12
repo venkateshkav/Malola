@@ -40,6 +40,10 @@ if not ALLOWED_HOSTS and DEBUG:
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if _railway_domain and _railway_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_railway_domain)
+# Auto-include Render's public domain if running on Render
+_render_domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
+if _render_domain and _render_domain not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_domain)
 
 
 # Application definition
@@ -94,8 +98,19 @@ WSGI_APPLICATION = 'malola_site.wsgi.application'
 # Use DATABASE_URL (Railway/Heroku style) if set, otherwise SQLite for local dev.
 _db_url = os.environ.get('DATABASE_URL', '')
 if _db_url:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config(default=_db_url, conn_max_age=600)}
+    import urllib.parse as _up
+    _p = _up.urlparse(_db_url)
+    DATABASES = {
+        'default': {
+            'ENGINE':       'django.db.backends.postgresql',
+            'NAME':         _up.unquote(_p.path.lstrip('/')),
+            'USER':         _up.unquote(_p.username or ''),
+            'PASSWORD':     _up.unquote(_p.password or ''),
+            'HOST':         _p.hostname or 'localhost',
+            'PORT':         str(_p.port or 5432),
+            'CONN_MAX_AGE': 600,
+        }
+    }
 else:
     DATABASES = {
         'default': {
