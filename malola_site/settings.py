@@ -120,6 +120,17 @@ else:
     }
 
 
+# Cache — database-backed so it is shared across all gunicorn workers (the
+# default per-process LocMemCache breaks the admin OTP gate under >1 worker).
+# Table is created by `manage.py createcachetable` in build.sh.
+CACHES = {
+    'default': {
+        'BACKEND':  'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache_table',
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
