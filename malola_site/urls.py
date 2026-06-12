@@ -18,8 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 
 urlpatterns = [
+    # Lightweight health endpoint for the platform healthcheck. No DB, no
+    # template, and exempt from SSL redirect (see SECURE_REDIRECT_EXEMPT) so the
+    # internal HTTP healthcheck gets a plain 200 instead of a 301-to-https.
+    path('healthz', lambda request: HttpResponse('ok')),
     path('admin/', admin.site.urls),
     path('', include('store.urls')),
     path('', include('accounts.urls')),

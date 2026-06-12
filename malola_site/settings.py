@@ -253,6 +253,10 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD            = True
     SECURE_SSL_REDIRECT            = True
+    # The platform healthcheck hits /healthz over plain HTTP on the internal
+    # network (no X-Forwarded-Proto), so exempt it from the http->https redirect
+    # or it gets a 301 and the deploy is marked unhealthy.
+    SECURE_REDIRECT_EXEMPT         = [r'^healthz$']
     SESSION_COOKIE_SECURE          = True
     CSRF_COOKIE_SECURE             = True
 
