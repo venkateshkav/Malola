@@ -1141,9 +1141,9 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .nav-search-box.open{width:180px;right:-40px}
   .nav-search-results{width:240px;right:-40px}
 
-  /* HERO */
-  #hero{height:100vh;height:100dvh}
-  .hs-slide img{width:100%;height:100%;object-fit:cover}
+  /* HERO — show the full wide banner instead of cropping it to a tall screen */
+  #hero{height:auto;aspect-ratio:16/10;background:#fff}
+  .hs-slide img{width:100%;height:100%;object-fit:contain}
   .side-cup{display:none}
   #bgWord{font-size:clamp(70px,22vw,110px)}
   #productStage{top:28%;transform:translateX(-50%);left:50%}
@@ -1849,7 +1849,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .nav-search-results{width:220px;right:-36px}
 
   /* Hero */
-  #hero{height:100dvh}
+  #hero{height:auto}
   #productStage{top:24%}
   .product-ring{width:clamp(130px,42vw,165px);height:clamp(130px,42vw,165px)}
   #leftContent{bottom:76px;padding:0 14px}
