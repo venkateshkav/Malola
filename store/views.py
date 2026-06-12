@@ -302,13 +302,46 @@ def manage_verify(request):
 
 # ── public pages ─────────────────────────────────────────────────────────────
 
+_HOME_TTL = 120  # 2 minutes
+
+def _bust_product_cache():
+    """Call after any admin create/edit/delete so the front-end cache refreshes immediately."""
+    for key in ('home_our_products', 'home_new_arrivals', 'home_whats_new',
+                'home_reviews', 'home_videos', 'home_categories',
+                'shop_our_products', 'shop_new_arrivals', 'shop_categories', 'shop_sales_map'):
+        cache.delete(key)
+
 def home(request):
-    db_our_products = Product.objects.filter(category='our_products', is_active=True)
-    db_new_arrivals = Product.objects.filter(category='new_arrival',  is_active=True)
-    db_whats_new    = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
-    db_reviews      = Review.objects.filter(is_active=True)
-    db_videos       = SiteVideo.objects.filter(is_active=True)
-    db_categories   = Category.objects.filter(is_active=True).order_by('sort_order', 'name')
+    db_our_products = cache.get('home_our_products')
+    if db_our_products is None:
+        db_our_products = list(Product.objects.filter(category='our_products', is_active=True))
+        cache.set('home_our_products', db_our_products, _HOME_TTL)
+
+    db_new_arrivals = cache.get('home_new_arrivals')
+    if db_new_arrivals is None:
+        db_new_arrivals = list(Product.objects.filter(category='new_arrival', is_active=True))
+        cache.set('home_new_arrivals', db_new_arrivals, _HOME_TTL)
+
+    db_whats_new = cache.get('home_whats_new')
+    if db_whats_new is None:
+        db_whats_new = list(Product.objects.filter(is_active=True).order_by('-created_at')[:4])
+        cache.set('home_whats_new', db_whats_new, _HOME_TTL)
+
+    db_reviews = cache.get('home_reviews')
+    if db_reviews is None:
+        db_reviews = list(Review.objects.filter(is_active=True))
+        cache.set('home_reviews', db_reviews, _HOME_TTL)
+
+    db_videos = cache.get('home_videos')
+    if db_videos is None:
+        db_videos = list(SiteVideo.objects.filter(is_active=True))
+        cache.set('home_videos', db_videos, _HOME_TTL)
+
+    db_categories = cache.get('home_categories')
+    if db_categories is None:
+        db_categories = list(Category.objects.filter(is_active=True).order_by('sort_order', 'name'))
+        cache.set('home_categories', db_categories, _HOME_TTL)
+
     return render(request, 'store/index.html', {
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
@@ -330,28 +363,45 @@ SHOP_FILTERS = [
 def shop(request):
     from django.db.models import Count
     from collections import defaultdict
-    db_our_products = list(Product.objects.filter(category='our_products', is_active=True))
-    db_new_arrivals = list(Product.objects.filter(category='new_arrival',  is_active=True))
 
-    # Units sold per product slug (for "Best selling" sort)
-    sales = defaultdict(int)
-    for o in Order.objects.filter(payment_status__in=['paid', 'cod']):
-        for it in (o.items or []):
-            try:
-                sales[it.get('slug', '')] += int(it.get('qty', 1))
-            except (TypeError, ValueError):
-                pass
+    db_our_products = cache.get('shop_our_products')
+    if db_our_products is None:
+        db_our_products = list(Product.objects.filter(category='our_products', is_active=True))
+        cache.set('shop_our_products', db_our_products, _HOME_TTL)
+
+    db_new_arrivals = cache.get('shop_new_arrivals')
+    if db_new_arrivals is None:
+        db_new_arrivals = list(Product.objects.filter(category='new_arrival', is_active=True))
+        cache.set('shop_new_arrivals', db_new_arrivals, _HOME_TTL)
+
+    # Units sold per product slug (cached — avoids full Order scan every request)
+    sales = cache.get('shop_sales_map')
+    if sales is None:
+        sales = defaultdict(int)
+        for o in Order.objects.filter(payment_status__in=['paid', 'cod']).only('items'):
+            for it in (o.items or []):
+                try:
+                    sales[it.get('slug', '')] += int(it.get('qty', 1))
+                except (TypeError, ValueError):
+                    pass
+        cache.set('shop_sales_map', dict(sales), 300)  # cache 5 minutes
     for p in db_our_products + db_new_arrivals:
         p.units_sold = sales.get(p.slug, 0)
 
-    categories = (
-        Category.objects
-        .filter(is_active=True)
-        .annotate(product_count=Count('products'))
-        .filter(product_count__gt=0)
-        .order_by('sort_order', 'name')
+    categories = cache.get('shop_categories')
+    if categories is None:
+        categories = list(
+            Category.objects
+            .filter(is_active=True)
+            .annotate(product_count=Count('products'))
+            .filter(product_count__gt=0)
+            .order_by('sort_order', 'name')
+        )
+        cache.set('shop_categories', categories, _HOME_TTL)
+
+    db_whats_new = cache.get('home_whats_new') or list(
+        Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     )
-    db_whats_new = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
     return render(request, 'store/shop.html', {
         'db_our_products': db_our_products,
         'db_new_arrivals': db_new_arrivals,
@@ -637,6 +687,7 @@ def manage_add_product(request):
                         product = Product.objects.create(**data)
                         for gf in gallery_files:
                             ProductImage.objects.create(product=product, image=gf)
+                        _bust_product_cache()
                         return redirect('manage_products')
                     except Exception as exc:
                         error = str(exc)
@@ -664,6 +715,7 @@ def manage_edit_product(request, pk):
                 product.save()
                 for gf in gallery_files:
                     ProductImage.objects.create(product=product, image=gf)
+                _bust_product_cache()
                 return redirect('manage_products')
             except Exception as exc:
                 error = str(exc)
@@ -695,6 +747,7 @@ def manage_delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
         product.delete()
+        _bust_product_cache()
     return redirect('manage_products')
 
 
@@ -1150,6 +1203,7 @@ def manage_upload_video(request):
     except ValueError:
         sort_order = 0
     SiteVideo.objects.create(video=video_file, title=title, sort_order=sort_order)
+    _bust_product_cache()
     return redirect('manage_videos')
 
 
@@ -1160,6 +1214,7 @@ def manage_delete_video(request, pk):
     if video.video:
         video.video.delete(save=False)
     video.delete()
+    _bust_product_cache()
     return redirect('manage_videos')
 
 
@@ -1194,11 +1249,19 @@ def about_page(request):
 
 
 def _nav_ctx():
-    return {
-        'db_our_products': Product.objects.filter(category='our_products', is_active=True),
-        'db_new_arrivals': Product.objects.filter(category='new_arrival',  is_active=True),
-        'db_whats_new':    Product.objects.filter(is_active=True).order_by('-created_at')[:4],
-    }
+    our = cache.get('home_our_products')
+    if our is None:
+        our = list(Product.objects.filter(category='our_products', is_active=True))
+        cache.set('home_our_products', our, _HOME_TTL)
+    new = cache.get('home_new_arrivals')
+    if new is None:
+        new = list(Product.objects.filter(category='new_arrival', is_active=True))
+        cache.set('home_new_arrivals', new, _HOME_TTL)
+    wn = cache.get('home_whats_new')
+    if wn is None:
+        wn = list(Product.objects.filter(is_active=True).order_by('-created_at')[:4])
+        cache.set('home_whats_new', wn, _HOME_TTL)
+    return {'db_our_products': our, 'db_new_arrivals': new, 'db_whats_new': wn}
 
 
 def shipping_policy(request):
@@ -1226,6 +1289,14 @@ def contact_page(request):
 
 def faq_page(request):
     return render(request, 'store/faq.html', _nav_ctx())
+
+
+def qr_page(request):
+    return render(request, 'store/qr.html')
+
+
+def qr_code_page(request):
+    return render(request, 'store/qr_code.html')
 
 
 # ── admin blog ────────────────────────────────────────────────────────────────

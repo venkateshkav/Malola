@@ -407,102 +407,163 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 }
 .reel-thumb:hover{transform:scale(1.03);box-shadow:0 10px 30px rgba(0,0,0,.28)}
 .reel-thumb-vid{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-.reel-thumb-overlay{display:none}
-.reel-thumb-play{display:none}
+.reel-thumb-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+}
+.reel-thumb:hover .reel-thumb-overlay{opacity:1}
+.reel-thumb-play{
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(255,255,255,.92);
+  display:flex;align-items:center;justify-content:center;
+  color:#0d2b6b;font-size:1.3rem;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
 
-/* REEL MODAL */
+/* ══ REEL MODAL (story-viewer style) ══ */
 .reel-modal-overlay{
   position:fixed;inset:0;
-  background:rgba(0,0,0,.9);
+  background:#000;
   z-index:9999;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;
-  transition:opacity .3s;
+  transition:opacity .28s;
 }
 .reel-modal-overlay.open{opacity:1;pointer-events:all}
-.reel-modal-close{
-  position:absolute;top:20px;right:20px;
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(255,255,255,.18);border:none;
-  color:#fff;font-size:1.2rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .2s;z-index:10;
-}
-.reel-modal-close:hover{background:rgba(255,255,255,.35)}
 
-/* stage: peek + arrow + center + arrow + peek */
+/* progress dots */
+.reel-modal-dots{
+  display:flex;gap:6px;margin-bottom:18px;z-index:10;
+}
+.reel-modal-dot{
+  height:3px;border-radius:3px;
+  background:rgba(255,255,255,.35);
+  flex:1;min-width:20px;max-width:48px;
+  transition:background .2s;
+}
+.reel-modal-dot.active{background:#FECF0A;}
+
+/* close button */
+.reel-modal-close{
+  position:absolute;top:18px;right:18px;
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:none;
+  color:#fff;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;z-index:20;
+}
+.reel-modal-close:hover{background:rgba(255,255,255,.32)}
+
+/* ── stage layout ── */
 .reel-modal-stage{
   display:flex;align-items:center;justify-content:center;
-  width:100%;
+  width:100%;position:relative;
 }
+
+/* side peek cards */
 .reel-modal-peek{
-  width:80px;height:460px;
-  border-radius:10px;overflow:hidden;
-  flex-shrink:0;opacity:.45;cursor:pointer;
-  transition:opacity .2s;
+  width:160px;height:520px;
+  border-radius:16px;overflow:hidden;
+  flex-shrink:0;cursor:pointer;
+  position:relative;
+  transition:transform .2s;
 }
-.reel-modal-peek:hover{opacity:.65}
+.reel-modal-peek::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(0,0,0,.52);
+  border-radius:16px;
+  transition:background .2s;
+}
+.reel-modal-peek:hover::after{background:rgba(0,0,0,.3)}
+.reel-modal-peek:hover{transform:scale(1.02)}
 .reel-modal-peek video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .reel-peek-hidden{visibility:hidden;pointer-events:none}
 
+/* nav arrow buttons — sit OVER the peek card */
 .reel-modal-nav{
-  width:50px;height:50px;border-radius:50%;
+  width:52px;height:52px;border-radius:50%;
   background:#fff;border:none;
-  font-size:1.05rem;color:#0d2b6b;cursor:pointer;
+  font-size:1.1rem;color:#0d2b6b;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);
-  transition:transform .15s;flex-shrink:0;
-  margin:0 14px;z-index:2;
+  box-shadow:0 6px 24px rgba(0,0,0,.55);
+  transition:transform .15s,box-shadow .15s;
+  flex-shrink:0;
+  z-index:5;margin:0 -26px;
 }
-.reel-modal-nav:hover{transform:scale(1.1)}
-.reel-modal-nav:disabled{opacity:.3;cursor:default;transform:none}
+.reel-modal-nav:hover{transform:scale(1.12);box-shadow:0 8px 30px rgba(0,0,0,.7)}
+.reel-modal-nav:disabled{opacity:.28;cursor:default;transform:none;box-shadow:none}
 
+/* center phone */
 .reel-modal-center{
   display:flex;flex-direction:column;align-items:center;
+  z-index:3;
 }
 .reel-modal-phone{
-  width:320px;height:540px;
-  border-radius:14px 14px 0 0;overflow:hidden;
-  position:relative;background:#000;
-  box-shadow:0 20px 60px rgba(0,0,0,.7);
+  width:340px;height:600px;
+  border-radius:20px;overflow:hidden;
+  position:relative;background:#111;
+  box-shadow:0 28px 80px rgba(0,0,0,.85);
   flex-shrink:0;
 }
 .reel-modal-video{width:100%;height:100%;object-fit:cover;display:block}
 .reel-modal-mute{
-  position:absolute;top:12px;right:12px;
-  width:36px;height:36px;border-radius:50%;
-  background:rgba(0,0,0,.55);color:#fff;
+  position:absolute;top:14px;right:14px;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(0,0,0,.6);color:#fff;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:.9rem;z-index:2;
+  cursor:pointer;font-size:.95rem;z-index:4;
   transition:background .2s;
 }
-.reel-modal-mute:hover{background:rgba(0,0,0,.8)}
+.reel-modal-mute:hover{background:rgba(0,0,0,.9)}
 
-/* product card below the video */
-.reel-modal-product-card{
-  width:320px;background:#fff;
-  border-radius:0 0 14px 14px;
-  padding:14px 16px;
-  box-shadow:0 16px 40px rgba(0,0,0,.5);
+/* title label at bottom of center video */
+.reel-modal-title{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 100%);
+  color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;
+  padding:32px 16px 16px;pointer-events:none;z-index:3;
+  text-shadow:0 1px 4px rgba(0,0,0,.5);
 }
-.rmp-inner{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.rmp-logo{
-  width:44px;height:44px;border-radius:10px;
-  overflow:hidden;flex-shrink:0;background:#f5f5f5;
-  display:flex;align-items:center;justify-content:center;
+
+/* Malola branding strip below video */
+.reel-modal-brand{
+  width:340px;
+  background:#0d2b6b;
+  border-radius:0 0 20px 20px;
+  padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 20px 50px rgba(0,0,0,.7);
 }
-.rmp-logo img{width:100%;height:100%;object-fit:contain}
-.rmp-name{font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;color:#0d2b6b}
-.rmp-sub{font-family:Nunito,sans-serif;font-size:.75rem;color:#666;margin-top:2px}
-.rmp-btn{
-  display:block;width:100%;
-  background:#0d2b6b;color:#fff;text-align:center;
-  padding:12px;border-radius:10px;
-  font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;
-  letter-spacing:.06em;text-decoration:none;
-  transition:background .2s;
+.reel-modal-brand img{height:28px;object-fit:contain;filter:brightness(0) invert(1)}
+.reel-modal-brand a{
+  background:#FECF0A;color:#0d2b6b;
+  font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:900;
+  padding:7px 16px;border-radius:999px;text-decoration:none;
+  transition:opacity .2s;
 }
-.rmp-btn:hover{background:#1a3d94}
+.reel-modal-brand a:hover{opacity:.85}
+
+/* responsive */
+@media(max-width:900px){
+  .reel-modal-peek{width:110px;height:440px}
+  .reel-modal-phone{width:280px;height:510px}
+  .reel-modal-brand{width:280px}
+  .reel-modal-nav{width:42px;height:42px;font-size:.95rem;margin:0 -21px}
+}
+@media(max-width:600px){
+  .reel-modal-peek{width:70px;height:360px}
+  .reel-modal-phone{width:230px;height:420px}
+  .reel-modal-brand{width:230px}
+  .reel-modal-nav{width:36px;height:36px;font-size:.85rem;margin:0 -18px}
+  .reel-modal-dots{margin-bottom:14px}
+}
+@media(max-width:400px){
+  .reel-modal-peek{width:50px;height:310px}
+  .reel-modal-phone{width:190px;height:360px}
+  .reel-modal-brand{width:190px}
+}
 
 /* BENEFITS */
 .kids-benefits{background:var(--kids-bg);padding:90px 60px;position:relative;overflow:hidden}
@@ -744,7 +805,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   display:flex;
   align-items:flex-end;
   width:max-content;
-  gap:28px;
+  gap:48px;
   padding:30px 14px 50px;
   animation:reviewsScroll 55s linear infinite;
 }
@@ -815,12 +876,12 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 
 @media(max-width:768px){
   .kids-reviews{padding:60px 0 40px}
-  .k-reviews-track{gap:20px;padding:24px 10px 44px;animation-duration:45s}
+  .k-reviews-track{gap:36px;padding:24px 10px 44px;animation-duration:45s}
   .k-polaroid{width:165px}
   .k-pol-photo{width:145px;height:165px}
 }
 @media(max-width:480px){
-  .k-reviews-track{gap:16px;padding:20px 8px 38px;animation-duration:38s}
+  .k-reviews-track{gap:28px;padding:20px 8px 38px;animation-duration:38s}
   .k-polaroid{width:148px}
   .k-pol-photo{width:128px;height:145px}
   .k-pol-text{font-size:.65rem;-webkit-line-clamp:4;line-clamp:4}
@@ -1061,7 +1122,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .reel-thumb{flex:0 0 170px;height:310px}
   .reels-grid{padding:10px 20px 32px;gap:10px}
   .reel-modal-phone{width:260px;height:470px}
-  .reel-modal-product-card{width:260px}
+  .reel-modal-brand{width:260px}
   .reel-modal-nav{width:40px;height:40px;font-size:.9rem;margin:0 8px}
   .reel-modal-peek{width:60px;height:400px}
 
@@ -1922,7 +1983,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .k-pol-slide{padding:24px 12px 44px}
   .k-polaroid{width:200px}
   .k-pol-photo{width:180px;height:200px}
-  .k-reviews-track{gap:36px}
+  .k-reviews-track{gap:56px}
   .ap-stat-num{font-size:2.4rem}
 }
 
