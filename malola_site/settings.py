@@ -178,7 +178,11 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Where uploaded files (product images/videos, etc.) are stored. On Railway/Render
+# the container disk is wiped on every redeploy, so in production point this at a
+# mounted persistent Volume via DJANGO_MEDIA_ROOT (e.g. /data/media). Locally it
+# falls back to the project's media/ folder.
+MEDIA_ROOT = os.environ.get('DJANGO_MEDIA_ROOT', BASE_DIR / 'media')
 
 # ── Razorpay ──────────────────────────────────────────────────────────────────
 RAZORPAY_KEY_ID         = os.environ.get('RAZORPAY_KEY_ID', '')
