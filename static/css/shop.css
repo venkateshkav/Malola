@@ -5,14 +5,16 @@
 .shop-banner-wrap{
   width:100%;
   background:#f26522;
-  margin-top:80px;
+  margin-top:0;
   overflow:hidden;
 }
 .shop-banner-img{
   width:100%;
   height:auto;
+  max-height:420px;
   display:block;
   object-fit:cover;
+  object-position:center;
 }
 
 /* FILTER BAR */
@@ -142,7 +144,7 @@
 @media(max-width:1100px){.shop-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:768px){
   .shop-grid{grid-template-columns:repeat(2,1fr);gap:16px}
-  .shop-banner-wrap{margin-top:12px}
+  .shop-banner-wrap{margin-top:0}
   .shop-filter-bar{top:60px}
   .shop-filter-inner{padding:12px 16px}
   .shop-main{padding:36px 16px 60px}
@@ -168,7 +170,7 @@
   .shop-card-price{font-size:1.2rem}
   .shop-card-view{padding:7px 14px;font-size:.75rem}
 
-  .shop-banner-wrap{margin-top:8px}
+  .shop-banner-wrap{margin-top:0;max-height:300px}
 
   .shop-filter-inner{padding:10px 12px}
   .shop-filter-btn{padding:7px 14px;font-size:.82rem}

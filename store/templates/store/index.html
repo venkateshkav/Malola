@@ -194,46 +194,6 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
                 {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="mega-item-img">{% endif %}
               </div>
               {% endfor %}
-              <div class="mega-item mega-soon">
-                <div class="mega-item-text">
-                  <div class="mega-item-cat">Dry Nut</div>
-                  <div class="mega-item-name">Organic Walnuts</div>
-                  <div class="mega-soon-tag">Coming Soon</div>
-                </div>
-                <div class="mega-item-emoji">🌰</div>
-              </div>
-              <div class="mega-item mega-soon">
-                <div class="mega-item-text">
-                  <div class="mega-item-cat">Dry Nut</div>
-                  <div class="mega-item-name">Roasted Pistachios</div>
-                  <div class="mega-soon-tag">Coming Soon</div>
-                </div>
-                <div class="mega-item-emoji">🫘</div>
-              </div>
-              <div class="mega-item mega-soon">
-                <div class="mega-item-text">
-                  <div class="mega-item-cat">Dried Fruit</div>
-                  <div class="mega-item-name">Turkish Figs</div>
-                  <div class="mega-soon-tag">Coming Soon</div>
-                </div>
-                <div class="mega-item-emoji">🫐</div>
-              </div>
-              <div class="mega-item mega-soon">
-                <div class="mega-item-text">
-                  <div class="mega-item-cat">Dried Fruit</div>
-                  <div class="mega-item-name">Golden Raisins</div>
-                  <div class="mega-soon-tag">Coming Soon</div>
-                </div>
-                <div class="mega-item-emoji">🍇</div>
-              </div>
-              <div class="mega-item mega-soon">
-                <div class="mega-item-text">
-                  <div class="mega-item-cat">Premium Nut</div>
-                  <div class="mega-item-name">Pecan Nuts</div>
-                  <div class="mega-soon-tag">Coming Soon</div>
-                </div>
-                <div class="mega-item-emoji">🥜</div>
-              </div>
             </div>
           </div>
         </div>
@@ -265,35 +225,6 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
           <a href="/#new-arrivals" class="drop-notify-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px">
             🆕 View All New Arrivals
           </a>
-          {% else %}
-          <div class="drop-head">🆕 Coming This Season</div>
-          <div class="drop-items">
-            <div class="drop-item">
-              <div class="drop-item-emoji">🌰</div>
-              <div class="drop-item-body">
-                <div class="drop-item-name">Organic Walnuts</div>
-                <div class="drop-item-sub">Californian · Cold-Pressed</div>
-              </div>
-              <div class="drop-badge">Soon</div>
-            </div>
-            <div class="drop-item">
-              <div class="drop-item-emoji">🫘</div>
-              <div class="drop-item-body">
-                <div class="drop-item-name">Roasted Pistachios</div>
-                <div class="drop-item-sub">Iranian · Lightly Salted</div>
-              </div>
-              <div class="drop-badge">Soon</div>
-            </div>
-            <div class="drop-item">
-              <div class="drop-item-emoji">🎁</div>
-              <div class="drop-item-body">
-                <div class="drop-item-name">Saffron Gift Box</div>
-                <div class="drop-item-sub">Premium · Limited Edition</div>
-              </div>
-              <div class="drop-badge drop-badge-hot">Limited</div>
-            </div>
-          </div>
-          <button class="drop-notify-btn" onclick="showToast('<i class=\'fa-solid fa-bell\'></i> You\'ll be first to know when they land!')">🔔 Notify Me</button>
           {% endif %}
         </div>
       </li>
@@ -488,9 +419,9 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
         <div class="k-eyebrow">🌱 Rooted in Nature</div>
         <h2>Healthy can be <span>tasty.</span> We prove it daily.</h2>
         <p>Malola bridges the gap between health and indulgence — blending the goodness of millets, ragi, and quinoa with fun formats like puffs, bytes, granola, and soups. Every product is built to nourish without compromise, designed for families who want better snacking.</p>
-        <button class="kids-about-cta" onclick="document.getElementById('kids-shop').scrollIntoView({behavior:'smooth'})">
+        <!-- <button class="kids-about-cta" onclick="document.getElementById('kids-shop').scrollIntoView({behavior:'smooth'})">
           Explore Collection <i class="fa-solid fa-arrow-right"></i>
-        </button>
+        </button> -->
       </div>
       <div class="kids-about-visual">
         <svg class="ka-zigzag" viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -615,33 +546,49 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       <p>Click any video to watch.</p>
     </div>
     <div class="reels-grid" id="reelsGrid">
-      {% if db_videos %}
-        {% for v in db_videos %}
+      {% for v in db_videos %}
       <div class="reel-thumb" data-index="{{ forloop.counter0 }}" data-src="{{ v.video.url }}" data-title="{{ v.title|default:'' }}">
         <video class="reel-thumb-vid" muted loop playsinline preload="none"></video>
         <div class="reel-thumb-overlay"><div class="reel-thumb-play"><i class="fa-solid fa-play"></i></div></div>
       </div>
-        {% endfor %}
-      {% else %}
-      <div class="reel-thumb" data-index="0" data-src="{% static 'images/video/reel-food-alternatives.mp4' %}" data-title="Healthy Food Alternatives">
-        <video class="reel-thumb-vid" muted loop playsinline preload="none"></video>
-        <div class="reel-thumb-overlay"><div class="reel-thumb-play"><i class="fa-solid fa-play"></i></div></div>
-      </div>
-      <div class="reel-thumb" data-index="1" data-src="{% static 'images/video/reel-healthy-drinks.mp4' %}" data-title="Healthy Drinks">
-        <video class="reel-thumb-vid" muted loop playsinline preload="none"></video>
-        <div class="reel-thumb-overlay"><div class="reel-thumb-play"><i class="fa-solid fa-play"></i></div></div>
-      </div>
-      <div class="reel-thumb" data-index="2" data-src="{% static 'images/video/reel-millet-noodles.mp4' %}" data-title="Millet Noodles">
-        <video class="reel-thumb-vid" muted loop playsinline preload="none"></video>
-        <div class="reel-thumb-overlay"><div class="reel-thumb-play"><i class="fa-solid fa-play"></i></div></div>
-      </div>
-      <div class="reel-thumb" data-index="3" data-src="{% static 'images/video/reel-homemade-snacks.mp4' %}" data-title="Homemade Snacks">
-        <video class="reel-thumb-vid" muted loop playsinline preload="none"></video>
-        <div class="reel-thumb-overlay"><div class="reel-thumb-play"><i class="fa-solid fa-play"></i></div></div>
-      </div>
-      {% endif %}
+      {% endfor %}
     </div>
   </section>
+
+  <!-- REEL STORY-VIEWER MODAL -->
+  <div class="reel-modal-overlay" id="reelModal">
+    <button class="reel-modal-close" id="reelModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="reel-modal-dots" id="reelModalDots"></div>
+    <div class="reel-modal-stage">
+      <button class="reel-modal-nav" id="reelModalPrev" aria-label="Previous">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <div class="reel-modal-peek" id="reelModalPeekLeft">
+        <video muted playsinline loop preload="none"></video>
+      </div>
+      <div class="reel-modal-center">
+        <div class="reel-modal-phone">
+          <video class="reel-modal-video" id="reelModalVideo" playsinline preload="auto"></video>
+          <button class="reel-modal-mute" id="reelModalMute" aria-label="Toggle mute">
+            <i class="fa-solid fa-volume-xmark"></i>
+          </button>
+          <div class="reel-modal-title" id="reelModalTitle"></div>
+        </div>
+        <div class="reel-modal-brand">
+          <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola">
+          <a href="/shop/">Shop Now</a>
+        </div>
+      </div>
+      <div class="reel-modal-peek" id="reelModalPeekRight">
+        <video muted playsinline loop preload="none"></video>
+      </div>
+      <button class="reel-modal-nav" id="reelModalNext" aria-label="Next">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- BENEFITS -->
   <section class="kids-benefits k-reveal" id="kids-benefits">
@@ -809,12 +756,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   <section class="vs-section k-reveal">
     <div class="vs-inner">
 
-      <!-- LEFT: Video -->
+      <!-- LEFT: Character Image -->
       <div class="vs-video-col">
         <div class="vs-video-wrap">
-          <video class="vs-video" autoplay muted loop playsinline preload="metadata">
-            <source src="{% static 'images/video/new-section.mp4' %}" type="video/mp4">
-          </video>
+          <img src="{% static 'images/Charecter .png' %}" alt="Malola Character" class="vs-video">
           <div class="vs-tag vs-tag-tl">🌾 Real Ingredients</div>
           <div class="vs-tag vs-tag-br">❤️ Made with Love</div>
         </div>
@@ -906,16 +851,20 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   .vs-video-col{position:relative}
   .vs-video-wrap{
     position:relative;
-    border-radius:28px;
-    overflow:hidden;
-    box-shadow:0 24px 64px rgba(0,0,0,.14);
+    border-radius:0;
+    overflow:visible;
+    box-shadow:none;
+    background:transparent;
   }
   .vs-video{
-    width:100%;
+    width:120%;
+    max-width:560px;
     display:block;
-    border-radius:28px;
-    aspect-ratio:16/9;
-    object-fit:cover;
+    border-radius:0;
+    aspect-ratio:auto;
+    object-fit:contain;
+    background:transparent;
+    margin-left:-10%;
   }
   .vs-tag{
     position:absolute;z-index:2;
@@ -1221,9 +1170,8 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
         <a href="mailto:malolafoods@gmail.com">malolafoods@gmail.com</a>
       </div>
       <div class="k-social-links" style="margin-top:18px">
-        <a class="k-social-link" href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-        <a class="k-social-link" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-        <a class="k-social-link" href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        <a class="k-social-link" href="https://www.instagram.com/ovya.vighnesh.official?igsh=MTNxMTB4ZmpuZTJldw%3D%3D" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a class="k-social-link" href="https://www.youtube.com/@MalolaFoods" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
       </div>
     </div>
 
@@ -1334,36 +1282,6 @@ document.querySelectorAll('[data-href]').forEach(function(el){
   });
 });
 </script>
-<!-- REEL MODAL -->
-<div class="reel-modal-overlay" id="reelModalOverlay">
-  <button class="reel-modal-close" id="reelModalClose" aria-label="Close video"><i class="fa-solid fa-xmark"></i></button>
-  <div class="reel-modal-stage">
-    <div class="reel-modal-peek" id="reelPeekPrev">
-      <video id="reelPeekPrevVid" muted playsinline preload="none"></video>
-    </div>
-    <button class="reel-modal-nav reel-modal-prev" id="reelModalPrev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
-    <div class="reel-modal-center">
-      <div class="reel-modal-phone">
-        <video class="reel-modal-video" id="reelModalVideo" playsinline></video>
-        <div class="reel-modal-mute" id="reelModalMute"><i class="fa-solid fa-volume-xmark"></i></div>
-      </div>
-      <div class="reel-modal-product-card">
-        <div class="rmp-inner">
-          <div class="rmp-logo"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola"></div>
-          <div class="rmp-info">
-            <div class="rmp-name">Malola Healthy Snacks</div>
-            <div class="rmp-sub">Natural &amp; Nutritious for Kids</div>
-          </div>
-        </div>
-        <a href="/shop/" class="rmp-btn">SHOP NOW &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
-      </div>
-    </div>
-    <button class="reel-modal-nav reel-modal-next" id="reelModalNextBtn" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
-    <div class="reel-modal-peek" id="reelPeekNext">
-      <video id="reelPeekNextVid" muted playsinline preload="none"></video>
-    </div>
-  </div>
-</div>
 </body>
 </html>
 

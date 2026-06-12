@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malola – Manufacturer Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:   #0d2b6b;
+    --blue2:  #1a3d8f;
+    --yellow: #FECF0A;
+    --aqua:   #73CDDD;
+    --light:  #f0f6ff;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 64px;
+    box-shadow: 0 4px 20px rgba(13,43,107,.35);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo img { height: 40px; object-fit: contain; }
+  .nav-tag {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(254,207,10,.15); border: 1px solid rgba(254,207,10,.35);
+    color: var(--yellow);
+    font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 7px 16px; border-radius: 999px;
+  }
+  .nav-tag i { font-size: 12px; }
+
+  /* ── PAGE WRAPPER ── */
+  .page {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  /* ── HERO HEADER ── */
+  .page-header {
+    text-align: center; margin-bottom: 2.5rem;
+  }
+  .logo-hero {
+    margin-bottom: 1.2rem;
+  }
+  .logo-hero img {
+    height: 64px; object-fit: contain;
+  }
+  .scan-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--yellow); color: var(--blue);
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px; letter-spacing: 0.06em;
+    padding: 7px 20px; border-radius: 30px; margin-bottom: 1rem;
+    box-shadow: 0 4px 16px rgba(254,207,10,.4);
+  }
+  .page-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(26px, 6vw, 38px);
+    color: var(--blue); line-height: 1.15; margin-bottom: 0.4rem;
+  }
+  .page-header h1 span { color: var(--aqua); }
+  .page-header p {
+    font-size: 14px; color: rgba(13,43,107,.55); font-weight: 600;
+  }
+  .divider-line {
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--blue), var(--yellow));
+    border-radius: 4px; margin: 1rem auto 0;
+  }
+
+  /* ── CARDS CONTAINER ── */
+  .cards {
+    display: flex; flex-direction: column; gap: 1.5rem;
+    width: 100%; max-width: 560px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    border: 2px solid rgba(13,43,107,.1);
+    overflow: hidden;
+    box-shadow: 0 6px 32px rgba(13,43,107,.1);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(13,43,107,.15);
+  }
+
+  /* card top stripe */
+  .card-stripe {
+    height: 5px;
+    background: linear-gradient(90deg, var(--blue), var(--aqua), var(--yellow));
+  }
+
+  .card-top {
+    display: flex; align-items: center; gap: 14px;
+    padding: 1.2rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(13,43,107,.07);
+  }
+  .card-icon-wrap {
+    width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--blue); color: var(--yellow);
+    font-size: 22px;
+  }
+  .card-title-block { flex: 1; }
+  .card-category {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--aqua); margin-bottom: 3px;
+  }
+  .card-product-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px; color: var(--blue);
+  }
+  .mfg-badge {
+    background: var(--yellow); color: var(--blue);
+    border: none;
+    font-size: 10px; font-weight: 900;
+    padding: 6px 12px; border-radius: 20px; white-space: nowrap;
+    text-align: center; line-height: 1.4;
+  }
+
+  /* ── CARD BODY ── */
+  .card-body { padding: 1.2rem 1.5rem; }
+
+  .field { margin-bottom: 1.1rem; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgba(13,43,107,.4); margin-bottom: 5px;
+  }
+  .field-label i { color: var(--aqua); font-size: 11px; }
+
+  .field-value {
+    font-size: 14.5px; color: var(--blue); line-height: 1.65; font-weight: 700;
+    padding-left: 4px;
+  }
+  .field-value .company-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800; font-size: 15px; color: var(--blue2);
+  }
+
+  /* ── FSSAI STRIP ── */
+  .fssai-strip {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(90deg, rgba(13,43,107,.04), rgba(254,207,10,.08));
+    border-top: 2px solid rgba(254,207,10,.35);
+    padding: 1rem 1.5rem;
+  }
+  .fssai-logo-box {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--yellow); color: var(--blue);
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px; letter-spacing: 0.06em;
+    padding: 6px 14px; border-radius: 10px; flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(254,207,10,.35);
+  }
+  .fssai-logo-box i { font-size: 13px; }
+  .fssai-num-block { flex: 1; }
+  .fssai-num-label {
+    font-size: 10px; color: rgba(13,43,107,.45); font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .fssai-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 900; color: var(--blue); letter-spacing: 0.04em;
+  }
+  .fssai-check {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--blue); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .fssai-check i { color: var(--yellow); font-size: 14px; }
+
+  /* ── TRUST FOOTER ── */
+  .page-footer {
+    margin-top: 2.5rem; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .trust-bar {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--blue); color: var(--yellow);
+    border-radius: 999px; padding: 10px 24px;
+    font-family: 'Fredoka One', cursive; font-size: 14px;
+    box-shadow: 0 4px 20px rgba(13,43,107,.25);
+  }
+  .footer-copy {
+    font-size: 12px; color: rgba(13,43,107,.45); font-weight: 700;
+  }
+  .footer-copy span { color: var(--blue); font-weight: 900; }
+
+  /* ── BOTTOM BAR ── */
+  .site-footer {
+    background: var(--blue);
+    text-align: center; padding: 1.1rem;
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,.45);
+  }
+  .site-footer span { color: var(--yellow); }
+
+  @media(max-width:480px){
+    nav{padding:0 16px}
+    .page{padding:2rem 1rem 3rem}
+    .card-top{padding:1rem 1rem .85rem}
+    .card-body{padding:1rem}
+    .fssai-strip{padding:.85rem 1rem}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola"></a>
+  </div>
+  <div class="nav-tag">
+    <i class="fa-solid fa-qrcode"></i> Manufacturer Info
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="logo-hero">
+      <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola">
+    </div>
+    <div class="scan-pill">
+      <i class="fa-solid fa-qrcode"></i> Scanned Product Info
+    </div>
+    <h1>Manufacturer <span>Details</span></h1>
+    <p>Verified production &amp; licensing information</p>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <!-- CARD 1 — MUESLI -->
+    <div class="card">
+      <div class="card-stripe"></div>
+      <div class="card-top">
+        <div class="card-icon-wrap">
+          <i class="fa-solid fa-wheat-awn"></i>
+        </div>
+        <div class="card-title-block">
+          <div class="card-category">Product Type</div>
+          <div class="card-product-name">Muesli</div>
+        </div>
+        <div class="mfg-badge">Manufactured<br>&amp; Packed</div>
+      </div>
+
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label">
+            <i class="fa-solid fa-building"></i> Manufactured &amp; Packed By
+          </div>
+          <div class="field-value">
+            <div class="company-name">Functional &amp; Innovative Foods Private Limited</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <i class="fa-solid fa-location-dot"></i> Address
+          </div>
+          <div class="field-value">
+            1/374A, Andipalayam Village,<br>
+            Andipalayam Post, Tiruchengode,<br>
+            Namakkal, Tamil Nadu – 637214
+          </div>
+        </div>
+      </div>
+
+      <div class="fssai-strip">
+        <div class="fssai-logo-box">
+          <i class="fa-solid fa-shield-halved"></i> FSSAI
+        </div>
+        <div class="fssai-num-block">
+          <div class="fssai-num-label">Licence No.</div>
+          <div class="fssai-num">12420014000931</div>
+        </div>
+        <div class="fssai-check">
+          <i class="fa-solid fa-check"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2 — EXTRUDED SNACKS -->
+    <div class="card">
+      <div class="card-stripe"></div>
+      <div class="card-top">
+        <div class="card-icon-wrap">
+          <i class="fa-solid fa-cookie-bite"></i>
+        </div>
+        <div class="card-title-block">
+          <div class="card-category">Product Type</div>
+          <div class="card-product-name">Extruded Snacks</div>
+        </div>
+        <div class="mfg-badge">Manufactured<br>&amp; Packed</div>
+      </div>
+
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label">
+            <i class="fa-solid fa-building"></i> Manufactured &amp; Packed By
+          </div>
+          <div class="field-value">
+            <div class="company-name">Functional &amp; Innovative Foods Private Limited</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <i class="fa-solid fa-location-dot"></i> Address
+          </div>
+          <div class="field-value">
+            Door No: 3/1481 &amp; 3/1442, Paasuraan Kadu,<br>
+            Karumapuram Post, Morepalayam Village,<br>
+            Tiruchengode Taluk, Namakkal,<br>
+            Tamil Nadu – 637205
+          </div>
+        </div>
+      </div>
+
+      <div class="fssai-strip">
+        <div class="fssai-logo-box">
+          <i class="fa-solid fa-shield-halved"></i> FSSAI
+        </div>
+        <div class="fssai-num-block">
+          <div class="fssai-num-label">Licence No.</div>
+          <div class="fssai-num">12425998000264</div>
+        </div>
+        <div class="fssai-check">
+          <i class="fa-solid fa-check"></i>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cards -->
+
+  <!-- TRUST FOOTER -->
+  <div class="page-footer">
+    <div class="trust-bar">
+      <i class="fa-solid fa-shield-halved"></i>
+      FSSAI Licensed &amp; Certified
+    </div>
+    <div class="footer-copy">
+      Compliant with Food Safety &amp; Standards Authority of India &nbsp;·&nbsp;
+      <span>malola.in</span>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- SITE FOOTER -->
+<div class="site-footer">
+  © 2025 <span>Malola Foods</span> · Super-foods made by Super-Siblings 🌿
+</div>
+
+</body>
+</html>
