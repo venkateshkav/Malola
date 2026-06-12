@@ -40,6 +40,15 @@ if not ALLOWED_HOSTS and DEBUG:
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if _railway_domain and _railway_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_railway_domain)
+# When running on Railway, also trust all *.railway.app subdomains (covers the
+# internal healthcheck host + the public domain even before one is generated).
+# Without this, DEBUG=False + no custom domain => empty ALLOWED_HOSTS => the
+# platform healthcheck gets a 400 and the deploy is marked failed.
+_on_railway = any(k.startswith('RAILWAY_') for k in os.environ)
+if _on_railway:
+    for _h in ('.railway.app', 'healthcheck.railway.app', '127.0.0.1'):
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 # Auto-include Render's public domain if running on Render
 _render_domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
 if _render_domain and _render_domain not in ALLOWED_HOSTS:
