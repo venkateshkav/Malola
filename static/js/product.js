@@ -743,16 +743,13 @@ document.querySelectorAll('.mega-item[data-pdp]').forEach(item=>{
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+product.name+' added to cart!');
   });
 
-  const related=Object.values(productCatalog).filter(p=>p.id!==product.id).slice(0,4);
-  document.getElementById('pdpRelated').innerHTML=related.map(p=>`
-    <div class="pdp-rel-card" onclick="window.location.href='/product/?id=${p.id}'">
-      <div class="pdp-rel-img-wrap" style="background:${p.bg}"><img src="${p.image}" alt="${p.name}" class="pdp-rel-img"></div>
-      <div class="pdp-rel-body">
-        <div class="pdp-rel-cat">${p.category}</div>
-        <div class="pdp-rel-name">${p.name}</div>
-        <div class="pdp-rel-footer"><div class="pdp-rel-price">&#8377;${p.price}</div><button class="pdp-rel-btn">View</button></div>
-      </div>
-    </div>`).join('');
+  // Related products are rendered server-side from DB; wire up click + bg only
+  document.querySelectorAll('#pdpRelated .pdp-rel-card[data-href]').forEach(function(card){
+    card.addEventListener('click',function(){window.location.href=card.dataset.href;});
+  });
+  document.querySelectorAll('#pdpRelated .pdp-rel-img-wrap[data-bg]').forEach(function(el){
+    el.style.background=el.dataset.bg;
+  });
 
   /* ── Brand / SKU / short desc row ── */
   const metaRowEl=document.getElementById('pdpMetaRow');

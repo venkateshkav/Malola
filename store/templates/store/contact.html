@@ -1,8 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -190,7 +191,7 @@
   <!-- MAP -->
   <div class="ct-map">
     <iframe
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3906.3734!2d78.1534!3d11.6643!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3babf1be80f7ec4b%3A0x99d3f2b05e4bde4c!2sMalola%20foods!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+      src="https://maps.google.com/maps?q=Malola+Foods,+Above+Siva+Coffee+Bar,+Sarada+College+Rd,+Salem,+Tamil+Nadu+636004&output=embed&z=17"
       allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
     </iframe>
   </div>

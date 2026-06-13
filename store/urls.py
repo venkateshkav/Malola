@@ -83,6 +83,9 @@ urlpatterns = [
     # pincode check
     path('api/check-pincode/',           views.check_pincode,           name='check_pincode'),
 
+    # newsletter
+    path('api/newsletter/',              views.newsletter_subscribe,    name='newsletter_subscribe'),
+
     # admin — coupons
     path('manage/coupons/',                     views.manage_coupons,            name='manage_coupons'),
     path('manage/coupons/add/',                 views.manage_add_coupon,         name='manage_add_coupon'),

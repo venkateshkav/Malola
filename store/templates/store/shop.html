@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -31,7 +32,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 </head>
-<body style="padding-top:56px">
+<body style="padding-top:80px">
 
 {% include 'store/includes/site_nav.html' %}
 
@@ -126,10 +127,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       </div>
       <div class="shop-grid">
         {% for p in db_new_arrivals %}
-        <div class="shop-card db-card" data-cat="new_arrival" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" onclick="window.location.href='/product/?id={{ p.slug }}'">
-          <div class="shop-card-img-wrap" style="background:{{ p.card_bg }}">
+        <div class="shop-card db-card" data-cat="new_arrival" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" data-href="/product/?id={{ p.slug }}">
+          <div class="shop-card-img-wrap" data-bg="{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
-            {% if p.badge %}<span class="shop-card-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
+            {% if p.badge %}<span class="shop-card-badge" data-badge-color="{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
           </div>
           <div class="shop-card-body">
             <div class="shop-card-cat">New Arrival</div>
@@ -144,10 +145,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
                         data-mrp="{{ p.discount_price|default:'' }}"
-                        title="Add to cart" onclick="event.stopPropagation()">
+                        title="Add to cart">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
-                <button class="shop-card-view" onclick="event.stopPropagation();window.location.href='/product/?id={{ p.slug }}'">View →</button>
+                <button class="shop-card-view">View →</button>
               </div>
             </div>
           </div>
@@ -169,10 +170,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       </div>
       <div class="shop-grid">
         {% for p in db_our_products %}
-        <div class="shop-card db-card" data-cat="{{ p.product_category.pk|default:'other' }}" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" onclick="window.location.href='/product/?id={{ p.slug }}'">
-          <div class="shop-card-img-wrap" style="background:{{ p.card_bg }}">
+        <div class="shop-card db-card" data-cat="{{ p.product_category.pk|default:'other' }}" data-tags="{{ p.tags|lower }}" data-name="{{ p.title|lower|escapejs }}" data-price="{{ p.price }}" data-date="{{ p.created_at|date:'U' }}" data-sales="{{ p.units_sold|default:0 }}" data-href="/product/?id={{ p.slug }}">
+          <div class="shop-card-img-wrap" data-bg="{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
-            {% if p.badge %}<span class="shop-card-badge" style="background:{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
+            {% if p.badge %}<span class="shop-card-badge" data-badge-color="{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
           </div>
           <div class="shop-card-body">
             <div class="shop-card-cat">{{ p.get_category_display }}</div>
@@ -187,10 +188,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
                         data-mrp="{{ p.discount_price|default:'' }}"
-                        title="Add to cart" onclick="event.stopPropagation()">
+                        title="Add to cart">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
-                <button class="shop-card-view" onclick="event.stopPropagation();window.location.href='/product/?id={{ p.slug }}'">View →</button>
+                <button class="shop-card-view">View →</button>
               </div>
             </div>
           </div>
@@ -213,11 +214,38 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 
 {% include 'store/includes/site_footer.html' %}
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
 <script src="{% static 'js/product.js' %}?v=11"></script>
 <script>
+/* global addToCart, showToast */
+
+/* ── Apply background colours from data attributes ── */
+document.querySelectorAll('.shop-card-img-wrap[data-bg]').forEach(function(el){
+  el.style.background=el.dataset.bg;
+});
+document.querySelectorAll('.shop-card-badge[data-badge-color]').forEach(function(el){
+  el.style.background=el.dataset.badgeColor;
+});
+
+/* ── Card navigation via data-href ── */
+document.querySelectorAll('.shop-card.db-card').forEach(function(card){
+  if(card.dataset.href){
+    card.style.cursor='pointer';
+    card.addEventListener('click',function(){ window.location.href=card.dataset.href; });
+  }
+});
+document.querySelectorAll('.shop-card-view').forEach(function(btn){
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var card=btn.closest('.shop-card');
+    if(card&&card.dataset.href) window.location.href=card.dataset.href;
+  });
+});
+
 /* ── DB cart buttons ── */
-document.querySelectorAll('.db-cart-btn').forEach(btn=>{
-  btn.addEventListener('click',e=>{
+document.querySelectorAll('.db-cart-btn').forEach(function(btn){
+  btn.addEventListener('click',function(e){
     e.stopPropagation();
     addToCart(btn.dataset.name, btn.dataset.price, btn.dataset.img, btn.dataset.slug, btn.dataset.mrp||null);
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+btn.dataset.name+' added!');

@@ -1,8 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>{{ post.title }} — Malola Blog</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&display=swap" rel="stylesheet"/>
@@ -66,7 +67,7 @@
 .bd-cta-card{background:linear-gradient(135deg,#73CDDD,#1565C0);border-radius:20px;padding:28px;text-align:center;color:#fff}
 .bd-cta-card h3{font-family:'Fredoka One',cursive;font-size:1.2rem;margin-bottom:8px}
 .bd-cta-card p{font-size:.82rem;opacity:.75;margin-bottom:20px;line-height:1.6;font-weight:600}
-.bd-cta-card a{display:inline-flex;align-items:center;gap:8px;background:#FECF0A;color:#73CDDD;font-weight:900;font-size:.85rem;padding:12px 24px;border-radius:999px;text-decoration:none;transition:opacity .2s}
+.bd-cta-card a{display:inline-flex;align-items:center;gap:8px;background:#FECF0A;color:#1565C0;font-weight:900;font-size:.85rem;padding:12px 24px;border-radius:999px;text-decoration:none;transition:opacity .2s}
 .bd-cta-card a:hover{opacity:.88}
 
 @media(max-width:1024px){
@@ -83,7 +84,7 @@
 }
 </style>
 </head>
-<body style="background:#f7f9ff;overflow-x:hidden;padding-top:68px">
+<body style="background:#f7f9ff;overflow-x:hidden;padding-top:80px">
 
 {% include 'store/includes/site_nav.html' %}
 

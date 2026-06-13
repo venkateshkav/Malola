@@ -1,15 +1,16 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Blog — Malola Healthy Snacks</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
 <style>
-.bl-hero{background:linear-gradient(135deg,#73CDDD 0%,#1565C0 100%);padding:100px 24px 72px;text-align:center;position:relative;overflow:hidden}
+.bl-hero{background:linear-gradient(135deg,#73CDDD 0%,#1565C0 100%);padding:60px 24px 60px;text-align:center;position:relative;overflow:hidden}
 .bl-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
 .bl-hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(254,207,10,.15);border:1.5px solid rgba(254,207,10,.35);color:#FECF0A;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:6px 18px;border-radius:999px;margin-bottom:20px}
 .bl-hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,5vw,3.8rem);color:#fff;margin-bottom:14px;line-height:1.1}
@@ -27,8 +28,8 @@
 .bl-card-meta{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .bl-card-date{font-size:.7rem;font-weight:800;color:rgba(115,205,221,.4);text-transform:uppercase;letter-spacing:.08em}
 .bl-card-author{font-size:.7rem;font-weight:800;color:#1565C0;display:flex;align-items:center;gap:5px}
-.bl-card-title{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#73CDDD;margin-bottom:10px;line-height:1.25}
-.bl-card-excerpt{font-size:.88rem;color:rgba(115,205,221,.55);line-height:1.7;font-weight:600;flex:1}
+.bl-card-title{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#0d2b6b;margin-bottom:10px;line-height:1.25}
+.bl-card-excerpt{font-size:.88rem;color:#555;line-height:1.7;font-weight:600;flex:1}
 .bl-card-cta{display:inline-flex;align-items:center;gap:7px;margin-top:20px;font-size:.8rem;font-weight:900;color:#1565C0;text-transform:uppercase;letter-spacing:.06em}
 .bl-card-cta i{transition:transform .2s}
 .bl-card:hover .bl-card-cta i{transform:translateX(4px)}
@@ -38,21 +39,15 @@
 .bl-empty h3{font-family:'Fredoka One',cursive;font-size:1.8rem;color:rgba(115,205,221,.45);margin-bottom:10px}
 .bl-empty p{font-size:.95rem;font-weight:600}
 
-/* NAV overrides for this page */
-#mainNav{position:sticky;top:0;z-index:200;background:#0d2b6b!important}
-#mainNav .nav-logo-img{filter:none}
-#mainNav .nav-links a{color:rgba(255,255,255,.75)!important}
-#mainNav .nav-links a:hover{color:#FECF0A!important}
-#mainNav .btn-login{color:#fff!important;border-color:rgba(255,255,255,.35)!important}
 
 @media(max-width:768px){
   .bl-container{padding:40px 16px 80px}
   .bl-grid{grid-template-columns:1fr;gap:24px}
-  .bl-hero{padding:80px 20px 56px}
+  .bl-hero{padding:48px 20px 48px}
 }
 </style>
 </head>
-<body style="background:#f7f9ff;padding-top:68px">
+<body style="background:#f7f9ff;padding-top:80px">
 
 {% include 'store/includes/site_nav.html' %}
 
@@ -99,5 +94,7 @@
 
 {% include 'store/includes/site_footer.html' %}
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{% static 'js/script.js' %}"></script>
 </body>
 </html>
