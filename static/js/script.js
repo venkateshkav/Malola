@@ -1,6 +1,21 @@
-﻿/* ── NAV SCROLL ── */
+﻿/* ── NAV MOBILE SEARCH ── */
+(function(){
+  var inp=document.getElementById('navMobSearchInput');
+  if(!inp)return;
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&this.value.trim()){
+      window.location.href='/shop/?q='+encodeURIComponent(this.value.trim());
+    }
+  });
+})();
+
+/* ── NAV SCROLL ── */
 const mainNav=document.getElementById("mainNav");
-window.addEventListener("scroll",()=>{if(window.scrollY>60){mainNav.classList.add("nav-scrolled");}else{mainNav.classList.remove("nav-scrolled");}},{passive:true});
+const _isHome=window.location.pathname==='/'||window.location.pathname==='/home/';
+if(!_isHome){mainNav.classList.add("nav-scrolled");}
+window.addEventListener("scroll",()=>{
+  if(_isHome){if(window.scrollY>60){mainNav.classList.add("nav-scrolled");}else{mainNav.classList.remove("nav-scrolled");}}
+},{passive:true});
 
 /* ── REVEAL + COUNTER ── */
 const kRevealEls=document.querySelectorAll(".k-reveal");
