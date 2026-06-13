@@ -786,14 +786,10 @@ def manage_add_category(request):
             error = f'A category named "{name}" already exists.'
         else:
             try:
-                cat = Category(
+                Category.objects.create(
                     name=name, description=description,
                     sort_order=int(sort_order or 0), is_active=is_active,
                 )
-                if 'image' in request.FILES:
-                    cat.image = request.FILES['image']
-                cat.save()
-                _bust_product_cache()
                 return redirect('manage_categories')
             except Exception as exc:
                 error = str(exc)
@@ -820,15 +816,7 @@ def manage_edit_category(request, pk):
             cat.description = description
             cat.sort_order = int(sort_order or 0)
             cat.is_active = is_active
-            if 'image' in request.FILES:
-                if cat.image:
-                    cat.image.delete(save=False)
-                cat.image = request.FILES['image']
-            elif request.POST.get('image_clear') and cat.image:
-                cat.image.delete(save=False)
-                cat.image = None
             cat.save()
-            _bust_product_cache()
             return redirect('manage_categories')
     return render(request, 'store/admin_category_form.html', {
         'action': 'Edit', 'cat': cat, 'error': error, 'pending_orders': _pending_orders(),

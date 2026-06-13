@@ -15,7 +15,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 
 /* ── NAV ── */
 #mainNav{
-  position:fixed;top:0;left:0;right:0;z-index:1000;
+  position:fixed;top:0;left:0;right:0;z-index:900;
   display:flex;align-items:center;justify-content:space-between;
   padding:14px clamp(20px,4vw,80px);
   transition:background .35s ease,box-shadow .35s ease,padding .35s ease;
@@ -33,13 +33,13 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 #mainNav.nav-scrolled .nav-cart-btn{color:#1a2408;border-color:rgba(26,36,8,.2)}
 #mainNav.nav-scrolled .btn-login{color:#1a2408;border-color:rgba(26,36,8,.3)}
 
-#hero{position:relative;width:100%;height:100vh;overflow:hidden;background:#1a3a6b}
+#hero{position:relative;width:100vw;height:100vh;overflow:hidden;background:#000}
 
 /* ── Hero image slider ── */
 .hs-slider{position:absolute;inset:0;width:100%;height:100%}
 .hs-track{display:flex;width:100%;height:100%;transition:transform .7s cubic-bezier(.4,0,.2,1)}
 .hs-slide{flex:0 0 100%;width:100%;height:100%}
-.hs-slide img{width:102%;object-fit:cover;object-position:center;display:block}
+.hs-slide img{width:102%;height:100%;object-fit:cover;object-position:center;display:block}
 
 
 /* Arrows */
@@ -678,6 +678,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   width:max-content;
   animation:pol-marquee 28s linear infinite;
 }
+.pol-viewport:hover .pol-track{animation-play-state:paused}
 
 @keyframes pol-marquee{
   0%{transform:translateX(0)}
@@ -832,6 +833,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   padding:30px 14px 50px;
   animation:reviewsScroll 55s linear infinite;
 }
+.k-reviews-track:hover{animation-play-state:paused}
 @keyframes reviewsScroll{
   from{transform:translateX(0)}
   to{transform:translateX(-50%)}
@@ -1030,11 +1032,9 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 
 /* Newsletter responsive */
 @media(max-width:768px){
-  .k-footer-newsletter{flex-direction:column;align-items:stretch;padding:22px 20px;gap:16px;text-align:center}
-  .k-fnl-left{min-width:unset;text-align:center}
-  .k-fnl-form{flex-direction:column;min-width:unset;width:100%}
-  .k-fnl-input{width:100%;border-radius:12px}
-  .k-fnl-btn{width:100%;justify-content:center;height:46px;border-radius:12px}
+  .k-footer-newsletter{padding:22px 20px;gap:20px}
+  .k-fnl-form{flex-direction:column}
+  .k-fnl-btn{width:100%;justify-content:center;height:46px}
 }
 
 /* ══ CHECKOUT MODAL ══ */
@@ -1111,61 +1111,34 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .pol-track{animation-duration:22s}
 }
 
-/* External search strip — hidden (search is now inside nav) */
-.mob-search-strip{display:none!important}
-
-/* Nav search inside nav (mobile) */
-.nav-mob-search{display:none}
 @media(max-width:768px){
-  .nav-mob-search{
-    display:flex;align-items:center;gap:10px;
-    width:100%;background:#f4f5f7;border-radius:999px;
-    padding:10px 18px;margin:6px 0 2px;
+  /* NAV — solid white header: hamburger | logo | account+cart, search bar below */
+  #mainNav{
+    position:sticky;top:0;
+    background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.08);
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;
+    gap:10px;padding:10px 16px;
   }
-  .nav-mob-search i{color:#aaa;font-size:.88rem;flex-shrink:0}
-  .nav-mob-search input{
-    flex:1;border:0;background:transparent;
-    font-family:'Nunito',sans-serif;font-size:.88rem;color:#333;outline:none;
-  }
-  .nav-mob-search input::placeholder{color:#bbb}
-}
-
-/* ── Inner page banner ── */
-/* Make banner bg image cover the full banner area (not auto-height anchored to bottom) */
-.page-banner-bg{
-  position:absolute!important;inset:0!important;bottom:auto!important;left:auto!important;
-  width:100%!important;height:100%!important;
-  object-fit:cover!important;object-position:center bottom!important;
-}
-@media(max-width:768px){
-  .page-banner{margin-top:108px}
-  .page-banner-inner{padding-top:36px!important;padding-bottom:36px!important}
-}
-
-@media(max-width:768px){
-  /* NAV — 3-col flex: [hamburger] [logo flex:1 center] [actions] + search row */
-  #mainNav,#mainNav.nav-scrolled{padding:10px 16px!important;flex-wrap:wrap;align-items:center;justify-content:space-between!important;background:#fff!important;box-shadow:0 2px 12px rgba(13,43,107,.12)!important}
-  /* Hamburger: now first flex child (moved in HTML) */
-  .nav-ham-left{display:flex!important;flex:0 0 auto;background:transparent!important;border:none!important;box-shadow:none!important;color:var(--kids-dark)!important;position:static!important}
-  /* Logo: center */
-  .logo{flex:1;display:flex;justify-content:center;position:static!important;transform:none!important;left:auto!important}
-  /* Nav actions: right side */
-  .nav-actions{flex:0 0 auto;gap:6px}
   .nav-links{display:none}
-  .btn-signup{display:none}
+  .btn-login,.btn-signup{display:none}
   .nav-search-wrap{display:none!important}
-  /* Show cart and person icons */
-  .nav-cart-btn{display:flex!important;width:36px;height:36px;font-size:.9rem;color:var(--kids-dark)!important;border-color:rgba(13,43,107,.15)!important}
-  .nav-profile-wrap{display:flex!important;align-items:center}
-  .nav-profile-btn{padding:4px!important;background:transparent!important;border:none!important;justify-content:center;color:var(--kids-dark)!important}
-  .nav-profile-name,.nav-profile-caret{display:none!important}
-  /* Login as icon only */
-  .btn-login{display:flex!important;align-items:center;justify-content:center;background:transparent!important;border:none!important;box-shadow:none!important;padding:0;width:36px;height:36px;color:var(--kids-dark)!important;font-size:1.1rem;cursor:pointer}
-  .btn-login .btn-login-txt{display:none}
-  /* Old hamburger inside nav-actions: hide it */
-  .nav-actions .nav-hamburger{display:none!important}
-  /* Hamburger span bars — blue */
-  .nav-ham-left span{background:var(--kids-dark)!important}
+  .nav-profile-wrap{display:none!important}
+  .nav-hamburger{order:1;display:flex!important;background:transparent!important;border:none!important;box-shadow:none!important;width:34px;height:34px}
+  .nav-hamburger span{background:#1a2408!important}
+  .logo{order:2;flex:1;display:flex;justify-content:center}
+  .nav-logo-img{height:42px}
+  .nav-actions{order:3;display:flex;align-items:center;gap:12px}
+  .nav-mob-acc{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:transparent;border:none;color:#1a2408;font-size:1.2rem;cursor:pointer;text-decoration:none}
+  .nav-cart-btn{display:flex!important;background:transparent!important;border:none!important;color:#1a2408!important;width:38px;height:38px;font-size:1.25rem}
+  .topbar-search{
+    order:4;flex-basis:100%;width:100%;
+    display:flex;align-items:center;gap:10px;
+    background:#fff;border:1.6px solid #e3e3e3;border-radius:14px;
+    padding:11px 16px;color:#9a9a9a;font-size:.95rem;cursor:pointer;
+    font-family:inherit;text-align:left;
+  }
+  .topbar-search span{flex:1}
+  .topbar-search i{color:#bdbdbd;font-size:1rem}
   .nav-search-box.open{width:200px}
   .nav-search-results{width:200px}
 
@@ -1204,20 +1177,15 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   /* NAV */
   #mainNav{padding:10px 16px}
   .nav-logo-img{height:40px}
-  .nav-cart-btn{width:36px;height:36px;font-size:.88rem}
+  .nav-cart-btn{width:38px;height:38px;font-size:.9rem}
   .nav-search-btn{width:38px;height:38px;font-size:.85rem}
-  .nav-hamburger{width:38px;height:38px;left:16px}
+  .nav-hamburger{width:38px;height:38px}
   .nav-search-box.open{width:180px;right:-40px}
   .nav-search-results{width:240px;right:-40px}
 
-  #mainNav,#mainNav.nav-scrolled{padding:12px 16px!important}
-  /* Hero: starts below nav(60px icons + ~52px search row = 116px total nav) */
-  #hero{margin-top:108px;height:37vw;min-height:120px;max-height:155px}
-  .hs-slide{position:relative}
-  .hs-slide img{position:absolute;top:0;left:0;width:103%;object-fit:cover;object-position:center}
-  /* Adjust arrows and dots for shorter hero */
-  .hs-arrow{top:50%}
-  .hs-dots{bottom:14px}
+  /* HERO — show the full wide banner instead of cropping it to a tall screen */
+  #hero{height:auto;aspect-ratio:16/10;background:#fff}
+  .hs-slide img{width:100%;height:100%;object-fit:contain}
   .side-cup{display:none}
   #bgWord{font-size:clamp(70px,22vw,110px)}
   #productStage{top:28%;transform:translateX(-50%);left:50%}
@@ -1305,35 +1273,6 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   .toast{min-width:unset;max-width:100%}
   .cart-sidebar{width:100vw}
   .auth-modal{padding:30px 24px}
-}
-
-/* ── 480px — footer single column + image overflow fixes ── */
-@media(max-width:480px){
-  /* Footer: collapse to 1 column on phones < 480px */
-  .k-footer-grid{grid-template-columns:1fr!important;gap:24px}
-  .k-footer-brand{grid-column:1!important}
-  .k-footer-newsletter{flex-direction:column;gap:16px;text-align:center}
-  .k-fnl-left{text-align:center}
-  .k-fnl-form{flex-direction:column;gap:10px;width:100%}
-  .k-fnl-input{border-radius:10px;width:100%}
-  .k-fnl-btn{border-radius:10px;width:100%}
-
-  /* Hero: hide side cups on tiny screens */
-  .side-cup{display:none}
-
-  /* Stats ticker: tighter on small screens */
-  .ticker-item{padding:14px 16px}
-  .ticker-num{font-size:1.4rem}
-  .ticker-label{font-size:.62rem}
-
-  /* Kids product card: horizontal layout */
-  .k-prod-card{flex-direction:row}
-  .k-prod-img{width:110px;min-width:110px;border-radius:20px 0 0 20px;min-height:110px}
-  .k-prod-info{padding:14px 12px}
-
-  /* Exp cat: tighter */
-  .exp-cat-grid{gap:10px}
-  .exp-cat-card{height:150px;border-radius:14px}
 }
 
 /* ══ SEARCH WIDGET ══ */
@@ -2044,6 +1983,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   width:max-content;
   animation:tickerScroll 40s linear infinite;
 }
+.ticker-track:hover{animation-play-state:paused}
 @keyframes tickerScroll{
   0%{transform:translateX(0)}
   100%{transform:translateX(-50%)}
@@ -2093,7 +2033,7 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 @media(min-width:2000px){
   html{font-size:19px}
   #mainNav{padding:18px clamp(60px,5vw,140px)}
-  #mainNav.nav-scrolled{padding:35px clamp(60px,5vw,140px)}
+  #mainNav.nav-scrolled{padding:14px clamp(60px,5vw,140px)}
   .nav-logo-img{height:56px}
   .nav-links a{font-size:1rem}
   .nav-cart-btn,.nav-btn{width:52px;height:52px;font-size:1.05rem}

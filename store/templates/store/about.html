@@ -4,9 +4,6 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="csrf-token" content="{{ csrf_token }}">
-<meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
-<script>var _am=document.getElementById('malola-auth-data');window.MALOLA_AUTH={authenticated:_am.dataset.auth==='true',name:_am.dataset.name||''};</script>
 <title>About Us — Malola | A Mom's Yes!</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Shadows+Into+Light&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -174,26 +171,9 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
   .stat-num{font-size:2.2rem}
   .social-section{padding:56px 0}
 }
-@media(max-width:480px){
-  .hero{padding:70px 16px 48px;min-height:320px}
-  .section{padding:40px 0}
-  .section-sm{padding:36px 0}
-  .wrap{padding:0 14px}
-  .stats-grid{grid-template-columns:1fr;gap:16px}
-  .stat-num{font-size:2rem}
-  .stats-band{padding:40px 16px}
-  .mission-band{padding:48px 16px}
-  .promise-band{padding:48px 16px}
-  .story-badge{position:static;margin-top:16px;display:inline-block;border-radius:14px}
-  .social-section{padding:40px 0}
-  .social-grid{gap:24px}
-  .promise-list{grid-template-columns:1fr}
-  .certs-row{gap:10px}
-  .cert{padding:10px 14px;font-size:.82rem}
-}
 </style>
 </head>
-<body style="padding-top:108px">
+<body style="padding-top:68px">
 
 {% include 'store/includes/site_nav.html' %}
 
@@ -435,7 +415,5 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
 
 {% include 'store/includes/site_footer.html' %}
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{% static 'js/script.js' %}?v=12"></script>
 </body>
 </html>

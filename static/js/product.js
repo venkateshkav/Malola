@@ -743,11 +743,8 @@ document.querySelectorAll('.mega-item[data-pdp]').forEach(item=>{
     showToast('<i class="fa-solid fa-basket-shopping"></i> '+product.name+' added to cart!');
   });
 
-  const _allDb=window.DB_ALL_PRODUCTS||[];
-  const related=_allDb.filter(p=>p.id!==product.id).slice(0,4);
-  const pdpRelSec=document.getElementById('pdpRelated');
-  if(related.length&&pdpRelSec){
-    pdpRelSec.innerHTML=related.map(p=>`
+  const related=Object.values(productCatalog).filter(p=>p.id!==product.id).slice(0,4);
+  document.getElementById('pdpRelated').innerHTML=related.map(p=>`
     <div class="pdp-rel-card" onclick="window.location.href='/product/?id=${p.id}'">
       <div class="pdp-rel-img-wrap" style="background:${p.bg}"><img src="${p.image}" alt="${p.name}" class="pdp-rel-img"></div>
       <div class="pdp-rel-body">
@@ -756,9 +753,6 @@ document.querySelectorAll('.mega-item[data-pdp]').forEach(item=>{
         <div class="pdp-rel-footer"><div class="pdp-rel-price">&#8377;${p.price}</div><button class="pdp-rel-btn">View</button></div>
       </div>
     </div>`).join('');
-  }else if(pdpRelSec){
-    pdpRelSec.closest('.pdp-related')?pdpRelSec.closest('.pdp-related').style.display='none':pdpRelSec.style.display='none';
-  }
 
   /* ── Brand / SKU / short desc row ── */
   const metaRowEl=document.getElementById('pdpMetaRow');
