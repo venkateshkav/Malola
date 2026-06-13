@@ -229,10 +229,12 @@ def _send_admin_otp(user, otp):
                          f'Malola admin panel, change your password immediately.'),
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
                 recipient_list=[user.email],
-                fail_silently=True,
+                fail_silently=False,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error('Admin OTP email failed: %s', e)
+            print(f'[MALOLA EMAIL ERROR] Admin OTP email failed: {e}')
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -346,7 +348,12 @@ def home(request):
 
     db_categories = cache.get('home_categories')
     if db_categories is None:
-        db_categories = list(Category.objects.filter(is_active=True).order_by('sort_order', 'name'))
+        from django.db.models import Count as _Count
+        db_categories = list(
+            Category.objects
+            .filter(is_active=True)
+            .order_by('sort_order', 'name')
+        )
         cache.set('home_categories', db_categories, _HOME_TTL)
 
     return render(request, 'store/index.html', {
@@ -498,12 +505,25 @@ def product(request):
             }
             db_product_json = json.dumps(data)
     db_whats_new = Product.objects.filter(is_active=True).order_by('-created_at')[:4]
+    # Related products: same category as current, excluding self; fallback to any active products
+    db_related = []
+    if db_product:
+        db_related = list(
+            Product.objects.filter(is_active=True, category=db_product.category)
+            .exclude(slug=db_product.slug)
+            .order_by('-created_at')[:4]
+        )
+        if len(db_related) < 4:
+            seen = {p.slug for p in db_related} | {db_product.slug}
+            extras = Product.objects.filter(is_active=True).exclude(slug__in=seen).order_by('-created_at')[:4 - len(db_related)]
+            db_related += list(extras)
     return render(request, 'store/product.html', {
         'db_new_arrivals':  db_new_arrivals,
         'db_our_products':  db_our_products,
         'db_product':       db_product,
         'db_product_json':  db_product_json,
         'db_whats_new':     db_whats_new,
+        'db_related':       db_related,
     })
 
 
@@ -786,10 +806,15 @@ def manage_add_category(request):
             error = f'A category named "{name}" already exists.'
         else:
             try:
-                Category.objects.create(
+                cat = Category(
                     name=name, description=description,
                     sort_order=int(sort_order or 0), is_active=is_active,
                 )
+                img = request.FILES.get('image')
+                if img:
+                    cat.image = img
+                cat.save()
+                _bust_product_cache()
                 return redirect('manage_categories')
             except Exception as exc:
                 error = str(exc)
@@ -816,7 +841,14 @@ def manage_edit_category(request, pk):
             cat.description = description
             cat.sort_order = int(sort_order or 0)
             cat.is_active = is_active
+            img = request.FILES.get('image')
+            if img:
+                cat.image = img
+            elif request.POST.get('clear_image') == 'on' and cat.image:
+                cat.image.delete(save=False)
+                cat.image = None
             cat.save()
+            _bust_product_cache()
             return redirect('manage_categories')
     return render(request, 'store/admin_category_form.html', {
         'action': 'Edit', 'cat': cat, 'error': error, 'pending_orders': _pending_orders(),
@@ -2354,3 +2386,34 @@ def manage_shipments(request):
         'pending_count': needs_ship.count(),
         'total_shipments': Shipment.objects.count(),
     })
+
+
+# ── newsletter ────────────────────────────────────────────────────────────────
+
+@require_POST
+def newsletter_subscribe(request):
+    import threading
+    email   = request.POST.get('email', '').strip()
+    message = request.POST.get('message', '').strip()
+    if not email:
+        return JsonResponse({'ok': False, 'error': 'Email is required.'}, status=400)
+
+    def _send():
+        try:
+            from django.core.mail import send_mail
+            body = f"New newsletter subscriber!\n\nEmail: {email}\n"
+            if message:
+                body += f"\nMessage from subscriber:\n{message}\n"
+            send_mail(
+                subject=f'New Newsletter Subscriber — {email}',
+                message=body,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                recipient_list=['malolafoods@gmail.com'],
+                fail_silently=False,
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error('Newsletter subscribe email failed: %s', e)
+
+    threading.Thread(target=_send, daemon=True).start()
+    return JsonResponse({'ok': True})

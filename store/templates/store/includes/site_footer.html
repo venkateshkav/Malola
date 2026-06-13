@@ -10,8 +10,9 @@
         <div class="k-fnl-sub">Get recipes, offers &amp; new arrivals straight to your inbox.</div>
       </div>
       <form class="k-fnl-form" onsubmit="kFooterSubscribe(event)">
-        <input type="email" class="k-fnl-input" placeholder="Enter your email address" required>
-        <button type="submit" class="k-fnl-btn">Subscribe <i class="fa-solid fa-paper-plane"></i></button>
+        <input type="email" class="k-fnl-input" id="kFnlEmail" placeholder="Enter your email address" required>
+        <input type="text" class="k-fnl-msg" id="kFnlMsg" placeholder="Any message or reason (optional)">
+        <button type="submit" class="k-fnl-btn" id="kFnlBtn">Send Mail <i class="fa-solid fa-paper-plane"></i></button>
       </form>
     </div>
 
@@ -55,7 +56,7 @@
         <h4 class="k-footer-col-title">Contact Us</h4>
         <div class="k-footer-contact-item">
           <i class="fa-solid fa-location-dot"></i>
-          <span>Malola Foods, 1st Floor, Above Siva Coffee Bar, Saradha College road, Salem, Tamil Nadu - 636004</span>
+          <span>Upper Floor, Malola Foods, Above Siva Coffee Bar, Sarada College Rd, Salem, Tamil Nadu 636004</span>
         </div>
         <div class="k-footer-contact-item">
           <i class="fa-solid fa-phone"></i>
@@ -89,12 +90,30 @@
 <script>
 function kFooterSubscribe(e) {
   e.preventDefault();
-  const inp = e.target.querySelector('.k-fnl-input');
-  const btn = e.target.querySelector('.k-fnl-btn');
-  btn.textContent = '✓ Subscribed!';
-  btn.style.background = '#2e7d32';
-  inp.value = '';
-  inp.disabled = true;
+  const email = document.getElementById('kFnlEmail');
+  const msg   = document.getElementById('kFnlMsg');
+  const btn   = document.getElementById('kFnlBtn');
   btn.disabled = true;
+  btn.innerHTML = 'Sending…';
+  const csrf = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+  const body = new URLSearchParams({email: email.value, message: msg.value, csrfmiddlewaretoken: csrf});
+  fetch('/api/newsletter/', {method:'POST', headers:{'X-CSRFToken':csrf,'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()})
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        btn.innerHTML = '✓ Subscribed!';
+        btn.style.background = '#2e7d32';
+        email.value = ''; msg.value = '';
+        email.disabled = true; msg.disabled = true;
+      } else {
+        btn.innerHTML = 'Subscribe <i class="fa-solid fa-paper-plane"></i>';
+        btn.disabled = false;
+        alert(data.error || 'Something went wrong. Please try again.');
+      }
+    })
+    .catch(() => {
+      btn.innerHTML = 'Subscribe <i class="fa-solid fa-paper-plane"></i>';
+      btn.disabled = false;
+    });
 }
 </script>

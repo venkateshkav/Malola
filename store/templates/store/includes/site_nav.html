@@ -116,6 +116,7 @@
 
 <!-- ══ MAIN NAV ══ -->
 <nav id="mainNav">
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="logo">
     <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="nav-logo-img"></a>
   </div>
@@ -133,23 +134,15 @@
           </div>
           <div class="mega-grid">
             {% for p in db_our_products|slice:":4" %}
-            <div class="mega-item" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+            <a class="mega-item" href="/product/?id={{ p.slug }}">
               <div class="mega-item-text">
                 <div class="mega-item-cat">{{ p.product_category.name|default:"Product" }}</div>
                 <div class="mega-item-name">{{ p.title }}</div>
                 <div class="mega-item-price">₹{{ p.price }}</div>
               </div>
               {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="mega-item-img">{% endif %}
-            </div>
+            </a>
             {% endfor %}
-            <div class="mega-item mega-soon">
-              <div class="mega-item-text"><div class="mega-item-cat">Dry Nut</div><div class="mega-item-name">Organic Walnuts</div><div class="mega-soon-tag">Coming Soon</div></div>
-              <div class="mega-item-emoji">🌰</div>
-            </div>
-            <div class="mega-item mega-soon">
-              <div class="mega-item-text"><div class="mega-item-cat">Premium Nut</div><div class="mega-item-name">Roasted Pistachios</div><div class="mega-soon-tag">Coming Soon</div></div>
-              <div class="mega-item-emoji">🫘</div>
-            </div>
           </div>
         </div>
       </div>
@@ -172,12 +165,6 @@
           {% endfor %}
         </div>
         <a href="/shop/" class="drop-notify-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px">🆕 View All New Arrivals</a>
-        {% else %}
-        <div class="drop-head">🆕 Coming This Season</div>
-        <div class="drop-items">
-          <div class="drop-item"><div class="drop-item-emoji">🌰</div><div class="drop-item-body"><div class="drop-item-name">Organic Walnuts</div><div class="drop-item-sub">Californian · Cold-Pressed</div></div><div class="drop-badge">Soon</div></div>
-          <div class="drop-item"><div class="drop-item-emoji">🫘</div><div class="drop-item-body"><div class="drop-item-name">Roasted Pistachios</div><div class="drop-item-sub">Iranian · Lightly Salted</div></div><div class="drop-badge">Soon</div></div>
-        </div>
         {% endif %}
       </div>
     </li>
@@ -219,10 +206,9 @@
       </div>
     </div>
     {% else %}
-    <button class="btn-login" id="navLoginBtn">Login</button>
+    <button class="btn-login" id="navLoginBtn"><i class="fa-regular fa-user"></i><span class="btn-login-txt">Login</span></button>
     <button class="btn-signup" id="navSignupBtn">Sign Up</button>
     {% endif %}
-    <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
 
@@ -236,15 +222,6 @@
   <div class="mob-search-wrap">
     <i class="fa-solid fa-magnifying-glass"></i>
     <input type="text" id="mobSearchInput" placeholder="Search products..."/>
-  </div>
-  <div class="mob-quick-row">
-    <button class="mob-quick-btn" id="mobCartBtn" onclick="closeMobMenu();document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').classList.add('visible')">
-      <i class="fa-solid fa-basket-shopping"></i><span>Cart</span>
-      <span class="mob-cart-badge" id="mobCartBadge" style="display:none">0</span>
-    </button>
-    <button class="mob-quick-btn" onclick="closeMobMenu();openSearch()">
-      <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
-    </button>
   </div>
   <ul class="mob-nav-links">
     <li><a href="/">Home</a></li>

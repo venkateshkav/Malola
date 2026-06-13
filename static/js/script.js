@@ -604,9 +604,9 @@ function showOrderError(data){
 /* ── PRODUCT PAGE NAVIGATION ── */
 (function(){
   /* mega menu items → navigate to product page */
-  document.querySelectorAll('.mega-item[data-pdp]').forEach(item => {
+  document.querySelectorAll('.mega-item[data-href]').forEach(item => {
     item.addEventListener('click', () => {
-      window.location.href = '/product/?id=' + item.dataset.pdp;
+      window.location.href = item.dataset.href;
     });
   });
 

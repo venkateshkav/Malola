@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -126,14 +127,32 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   <div id="pdpDetailsSection"></div>
   <div id="pdpRecipeSection"></div>
 
-  <!-- Related Products -->
+  <!-- Related Products — from admin DB only -->
+  {% if db_related %}
   <div class="pdp-related">
     <div class="pdp-related-head">
       <div class="k-eyebrow" style="background:var(--aqua);color:#fff;display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 22px;font-family:'Fredoka One',cursive;font-size:.9rem;margin-bottom:14px">⭐ Related Products</div>
       <h2>You May Also Like</h2>
     </div>
-    <div class="pdp-related-grid" id="pdpRelated"></div>
+    <div class="pdp-related-grid" id="pdpRelated">
+      {% for p in db_related %}
+      <div class="pdp-rel-card" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
+        <div class="pdp-rel-img-wrap" data-bg="{{ p.card_bg }}">
+          {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="pdp-rel-img">{% endif %}
+        </div>
+        <div class="pdp-rel-body">
+          <div class="pdp-rel-cat">{{ p.get_category_display }}</div>
+          <div class="pdp-rel-name">{{ p.title }}</div>
+          <div class="pdp-rel-footer">
+            <div class="pdp-rel-price">&#8377;{{ p.price }}</div>
+            <button class="pdp-rel-btn">View</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
   </div>
+  {% endif %}
 
 </main>
 

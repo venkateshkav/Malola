@@ -2,7 +2,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}"><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>{{ action }} Category — Malola</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -93,7 +94,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="error-box"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
   {% endif %}
 
-  <form method="post" novalidate>
+  <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     <div class="form-card">
 
@@ -108,6 +109,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <label class="label" for="descInput">Description <span class="label-hint">optional</span></label>
         <textarea name="description" id="descInput" class="textarea" rows="2"
                   placeholder="Short description of this category…">{{ cat.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="label" for="imgInput">Category Image <span class="label-hint">shown on homepage</span></label>
+        {% if cat.image %}
+        <div style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
+          <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="height:64px;width:auto;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--muted);cursor:pointer">
+            <input type="checkbox" name="clear_image" style="width:auto"> Remove image
+          </label>
+        </div>
+        {% endif %}
+        <input type="file" name="image" id="imgInput" accept="image/*"
+               style="border:1.5px dashed var(--border);border-radius:8px;padding:10px 12px;background:#f8fafc;font-size:.83rem;color:var(--muted);cursor:pointer;width:100%">
       </div>
 
       <div class="field">

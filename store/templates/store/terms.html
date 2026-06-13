@@ -1,8 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
