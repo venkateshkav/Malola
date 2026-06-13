@@ -93,7 +93,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="error-box"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
   {% endif %}
 
-  <form method="post" novalidate>
+  <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     <div class="form-card">
 
@@ -108,6 +108,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <label class="label" for="descInput">Description <span class="label-hint">optional</span></label>
         <textarea name="description" id="descInput" class="textarea" rows="2"
                   placeholder="Short description of this category…">{{ cat.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="label" for="imageInput">Category Image <span class="label-hint">shown on homepage category grid</span></label>
+        {% if cat.image %}
+        <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+          <img src="{{ cat.image.url }}" alt="Current image" style="height:72px;width:auto;border-radius:8px;object-fit:cover;border:1.5px solid var(--border)">
+          <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--muted);cursor:pointer">
+            <input type="checkbox" name="image_clear" style="accent-color:var(--brand)"> Remove image
+          </label>
+        </div>
+        {% endif %}
+        <input type="file" name="image" id="imageInput" class="input" accept="image/*" style="height:auto;padding:6px 10px">
       </div>
 
       <div class="field">

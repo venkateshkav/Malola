@@ -153,9 +153,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 <!-- ══ TOAST ══ -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ══ HEADER / NAV ══ -->
-<nav id="mainNav">
-    <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+<!-- ══ HERO ══ -->
+<div id="hero">
+  <nav id="mainNav">
+    <button class="nav-hamburger nav-ham-left" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
     <div class="logo">
       <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="nav-logo-img">
     </div>
@@ -273,9 +274,13 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
         </div>
       </div>
       {% else %}
-      <button class="btn-login" id="navLoginBtn">Login</button>
+      <button class="btn-login" id="navLoginBtn"><i class="fa-solid fa-circle-user"></i><span class="btn-login-txt">Login</span></button>
       <button class="btn-signup" id="navSignupBtn">Sign Up</button>
       {% endif %}
+    </div>
+    <div class="nav-mob-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="navMobSearchInput" placeholder="Search for products...">
     </div>
     <button type="button" class="topbar-search" id="topbarSearchBtn" aria-label="Search products">
       <span>Search for products…</span>
@@ -371,6 +376,14 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   </div>
 </div><!-- end #hero -->
 
+<!-- Mobile search strip — fixed below nav, outside hero -->
+<div class="mob-search-strip" id="mobSearchStrip">
+  <div class="mob-ss-inner">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="mobSSInput" placeholder="Search for products...">
+  </div>
+</div>
+
 <!-- ══ STATS TICKER ══ -->
 <div class="stats-ticker">
   <div class="ticker-track">
@@ -462,23 +475,6 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
           {% endif %}
         </div>
         <div class="exp-cat-label">{{ cat.name }}</div>
-      </a>
-      {% empty %}
-      <a href="/shop/" class="exp-cat-card exp-cat-card-1">
-        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.18.jpeg' %}" alt="Category 1" loading="lazy" decoding="async"></div>
-        <div class="exp-cat-label">Category 1</div>
-      </a>
-      <a href="/shop/" class="exp-cat-card exp-cat-card-2">
-        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19.jpeg' %}" alt="Category 2" loading="lazy" decoding="async"></div>
-        <div class="exp-cat-label">Category 2</div>
-      </a>
-      <a href="/shop/" class="exp-cat-card exp-cat-card-3">
-        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19 (1).jpeg' %}" alt="Category 3" loading="lazy" decoding="async"></div>
-        <div class="exp-cat-label">Category 3</div>
-      </a>
-      <a href="/shop/" class="exp-cat-card exp-cat-card-4">
-        <div class="exp-cat-img"><img src="{% static 'images/cat-img/WhatsApp Image 2026-06-10 at 17.10.19 (2).jpeg' %}" alt="Category 4" loading="lazy" decoding="async"></div>
-        <div class="exp-cat-label">Category 4</div>
       </a>
       {% endfor %}
     </div>
@@ -959,10 +955,19 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   @media(max-width:900px){
     .vs-inner{grid-template-columns:1fr;gap:40px}
     .vs-section{padding:64px 24px}
+    .vs-video{width:100%;max-width:420px;margin-left:0;display:block;margin-right:auto}
+    .vs-tag-tl{left:8px}
+    .vs-tag-br{right:8px}
   }
   @media(max-width:480px){
     .vs-section{padding:48px 16px}
     .vs-h2{font-size:1.8rem}
+    .vs-video{max-width:100%;margin:0 auto}
+    .vs-tag{font-size:.65rem;padding:5px 10px}
+    .vs-tag-tl{top:-8px;left:4px}
+    .vs-tag-br{bottom:-8px;right:4px}
+    .vs-actions{flex-direction:column;align-items:stretch}
+    .vs-btn-primary,.vs-btn-outline{justify-content:center;text-align:center}
   }
   </style>
 
@@ -1294,6 +1299,18 @@ document.querySelectorAll('[data-href]').forEach(function(el){
     if(!e.target.closest('button'))window.location.href=el.getAttribute('data-href');
   });
 });
+</script>
+<script>
+/* Mobile search strip — navigate to shop on Enter */
+(function(){
+  var inp=document.getElementById('mobSSInput');
+  if(!inp)return;
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&this.value.trim()){
+      window.location.href='/shop/?q='+encodeURIComponent(this.value.trim());
+    }
+  });
+})();
 </script>
 </body>
 </html>

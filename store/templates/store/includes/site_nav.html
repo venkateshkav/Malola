@@ -116,6 +116,7 @@
 
 <!-- ══ MAIN NAV ══ -->
 <nav id="mainNav">
+  <button class="nav-hamburger nav-ham-left" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="logo">
     <a href="/"><img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="nav-logo-img"></a>
   </div>
@@ -142,14 +143,6 @@
               {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="mega-item-img">{% endif %}
             </div>
             {% endfor %}
-            <div class="mega-item mega-soon">
-              <div class="mega-item-text"><div class="mega-item-cat">Dry Nut</div><div class="mega-item-name">Organic Walnuts</div><div class="mega-soon-tag">Coming Soon</div></div>
-              <div class="mega-item-emoji">🌰</div>
-            </div>
-            <div class="mega-item mega-soon">
-              <div class="mega-item-text"><div class="mega-item-cat">Premium Nut</div><div class="mega-item-name">Roasted Pistachios</div><div class="mega-soon-tag">Coming Soon</div></div>
-              <div class="mega-item-emoji">🫘</div>
-            </div>
           </div>
         </div>
       </div>
@@ -172,12 +165,6 @@
           {% endfor %}
         </div>
         <a href="/shop/" class="drop-notify-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px">🆕 View All New Arrivals</a>
-        {% else %}
-        <div class="drop-head">🆕 Coming This Season</div>
-        <div class="drop-items">
-          <div class="drop-item"><div class="drop-item-emoji">🌰</div><div class="drop-item-body"><div class="drop-item-name">Organic Walnuts</div><div class="drop-item-sub">Californian · Cold-Pressed</div></div><div class="drop-badge">Soon</div></div>
-          <div class="drop-item"><div class="drop-item-emoji">🫘</div><div class="drop-item-body"><div class="drop-item-name">Roasted Pistachios</div><div class="drop-item-sub">Iranian · Lightly Salted</div></div><div class="drop-badge">Soon</div></div>
-        </div>
         {% endif %}
       </div>
     </li>
@@ -219,10 +206,13 @@
       </div>
     </div>
     {% else %}
-    <button class="btn-login" id="navLoginBtn">Login</button>
+    <button class="btn-login" id="navLoginBtn"><i class="fa-solid fa-circle-user"></i><span class="btn-login-txt">Login</span></button>
     <button class="btn-signup" id="navSignupBtn">Sign Up</button>
     {% endif %}
-    <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav-mob-search">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="navMobSearchInput" placeholder="Search for products...">
   </div>
 </nav>
 

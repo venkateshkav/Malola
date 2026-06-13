@@ -139,7 +139,9 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 
 {% include 'store/includes/site_footer.html' %}
 
-<script>window.DB_PRODUCT_DATA = {{ db_product_json|safe }};</script>
+<script>window.DB_PRODUCT_DATA = {{ db_product_json|safe }};
+window.DB_ALL_PRODUCTS = [{% for p in db_our_products %}{"id":"{{ p.slug }}","name":"{{ p.title|escapejs }}","category":"{{ p.get_category_display|escapejs }}","price":{{ p.price }},"image":"{{ p.image.url }}","bg":"{{ p.card_bg|default:'#fff9e6' }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% if db_new_arrivals %}{% if db_our_products %},{% endif %}{% for p in db_new_arrivals %}{"id":"{{ p.slug }}","name":"{{ p.title|escapejs }}","category":"New Arrival","price":{{ p.price }},"image":"{{ p.image.url }}","bg":"{{ p.card_bg|default:'#fff9e6' }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}];
+</script>
 <style>
 /* ── Discount / MRP price ─────────────────────────────── */
 .pdp-mrp{font-size:.82rem;color:#888;text-decoration:line-through;margin-left:10px;font-weight:600}
