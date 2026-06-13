@@ -40,6 +40,15 @@ if not ALLOWED_HOSTS and DEBUG:
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if _railway_domain and _railway_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_railway_domain)
+# When running on Railway, also trust all *.railway.app subdomains (covers the
+# internal healthcheck host + the public domain even before one is generated).
+# Without this, DEBUG=False + no custom domain => empty ALLOWED_HOSTS => the
+# platform healthcheck gets a 400 and the deploy is marked failed.
+_on_railway = any(k.startswith('RAILWAY_') for k in os.environ)
+if _on_railway:
+    for _h in ('.railway.app', 'healthcheck.railway.app', '127.0.0.1'):
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 # Auto-include Render's public domain if running on Render
 _render_domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
 if _render_domain and _render_domain not in ALLOWED_HOSTS:
@@ -178,7 +187,11 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Where uploaded files (product images/videos, etc.) are stored. On Railway/Render
+# the container disk is wiped on every redeploy, so in production point this at a
+# mounted persistent Volume via DJANGO_MEDIA_ROOT (e.g. /data/media). Locally it
+# falls back to the project's media/ folder.
+MEDIA_ROOT = os.environ.get('DJANGO_MEDIA_ROOT', BASE_DIR / 'media')
 
 # ── Razorpay ──────────────────────────────────────────────────────────────────
 RAZORPAY_KEY_ID         = os.environ.get('RAZORPAY_KEY_ID', '')
@@ -186,16 +199,27 @@ RAZORPAY_KEY_SECRET     = os.environ.get('RAZORPAY_KEY_SECRET', '')
 RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', '')
 
 # ── Email ─────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend',   # dev: prints to console
-)
-EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+# Many hosts (e.g. Railway's trial plan) block outbound SMTP ports entirely, so
+# SMTP-based email just hangs. If BREVO_API_KEY is set we send via Brevo's HTTPS
+# API (port 443) through django-anymail instead. Otherwise fall back to SMTP
+# (prod) or the console backend (local dev).
 EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', f'Malola <{EMAIL_HOST_USER}>')
+
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+if BREVO_API_KEY:
+    EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
+    ANYMAIL = {'BREVO_API_KEY': BREVO_API_KEY, 'REQUESTS_TIMEOUT': 15}
+else:
+    EMAIL_BACKEND = os.environ.get(
+        'EMAIL_BACKEND',
+        'django.core.mail.backends.console.EmailBackend',   # dev: prints to console
+    )
+EMAIL_HOST    = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT    = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 15))   # never hang forever on SMTP
 
 # ── Fast2SMS (SMS notifications) ──────────────────────────────────────────────
 FAST2SMS_API_KEY = os.environ.get('FAST2SMS_API_KEY', '')
@@ -240,6 +264,10 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD            = True
     SECURE_SSL_REDIRECT            = True
+    # The platform healthcheck hits /healthz over plain HTTP on the internal
+    # network (no X-Forwarded-Proto), so exempt it from the http->https redirect
+    # or it gets a 301 and the deploy is marked unhealthy.
+    SECURE_REDIRECT_EXEMPT         = [r'^healthz$']
     SESSION_COOKIE_SECURE          = True
     CSRF_COOKIE_SECURE             = True
 

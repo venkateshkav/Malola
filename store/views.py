@@ -214,20 +214,27 @@ def _pending_orders():
 
 
 def _send_admin_otp(user, otp):
-    """Email a staff member their admin-access OTP."""
-    try:
-        from django.core.mail import send_mail
-        send_mail(
-            subject='Your Malola admin verification code',
-            message=(f'Your admin access code is: {otp}\n\n'
-                     f'It is valid for 10 minutes. If you did not try to access the '
-                     f'Malola admin panel, change your password immediately.'),
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+    """Email a staff member their admin-access OTP. Sent off-thread so the verify
+    page never blocks on the email call (use `manage.py admin_otp` to break-glass
+    if email delivery is down)."""
+    import threading
+
+    def _send():
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject='Your Malola admin verification code',
+                message=(f'Your admin access code is: {otp}\n\n'
+                         f'It is valid for 10 minutes. If you did not try to access the '
+                         f'Malola admin panel, change your password immediately.'),
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def manage_verify(request):

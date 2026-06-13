@@ -243,6 +243,11 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
           <div class="nav-search-results" id="navSearchResults"></div>
         </div>
       </div>
+      {% if user.is_authenticated %}
+      <a href="/orders/" class="nav-mob-acc" aria-label="My account"><i class="fa-solid fa-user"></i></a>
+      {% else %}
+      <button type="button" class="nav-mob-acc" aria-label="Login" onclick="openAuth('login')"><i class="fa-solid fa-user"></i></button>
+      {% endif %}
       <button class="nav-cart-btn" id="navCartBtn" aria-label="Open cart">
         <i class="fa-solid fa-basket-shopping"></i>
         <span class="cart-badge" id="cartBadge" style="display:none">0</span>
@@ -277,6 +282,10 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       <i class="fa-solid fa-magnifying-glass"></i>
       <input type="text" id="navMobSearchInput" placeholder="Search for products...">
     </div>
+    <button type="button" class="topbar-search" id="topbarSearchBtn" aria-label="Search products">
+      <span>Search for products…</span>
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
   </nav>
 
   <!-- Mobile Menu -->
@@ -346,6 +355,8 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
   </div>
 </div><!-- end mob-menu -->
 
+<!-- ══ HERO ══ -->
+<div id="hero">
   <!-- ══ HERO IMAGE SLIDER ══ -->
   <div class="hs-slider" id="hsSlider">
     <div class="hs-track" id="hsTrack">
@@ -466,6 +477,9 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
         <div class="exp-cat-label">{{ cat.name }}</div>
       </a>
       {% endfor %}
+    </div>
+    <div class="exp-cat-more-wrap">
+      <a href="/shop/" class="exp-cat-more">View More <i class="fa-solid fa-chevron-down"></i></a>
     </div>
   </section>
 
@@ -1273,7 +1287,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 </script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script src="{% static 'js/script.js' %}?v=11"></script>
+<script src="{% static 'js/script.js' %}?v=12"></script>
 <script>
 /* Apply data-bg as background color and data-href as click navigation */
 document.querySelectorAll('[data-bg]').forEach(function(el){
