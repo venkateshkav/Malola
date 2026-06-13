@@ -113,7 +113,7 @@ urlpatterns = [
     path('refund-policy/',      views.refund_policy,     name='refund_policy'),
     path('contact/',            views.contact_page,      name='contact'),
     path('faq/',                views.faq_page,          name='faq'),
-    path('qr/',                 views.qr_page,           name='qr'),
+    path('manufacturingdetails/', views.qr_page,         name='manu'),
     path('qr-code/',            views.qr_code_page,      name='qr_code'),
 
     # admin — blog

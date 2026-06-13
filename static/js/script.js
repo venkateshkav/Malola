@@ -539,6 +539,8 @@ function showOrderError(data){
   if (navSearchBtn) navSearchBtn.addEventListener('click', e => { e.stopPropagation(); openWidget(); });
   const mobSearchInput = document.getElementById('mobSearchInput');
   if (mobSearchInput) mobSearchInput.addEventListener('focus', openWidget);
+  const topbarSearchBtn = document.getElementById('topbarSearchBtn');
+  if (topbarSearchBtn) topbarSearchBtn.addEventListener('click', openWidget);
 
   smBack.addEventListener('click', closeWidget);
   overlay.addEventListener('click', closeWidget);
