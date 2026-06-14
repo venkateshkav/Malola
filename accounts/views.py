@@ -30,6 +30,14 @@ def add_address(request):
         for field in ('name', 'phone', 'line1', 'city', 'state', 'pincode'):
             if not d.get(field, '').strip():
                 return JsonResponse({'error': f'{field} is required'}, status=400)
+        # Don't create duplicates when the same address is reused at checkout
+        existing = request.user.addresses.filter(
+            name=d['name'].strip(), phone=d['phone'].strip(),
+            line1=d['line1'].strip(), line2=d.get('line2', '').strip(),
+            city=d['city'].strip(), state=d['state'].strip(), pincode=d['pincode'].strip(),
+        ).first()
+        if existing:
+            return JsonResponse({'id': existing.id, 'message': 'Address already saved'})
         if d.get('is_default'):
             request.user.addresses.update(is_default=False)
         addr = Address.objects.create(

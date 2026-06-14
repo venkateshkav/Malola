@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +14,7 @@
 {% else %}<title>Product — NaturNest</title>{% endif %}
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}?v=3"/>
 <link rel="stylesheet" href="{% static 'css/product.css' %}"/>
 <!-- Meta Pixel Code -->
 <script>
@@ -139,6 +139,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
       <div class="pdp-rel-card" data-href="/product/?id={{ p.slug }}" style="cursor:pointer">
         <div class="pdp-rel-img-wrap" data-bg="{{ p.card_bg }}">
           {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}" class="pdp-rel-img">{% endif %}
+          {% if p.is_sold_out %}<span class="sold-out-badge">Sold Out</span>{% endif %}
         </div>
         <div class="pdp-rel-body">
           <div class="pdp-rel-cat">{{ p.get_category_display }}</div>
@@ -211,7 +212,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 .pdp-recipe-video-link:hover{opacity:.88}
 </style>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{% static 'js/product.js' %}?v=11"></script>
+<script src="{% static 'js/script.js' %}?v=25"></script>
 {% if db_product %}
 <script>
 if(typeof fbq==='function'&&window.DB_PRODUCT_DATA){

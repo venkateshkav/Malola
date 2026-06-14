@@ -18,6 +18,7 @@ urlpatterns = [
     # orders admin
     path('manage/orders/',                   views.manage_orders,         name='manage_orders'),
     path('manage/orders/<int:pk>/status/',   views.manage_order_status,   name='manage_order_status'),
+    path('manage/orders/<int:pk>/packing-slip/', views.manage_packing_slip, name='manage_packing_slip'),
     path('manage/orders/<int:pk>/refund/',   views.manage_refund_order,   name='manage_refund_order'),
     path('manage/orders/export/csv/',        views.export_orders_csv,     name='export_orders_csv'),
     path('manage/orders/export/excel/',      views.export_orders_excel,   name='export_orders_excel'),
@@ -56,6 +57,7 @@ urlpatterns = [
     # order API
     path('api/place-order/',             views.place_order,       name='place_order'),
     path('api/cancel-order/',            views.cancel_order,      name='cancel_order'),
+    path('api/orders/<int:order_id>/report-problem/', views.report_order_problem, name='report_order_problem'),
     path('orders/<int:order_id>/invoice/', views.order_invoice,   name='order_invoice'),
     path('api/orders/<int:order_id>/',   views.get_order,         name='get_order'),
     path('api/saved-address/',           views.get_saved_address, name='saved_address'),

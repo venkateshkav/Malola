@@ -33,6 +33,24 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
 #mainNav.nav-scrolled .nav-cart-btn{color:#1a2408;border-color:rgba(26,36,8,.2)}
 #mainNav.nav-scrolled .btn-login{color:#1a2408;border-color:rgba(26,36,8,.3)}
 
+/* Light-background pages (orders, about, etc.): bar stays see-through but the
+   text/icons are dark so they're readable (the bar still turns solid on scroll).
+   A faint light halo keeps the dark text legible over the home hero images; it's
+   invisible on plain white pages. Removed once the bar turns solid (.nav-scrolled). */
+#mainNav.nav-light:not(.nav-scrolled) .nav-links a,
+#mainNav.nav-light:not(.nav-scrolled) .nav-cart-btn,
+#mainNav.nav-light:not(.nav-scrolled) .nav-search-btn,
+#mainNav.nav-light:not(.nav-scrolled) .nav-profile-btn{text-shadow:0 1px 3px rgba(255,255,255,.65)}
+#mainNav.nav-light .logo-text{color:#1a2408}
+#mainNav.nav-light .logo-text small{color:rgba(26,36,8,.55)}
+#mainNav.nav-light .nav-links a{color:rgba(26,36,8,.78)}
+#mainNav.nav-light .nav-links a:hover{color:#1a2408}
+#mainNav.nav-light .nav-links a::after{background:#1a2408}
+#mainNav.nav-light .nav-cart-btn{color:#1a2408;border-color:rgba(26,36,8,.2)}
+#mainNav.nav-light .btn-login{color:#1a2408;border-color:rgba(26,36,8,.3)}
+#mainNav.nav-light .nav-profile-btn{color:var(--kids-dark);border-color:rgba(13,43,107,.2);background:transparent}
+#mainNav.nav-light .nav-search-btn{color:#1a2408;border-color:rgba(26,36,8,.2)}
+
 #hero{position:relative;width:100vw;height:100vh;overflow:hidden;background:#1a3a6b}
 
 /* ── Hero image slider ── */
@@ -1393,6 +1411,23 @@ html,body{width:100%;min-height:100%;overflow-x:hidden;font-family:'Nunito',sans
   transition:background .2s,color .2s;
 }
 .sm-add-btn:hover{background:var(--aqua2);color:#fff}
+
+/* ── Sold-out state (shared across all product cards) ── */
+.sm-new-img,.shop-card-img-wrap,.pdp-rel-img-wrap,.sm-res-item{position:relative}
+.sold-out-badge{
+  position:absolute;top:10px;right:10px;z-index:5;
+  background:#9aa0a6;color:#fff;font-family:'Nunito',sans-serif;
+  font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.2);
+  pointer-events:none;
+}
+.sm-add-btn:disabled,.k-add-btn:disabled,.shop-card-cart:disabled{
+  background:#e6e6e6;color:#9aa0a6;border-color:#d2d2d2;
+  cursor:not-allowed;box-shadow:none;
+}
+.sm-add-btn:disabled:hover,.k-add-btn:disabled:hover,.shop-card-cart:disabled:hover{
+  background:#e6e6e6;color:#9aa0a6;transform:none;
+}
 
 /* Search results list */
 .sm-res-label{

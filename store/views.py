@@ -483,6 +483,7 @@ def product(request):
                 'rating':        float(db_product.rating),
                 'reviewCount':   db_product.reviews_count,
                 'stockQuantity': db_product.stock_quantity,
+                'trackInventory':db_product.track_inventory,
                 'brand':         db_product.brand,
                 'sku':           db_product.sku,
                 'shortDesc':     db_product.short_description,
@@ -530,7 +531,25 @@ def product(request):
 def orders_page(request):
     if not request.user.is_authenticated:
         return redirect('/?login=1')
-    orders = Order.objects.filter(user=request.user)
+    from datetime import timedelta
+    _RANK = {'pending': 0, 'confirmed': 1, 'processing': 2, 'shipped': 3,
+             'out_for_delivery': 4, 'delivered': 5}
+    orders = list(Order.objects.filter(user=request.user)
+                  .select_related('shipment').prefetch_related('issues'))
+    for o in orders:
+        o.has_open_issue = any(not i.resolved for i in o.issues.all())
+        ship = getattr(o, 'shipment', None)          # Shipment or None (no extra query)
+        o.tracking = ship
+        # Estimated delivery: courier ETA if known, else a 3–5 day window from order date
+        if ship and ship.estimated_delivery:
+            o.est_from = o.est_to = ship.estimated_delivery
+        else:
+            o.est_from = (o.created_at + timedelta(days=3)).date()
+            o.est_to   = (o.created_at + timedelta(days=5)).date()
+        # Customer can still pay if an online order was created but never paid
+        o.can_pay     = (o.status != 'cancelled' and o.payment_status in ('pending', 'failed'))
+        o.status_rank = _RANK.get(o.status, 0)
+        o.is_cancelled = (o.status == 'cancelled')
     ctx = _nav_ctx()
     ctx['orders'] = orders
     return render(request, 'store/orders.html', ctx)
@@ -1036,6 +1055,14 @@ def manage_order_status(request, pk):
 
 
 @_staff_required
+def manage_packing_slip(request, pk):
+    """Clean, printable packing slip for the owner to pack an order (items + sizes + address)."""
+    order = get_object_or_404(Order, pk=pk)
+    units = sum(int(i.get('qty', 1) or 1) for i in (order.items or []))
+    return render(request, 'store/packing_slip.html', {'order': order, 'total_units': units})
+
+
+@_staff_required
 @require_POST
 def manage_refund_order(request, pk):
     """Admin partial/full refund: refund selected items×qty via Razorpay, restore stock, update status."""
@@ -1103,6 +1130,10 @@ def manage_refund_order(request, pk):
             _log_status(order, order.status, request.user,
                         note=f'Refunded ₹{refund_total:.2f} ({order.get_payment_status_display()})',
                         from_status=order.status)
+
+        # Stock was restored → refresh storefront caches immediately
+        if restore:
+            _bust_product_cache()
 
         return JsonResponse({'success': True, 'refunded': refund_total,
                              'payment_status': order.get_payment_status_display(),
@@ -1654,6 +1685,9 @@ def cancel_order(request):
             order.save(update_fields=['status', 'payment_status', 'razorpay_refund_id', 'coupon_released'])
             _log_status(order, 'cancelled', request.user, note=refund_note or 'Order cancelled by customer.', from_status='confirmed')
 
+        # Stock was restored → refresh storefront caches so Sold Out clears immediately
+        _bust_product_cache()
+
         return JsonResponse({
             'success': True,
             'refunded': order.payment_status == 'refunded',
@@ -1724,7 +1758,8 @@ def place_order(request):
         # transaction, so two concurrent orders for the last unit cannot both pass.
         with transaction.atomic():
             verified_items = []
-            to_decrement   = []   # [(product, qty)] for inventory-tracked products
+            need       = {}   # product.pk -> total qty across all cart lines
+            prod_by_pk = {}   # product.pk -> Product (caps count the whole product, not each line)
             total = 0
             gross_gst = 0.0       # GST component of the inclusive line totals (pre-discount)
             for item in raw_items:
@@ -1742,17 +1777,11 @@ def place_order(request):
                 if not product:
                     return JsonResponse({'success': False, 'error': f'Product "{item.get("name","")}" not found or unavailable.', 'code': 'product_unavailable'}, status=400)
 
-                # Per-order quantity cap
-                if product.max_order_qty and qty > product.max_order_qty:
-                    return JsonResponse({'success': False, 'error': f'You can order at most {product.max_order_qty} of "{product.title}".', 'code': 'max_qty_reached', 'max': product.max_order_qty}, status=400)
-
-                # Inventory enforcement (only when this product tracks stock)
-                if product.track_inventory:
-                    if product.stock_quantity <= 0:
-                        return JsonResponse({'success': False, 'error': f'"{product.title}" is out of stock.', 'code': 'out_of_stock'}, status=400)
-                    if qty > product.stock_quantity:
-                        return JsonResponse({'success': False, 'error': f'"{product.title}" only has {product.stock_quantity} unit(s) left in stock.', 'code': 'insufficient_stock', 'available': product.stock_quantity}, status=400)
-                    to_decrement.append((product, qty))
+                # Accumulate qty per product — the same product can appear on
+                # several cart lines (e.g. a quick-add and a weight variant), so
+                # stock and max-per-order are validated on the TOTAL, below.
+                need[product.pk] = need.get(product.pk, 0) + qty
+                prod_by_pk[product.pk] = product
 
                 # Price is server-authoritative. For a selected weight variant we
                 # scale the BASE price by grams/base_grams (validated against the
@@ -1783,6 +1812,17 @@ def place_order(request):
                     'gst_rate': rate,   # snapshot — old orders keep their rate if admin changes it later
                     'image':    item.get('image', ''),
                 })
+
+            # ── Per-product caps on the TOTAL quantity (summed across all lines) ──
+            for pk, qneed in need.items():
+                prod = prod_by_pk[pk]
+                if prod.max_order_qty and qneed > prod.max_order_qty:
+                    return JsonResponse({'success': False, 'error': f'You can order at most {prod.max_order_qty} of "{prod.title}".', 'code': 'max_qty_reached', 'max': prod.max_order_qty}, status=400)
+                if prod.track_inventory:
+                    if prod.stock_quantity <= 0:
+                        return JsonResponse({'success': False, 'error': f'"{prod.title}" is out of stock.', 'code': 'out_of_stock'}, status=400)
+                    if qneed > prod.stock_quantity:
+                        return JsonResponse({'success': False, 'error': f'"{prod.title}" only has {prod.stock_quantity} unit(s) left in stock.', 'code': 'insufficient_stock', 'available': prod.stock_quantity}, status=400)
 
             # ── Coupon validation (locked so used_count can't be over-redeemed) ──
             discount_amount = 0.0
@@ -1826,11 +1866,18 @@ def place_order(request):
             )
             if coupon_obj:
                 Coupon.objects.filter(pk=coupon_obj.pk).update(used_count=F('used_count') + 1)
-            # Decrement stock on the rows we locked above
-            for product, qty in to_decrement:
-                Product.objects.filter(pk=product.pk).update(stock_quantity=F('stock_quantity') - qty)
+            # Decrement stock once per product, by the total quantity ordered
+            decremented = False
+            for pk, qneed in need.items():
+                if prod_by_pk[pk].track_inventory:
+                    Product.objects.filter(pk=pk).update(stock_quantity=F('stock_quantity') - qneed)
+                    decremented = True
             if is_free:
                 _log_status(order, 'confirmed', request.user, note='Free order (₹0) auto-confirmed', from_status='pending')
+
+        # Stock changed → refresh storefront caches so Sold Out / counts show immediately
+        if decremented:
+            _bust_product_cache()
 
         # Did the authoritative total differ from what the cart showed the customer?
         try:
@@ -1861,17 +1908,21 @@ def place_order(request):
 def product_list_api(request):
     """All active products for the search widget — slug, name, price, category, image."""
     qs = Product.objects.filter(is_active=True).values(
-        'slug', 'title', 'price', 'discount_price', 'product_type', 'image'
+        'slug', 'title', 'price', 'discount_price', 'product_type', 'image',
+        'stock_quantity', 'track_inventory', 'weights'
     )
     results = []
     for p in qs:
         results.append({
-            'id':    p['slug'],
-            'name':  p['title'],
-            'price': float(p['price']),
-            'mrp':   float(p['discount_price']) if p['discount_price'] else None,
-            'cat':   p['product_type'] or 'Snack',
-            'img':   settings.MEDIA_URL + p['image'] if p['image'] else '',
+            'id':     p['slug'],
+            'name':   p['title'],
+            'price':  float(p['price']),
+            'mrp':    float(p['discount_price']) if p['discount_price'] else None,
+            'cat':    p['product_type'] or 'Snack',
+            'img':    settings.MEDIA_URL + p['image'] if p['image'] else '',
+            'stock':  p['stock_quantity'],
+            'track':  p['track_inventory'],
+            'weight': (p['weights'] or '').split(',')[0].strip(),  # default size for quick-add
         })
     return JsonResponse({'products': results})
 
@@ -1890,6 +1941,41 @@ def get_saved_address(request):
         'phone':   order.phone,
         'address': order.address,
     })
+
+
+@require_POST
+def report_order_problem(request, order_id):
+    """Lightweight 'report a problem' on a delivered order (not a return).
+    Records the issue and pings staff so they can refund/replace manually."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Login required'}, status=401)
+    order = Order.objects.filter(id=order_id, user=request.user).first()
+    if not order:
+        return JsonResponse({'success': False, 'error': 'Order not found.'}, status=404)
+    if order.status != 'delivered':
+        return JsonResponse({'success': False, 'error': 'You can only report a problem on a delivered order.'}, status=400)
+    if order.issues.filter(resolved=False).exists():
+        return JsonResponse({'success': False, 'error': "You've already reported this order — we're on it."}, status=400)
+    try:
+        message = (json.loads(request.body).get('message') or '').strip()
+    except (ValueError, AttributeError):
+        message = ''
+    if len(message) < 5:
+        return JsonResponse({'success': False, 'error': 'Please describe the problem in a few words.'}, status=400)
+    from .models import OrderIssue
+    OrderIssue.objects.create(order=order, user=request.user, message=message[:2000])
+    try:
+        from django.core.mail import mail_admins
+        mail_admins(
+            subject=f'[Malola] Problem reported on Order #ORD{order.id:04d}',
+            message=(f'{(request.user.email or order.name)} reported a problem with '
+                     f'Order #ORD{order.id:04d}:\n\n{message}\n\n'
+                     f'Open the order in /manage/orders/ to refund or follow up.'),
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+    return JsonResponse({'success': True})
 
 
 @require_GET

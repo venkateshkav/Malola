@@ -10,13 +10,15 @@ from . import shiprocket
 
 # Map Shiprocket status text → our Order.status, with a forward-only rank so an
 # out-of-order webhook (e.g. "delivered" before "shipped") can't move us backwards.
-_STATUS_RANK = {'confirmed': 1, 'processing': 2, 'shipped': 3, 'delivered': 4}
+_STATUS_RANK = {'confirmed': 1, 'processing': 2, 'shipped': 3, 'out_for_delivery': 4, 'delivered': 5}
 
 def _map_shiprocket_status(text):
     t = (text or '').strip().lower()
     if 'delivered' in t:
         return 'delivered'
-    if any(k in t for k in ('out for delivery', 'in transit', 'shipped', 'pickup', 'picked up', 'dispatch')):
+    if 'out for delivery' in t:
+        return 'out_for_delivery'
+    if any(k in t for k in ('in transit', 'shipped', 'pickup', 'picked up', 'dispatch')):
         return 'shipped'
     return None  # unknown / pending — ignore
 

@@ -36,8 +36,10 @@ def _handle_order_created(order):
 def _handle_status_change(order):
     try:
         from notifications.email import send_order_shipped, send_order_delivered
-        from notifications.sms import send_order_shipped_sms, send_order_delivered_sms
-        if order.status == 'shipped':
+        from notifications.sms import send_order_shipped_sms, send_order_delivered_sms, send_order_out_for_delivery_sms
+        if order.status == 'out_for_delivery':
+            send_order_out_for_delivery_sms(order)
+        elif order.status == 'shipped':
             shipment = getattr(order, 'shipment', None)
             send_order_shipped(
                 order,

@@ -67,7 +67,7 @@ class Product(models.Model):
     sku                  = models.CharField(max_length=100, blank=True)
     discount_price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock_quantity       = models.IntegerField(default=0)
-    track_inventory      = models.BooleanField(default=False, help_text='If on, stock_quantity is enforced (0 = out of stock). If off, unlimited stock.')
+    track_inventory      = models.BooleanField(default=True, help_text='If on, stock_quantity is enforced (0 = out of stock). If off, unlimited stock.')
     max_order_qty        = models.PositiveIntegerField(default=0, help_text='Max units of this product per order. 0 = no limit.')
     gst_rate             = models.DecimalField(max_digits=5, decimal_places=2, default=5, help_text='GST %% (prices are GST-inclusive). Snacks are usually 5, 12 or 18.')
     # ── Packaging & origin ──────────────────────────────────────
@@ -115,6 +115,18 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.title} (₹{self.price})'
 
+    @property
+    def is_sold_out(self):
+        """True only for inventory-tracked products that have run out.
+        Products with track_inventory off are treated as unlimited stock."""
+        return self.track_inventory and self.stock_quantity <= 0
+
+    @property
+    def default_weight(self):
+        """First (base) weight, e.g. '100g'. Quick-add buttons use this so a
+        shop/home add matches the product page's default-size line and merges."""
+        return (self.weights or '').split(',')[0].strip()
+
 
 class Review(models.Model):
     order       = models.OneToOneField('Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='review')
@@ -160,12 +172,13 @@ class ProductImage(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending',    'Pending'),
-        ('confirmed',  'Confirmed'),
-        ('processing', 'Processing'),
-        ('shipped',    'Shipped'),
-        ('delivered',  'Delivered'),
-        ('cancelled',  'Cancelled'),
+        ('pending',          'Pending'),
+        ('confirmed',        'Confirmed'),
+        ('processing',       'Processing'),
+        ('shipped',          'Shipped'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered',        'Delivered'),
+        ('cancelled',        'Cancelled'),
     ]
     user       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     name       = models.CharField(max_length=200)
@@ -334,3 +347,18 @@ class BlogPost(models.Model):
                 n += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class OrderIssue(models.Model):
+    """A lightweight 'report a problem' raised by a customer on a delivered order."""
+    order      = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='issues')
+    user       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    message    = models.TextField()
+    resolved   = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Issue on Order #{self.order_id} ({"resolved" if self.resolved else "open"})'

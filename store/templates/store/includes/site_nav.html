@@ -29,12 +29,12 @@
       <div class="sm-new-grid">
         {% for p in db_whats_new %}
         <div class="sm-new-card" data-href="/product/?id={{ p.slug }}">
-          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}</div>
+          <div class="sm-new-img" data-bg="{{ p.card_bg|default:'#f5f5f5' }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.title }}">{% endif %}{% if p.is_sold_out %}<span class="sold-out-badge">Sold Out</span>{% endif %}</div>
           <div class="sm-new-name">{{ p.title }}</div>
           <div class="sm-new-sub">{{ p.short_description|default:"New Arrival" }}</div>
           <div class="sm-new-foot">
             <span class="sm-new-price">₹{{ p.price }}</span>
-            {% if p.image %}<button class="sm-add-btn add-to-cart-btn" data-name="{{ p.title }}" data-price="{{ p.price }}" data-slug="{{ p.slug }}" data-image="{{ p.image.url }}" data-mrp="{{ p.discount_price|default:'' }}">ADD</button>{% endif %}
+            {% if p.image %}{% if p.is_sold_out %}<button class="sm-add-btn" disabled>Sold Out</button>{% else %}<button class="sm-add-btn add-to-cart-btn" data-name="{{ p.title }}" data-price="{{ p.price }}" data-slug="{{ p.slug }}" data-image="{{ p.image.url }}" data-mrp="{{ p.discount_price|default:'' }}" data-stock="{{ p.stock_quantity }}" data-track="{% if p.track_inventory %}1{% else %}0{% endif %}" data-weight="{{ p.default_weight }}">ADD</button>{% endif %}{% endif %}
           </div>
         </div>
         {% endfor %}
