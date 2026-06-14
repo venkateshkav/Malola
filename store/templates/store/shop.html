@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +11,7 @@
 <title>Shop All Products — Malola</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/style.css' %}?v=3"/>
 <link rel="stylesheet" href="{% static 'css/product.css' %}"/>
 <link rel="stylesheet" href="{% static 'css/shop.css' %}"/>
 <!-- Meta Pixel Code -->
@@ -131,6 +131,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
           <div class="shop-card-img-wrap" data-bg="{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
             {% if p.badge %}<span class="shop-card-badge" data-badge-color="{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
+            {% if p.is_sold_out %}<span class="sold-out-badge">Sold Out</span>{% endif %}
           </div>
           <div class="shop-card-body">
             <div class="shop-card-cat">New Arrival</div>
@@ -141,13 +142,21 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
                 {% if p.discount_price %}<span class="shop-card-mrp">&#8377;{{ p.discount_price }}</span>{% endif %}
               </div>
               <div class="shop-card-actions">
+                {% if p.is_sold_out %}
+                <button class="shop-card-cart" disabled title="Sold out">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+                {% else %}
                 <button class="shop-card-cart db-cart-btn"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
                         data-mrp="{{ p.discount_price|default:'' }}"
+                        data-stock="{{ p.stock_quantity }}" data-track="{% if p.track_inventory %}1{% else %}0{% endif %}"
+                        data-weight="{{ p.default_weight }}"
                         title="Add to cart">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
+                {% endif %}
                 <button class="shop-card-view">View →</button>
               </div>
             </div>
@@ -174,6 +183,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
           <div class="shop-card-img-wrap" data-bg="{{ p.card_bg }}">
             <img class="shop-card-img shop-card-img-front" src="{{ p.image.url }}" alt="{{ p.title }}" loading="lazy">
             {% if p.badge %}<span class="shop-card-badge" data-badge-color="{{ p.badge_color }}">{{ p.badge }}</span>{% endif %}
+            {% if p.is_sold_out %}<span class="sold-out-badge">Sold Out</span>{% endif %}
           </div>
           <div class="shop-card-body">
             <div class="shop-card-cat">{{ p.get_category_display }}</div>
@@ -184,13 +194,21 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
                 {% if p.discount_price %}<span class="shop-card-mrp">&#8377;{{ p.discount_price }}</span>{% endif %}
               </div>
               <div class="shop-card-actions">
+                {% if p.is_sold_out %}
+                <button class="shop-card-cart" disabled title="Sold out">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+                {% else %}
                 <button class="shop-card-cart db-cart-btn"
                         data-name="{{ p.title }}" data-price="{{ p.price }}"
                         data-img="{{ p.image.url }}" data-slug="{{ p.slug }}"
                         data-mrp="{{ p.discount_price|default:'' }}"
+                        data-stock="{{ p.stock_quantity }}" data-track="{% if p.track_inventory %}1{% else %}0{% endif %}"
+                        data-weight="{{ p.default_weight }}"
                         title="Add to cart">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
+                {% endif %}
                 <button class="shop-card-view">View →</button>
               </div>
             </div>
@@ -215,8 +233,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 {% include 'store/includes/site_footer.html' %}
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{% static 'js/script.js' %}?v=12"></script>
-<script src="{% static 'js/product.js' %}?v=11"></script>
+<script src="{% static 'js/script.js' %}?v=25"></script>
 <script>
 /* global addToCart, showToast */
 
@@ -247,8 +264,10 @@ document.querySelectorAll('.shop-card-view').forEach(function(btn){
 document.querySelectorAll('.db-cart-btn').forEach(function(btn){
   btn.addEventListener('click',function(e){
     e.stopPropagation();
-    addToCart(btn.dataset.name, btn.dataset.price, btn.dataset.img, btn.dataset.slug, btn.dataset.mrp||null);
-    showToast('<i class="fa-solid fa-basket-shopping"></i> '+btn.dataset.name+' added!');
+    const w=btn.dataset.weight||'';
+    const nm=btn.dataset.name+(w?' ('+w+')':'');
+    const ok=addToCart(nm, btn.dataset.price, btn.dataset.img, btn.dataset.slug, btn.dataset.mrp||null, w, 1, btn.dataset.stock!==undefined&&btn.dataset.stock!==''?parseInt(btn.dataset.stock):null, btn.dataset.track==='1');
+    if(ok) showToast('<i class="fa-solid fa-circle-check"></i> '+nm+' added to cart');
   });
 });
 

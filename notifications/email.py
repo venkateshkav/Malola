@@ -6,6 +6,16 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def _site_url():
+    """Absolute base URL for links in emails.
+    Uses SITE_DOMAIN when it's a real domain; falls back to the live site so
+    emails never point at a placeholder (or a dead domain) in production."""
+    domain = (getattr(settings, 'SITE_DOMAIN', '') or '').replace('https://', '').replace('http://', '').rstrip('/')
+    if not domain or domain.startswith('localhost') or domain.startswith('127.'):
+        domain = 'malolafoods.com'
+    return f'https://{domain}'
+
+
 def _send(subject, text_body, html_body, to_email):
     try:
         msg = EmailMultiAlternatives(
@@ -25,7 +35,7 @@ def _send(subject, text_body, html_body, to_email):
 def send_order_confirmation(order):
     if not order.user or not order.user.email:
         return
-    ctx  = {'order': order, 'site_name': 'Malola'}
+    ctx  = {'order': order, 'site_name': 'Malola', 'site_url': _site_url()}
     html = render_to_string('store/emails/order_confirmation.html', ctx)
     text = (
         f'Hi {order.name}! Your Malola order #ORD{order.id:04d} worth '
@@ -38,7 +48,7 @@ def send_order_shipped(order, awb=None, courier=None, tracking_url=None):
     if not order.user or not order.user.email:
         return
     ctx  = {'order': order, 'awb': awb, 'courier': courier,
-             'tracking_url': tracking_url, 'site_name': 'Malola'}
+             'tracking_url': tracking_url, 'site_name': 'Malola', 'site_url': _site_url()}
     html = render_to_string('store/emails/order_shipped.html', ctx)
     text = f'Your Malola order #ORD{order.id:04d} has been shipped!'
     if awb:
@@ -49,7 +59,7 @@ def send_order_shipped(order, awb=None, courier=None, tracking_url=None):
 def send_order_delivered(order):
     if not order.user or not order.user.email:
         return
-    ctx  = {'order': order, 'site_name': 'Malola'}
+    ctx  = {'order': order, 'site_name': 'Malola', 'site_url': _site_url()}
     html = render_to_string('store/emails/order_delivered.html', ctx)
     text = (
         f'Hi {order.name}! Your Malola order #ORD{order.id:04d} '
@@ -65,8 +75,7 @@ def send_email_verification(user, token, request=None):
             reverse('verify_email', args=[token])
         )
     else:
-        domain = getattr(settings, 'SITE_DOMAIN', 'localhost:8000')
-        verify_url = f'http://{domain}/accounts/verify-email/{token}/'
+        verify_url = f'{_site_url()}/accounts/verify-email/{token}/'
     ctx  = {'user': user, 'verify_url': verify_url, 'site_name': 'Malola'}
     html = render_to_string('store/emails/email_verification.html', ctx)
     text = (

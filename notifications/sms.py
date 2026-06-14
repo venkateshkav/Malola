@@ -8,6 +8,14 @@ logger = logging.getLogger(__name__)
 FAST2SMS_URL = 'https://www.fast2sms.com/dev/bulkV2'
 
 
+def _domain():
+    """Bare site domain for short SMS links (no scheme)."""
+    d = (getattr(settings, 'SITE_DOMAIN', '') or '').replace('https://', '').replace('http://', '').rstrip('/')
+    if not d or d.startswith('localhost') or d.startswith('127.'):
+        d = 'malolafoods.com'
+    return d
+
+
 def _send_sms(numbers, message):
     api_key = getattr(settings, 'FAST2SMS_API_KEY', '')
     if not api_key:
@@ -64,6 +72,17 @@ def send_order_shipped_sms(order, awb=None, courier=None):
     _send_sms(phone, msg)
 
 
+def send_order_out_for_delivery_sms(order):
+    phone = (order.phone or '').strip()
+    if not phone:
+        return
+    msg = (
+        f'Your Malola order #ORD{order.id:04d} is out for delivery and will '
+        f'arrive today. Please keep your phone reachable.'
+    )
+    _send_sms(phone, msg)
+
+
 def send_order_delivered_sms(order):
     phone = (order.phone or '').strip()
     if not phone:
@@ -71,7 +90,7 @@ def send_order_delivered_sms(order):
     msg = (
         f'Your Malola order #ORD{order.id:04d} has been delivered. '
         f'Enjoy your healthy snacks! '
-        f'Leave a review: malola.in/review/{order.id}/'
+        f'Leave a review: {_domain()}/review/{order.id}/'
     )
     _send_sms(phone, msg)
 

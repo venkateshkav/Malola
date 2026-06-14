@@ -147,6 +147,8 @@ td{padding:13px 16px;vertical-align:middle;font-size:.84rem}
 .badge-shipped::before{background:var(--teal)}
 .badge-delivered{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
 .badge-delivered::before{background:var(--green)}
+.badge-out_for_delivery{background:rgba(255,111,0,.12);color:#e65100;border-color:rgba(255,111,0,.28)}
+.badge-out_for_delivery::before{background:#e65100}
 .badge-cancelled{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
 .badge-cancelled::before{background:var(--red)}
 .badge-paid{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
@@ -393,6 +395,7 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
             {% elif o.status == 'confirmed' %}<span class="badge badge-confirmed">Confirmed</span>
             {% elif o.status == 'processing' %}<span class="badge badge-processing">Processing</span>
             {% elif o.status == 'shipped' %}<span class="badge badge-shipped">Shipped</span>
+            {% elif o.status == 'out_for_delivery' %}<span class="badge badge-out_for_delivery">Out for Delivery</span>
             {% elif o.status == 'delivered' %}<span class="badge badge-delivered">Delivered</span>
             {% elif o.status == 'cancelled' %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
           </td>
@@ -492,6 +495,7 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
                   {% elif o.status == 'confirmed' %}<span class="badge badge-confirmed">Confirmed</span>
                   {% elif o.status == 'processing' %}<span class="badge badge-processing">Processing</span>
                   {% elif o.status == 'shipped' %}<span class="badge badge-shipped">Shipped</span>
+                  {% elif o.status == 'out_for_delivery' %}<span class="badge badge-out_for_delivery">Out for Delivery</span>
                   {% elif o.status == 'delivered' %}<span class="badge badge-delivered">Delivered</span>
                   {% elif o.status == 'cancelled' %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
                 </div>
@@ -501,7 +505,23 @@ select.status-sel:focus{border-color:var(--brand);background-color:#fff}
                   <div class="dp-val">{{ o.created_at|date:"d M Y, h:i A" }}</div>
                 </div>
 
+                {% if o.issues.all %}
                 <div class="dp-spacer">
+                  <div class="dp-section-title" style="color:#a07000"><i class="fa-solid fa-triangle-exclamation"></i> Reported Problems</div>
+                  {% for issue in o.issues.all %}
+                  <div style="background:rgba(254,207,10,.08);border:1px solid rgba(160,112,0,.22);border-radius:8px;padding:8px 11px;margin-top:6px;font-size:.78rem;color:#5c4400;line-height:1.5">
+                    “{{ issue.message }}”
+                    <div style="font-size:.68rem;color:rgba(13,43,107,.4);margin-top:3px">{{ issue.created_at|date:"d M Y, h:i A" }}{% if issue.resolved %} · resolved{% endif %}</div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="dp-spacer" style="display:flex;gap:8px;flex-wrap:wrap">
+                  <a href="/manage/orders/{{ o.pk }}/packing-slip/" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:7px;background:#15803d;color:#fff;border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:800;text-decoration:none">
+                    <i class="fa-solid fa-box-open"></i> Print Packing Slip
+                  </a>
                   <a href="/orders/{{ o.pk }}/invoice/" target="_blank"
                      style="display:inline-flex;align-items:center;gap:7px;background:#0d2b6b;color:#fff;border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:800;text-decoration:none">
                     <i class="fa-solid fa-file-arrow-down"></i> Download Invoice
