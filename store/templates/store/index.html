@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo_Design.png' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -331,10 +331,10 @@
   <!-- ══ HERO IMAGE SLIDER ══ -->
   <div class="hs-slider" id="hsSlider">
     <div class="hs-track" id="hsTrack">
-      <div class="hs-slide"><img src="{% static 'images/home/WEBSITE PAGE ! (1).webp' %}" alt="Malola Slide 1" loading="eager" fetchpriority="high" decoding="sync"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP (2).webp' %}" alt="Malola Slide 2" loading="lazy" decoding="async"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP (3).webp' %}" alt="Malola Slide 3" loading="lazy" decoding="async"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP (4).webp' %}" alt="Malola Slide 4" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEBSITE-PAGE-1.webp' %}" alt="Malola Slide 1" loading="eager" fetchpriority="high" decoding="sync"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEBP-2.webp' %}" alt="Malola Slide 2" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEBP-3.webp' %}" alt="Malola Slide 3" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEBP-4.webp' %}" alt="Malola Slide 4" loading="lazy" decoding="async"></div>
     </div>
     <button class="hs-arrow hs-prev" id="hsPrev" aria-label="Previous slide">
       <i class="fa-solid fa-chevron-left"></i>
@@ -413,7 +413,7 @@
         <svg class="ka-zigzag" viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <polyline class="ka-zz-line" points="0,55 25,5 50,55 75,5 100,55 125,5 150,55 175,5 200,55"/>
         </svg>
-        <img class="ka-main-img" src="{% static 'images/Choco Bytes Front.png' %}" alt="Malola Choco Bytes" loading="lazy" decoding="async">
+        <img class="ka-main-img" src="{% static 'images/Choco-Bytes-Front.png' %}" alt="Malola Choco Bytes" loading="lazy" decoding="async">
         <div class="ka-badge2">🌿 100% Natural
           <div class="stars-row"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
         </div>
@@ -590,7 +590,7 @@
         <div class="kb-dot kb-dot2"></div>
         <div class="kb-dot kb-dot3"></div>
 
-        <img class="kb-main-img" src="{% static 'images/Fruit and Nut muesli.png' %}" alt="Fruit and Nut Muesli" loading="lazy" decoding="async">
+        <img class="kb-main-img" src="{% static 'images/Fruit-and-Nut-muesli.png' %}" alt="Fruit and Nut Muesli" loading="lazy" decoding="async">
       </div>
       <div class="kb-text">
         <div class="k-eyebrow">💪 Health Benefits</div>
@@ -638,28 +638,28 @@
           {% else %}
             <div class="pol-card">
               <div class="pol-pin"></div>
-              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-1.webp' %}" alt="Priya M." loading="lazy"></div>
+              <div class="pol-photo pol-photo-initials"><span>P</span></div>
               <p class="pol-text">Malola has become our daily snack partner! My son loves the Choco Bytes. Clean ingredients, great taste — every mom's dream!</p>
               <div class="pol-name">PRIYA M.</div>
               <div class="pol-stars">★★★★★</div>
             </div>
             <div class="pol-card">
               <div class="pol-pin"></div>
-              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMAGE-2.avif' %}" alt="Rohit S." loading="lazy"></div>
+              <div class="pol-photo pol-photo-initials"><span>R</span></div>
               <p class="pol-text">I choose Malola not just for the taste but for the peace of mind it gives as a parent. No maida, no preservatives — real goodness!</p>
               <div class="pol-name">ROHIT S.</div>
               <div class="pol-stars">★★★★★</div>
             </div>
             <div class="pol-card">
               <div class="pol-pin"></div>
-              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-3.avif' %}" alt="Aakanksha" loading="lazy"></div>
+              <div class="pol-photo pol-photo-initials"><span>A</span></div>
               <p class="pol-text">Malola is everywhere in our kitchen! From Moringa Soup to Millet Noodles — every product is wholesome and my kids love each one.</p>
               <div class="pol-name">AAKANKSHA</div>
               <div class="pol-stars">★★★★★</div>
             </div>
             <div class="pol-card">
               <div class="pol-pin"></div>
-              <div class="pol-photo"><img src="{% static 'images/REVIEW/IMG-4.webp' %}" alt="Karuna Arora" loading="lazy"></div>
+              <div class="pol-photo pol-photo-initials"><span>K</span></div>
               <p class="pol-text">Malola has become part of our daily breakfast routine. Everything is delicious and my little one loves the cookies the most!</p>
               <div class="pol-name">KARUNA ARORA</div>
               <div class="pol-stars">★★★★★</div>
@@ -677,7 +677,7 @@
       <!-- LEFT: image -->
       <div class="why-img-col">
         <div class="why-img-wrap">
-          <img src="{% static 'images/ChatGPT Image Jun 10, 2026, 12_52_34 PM.png' %}"
+          <img src="{% static 'images/chatgpt-image-1.png' %}"
                alt="Happy kid eating Malola" class="why-photo">
           <!-- badge stickers -->
           <div class="why-sticker why-sticker-top">
@@ -733,7 +733,7 @@
       <!-- LEFT: Character Image -->
       <div class="vs-video-col">
         <div class="vs-video-wrap">
-          <img src="{% static 'images/Charecter .png' %}" alt="Malola Character" class="vs-video" loading="lazy" decoding="async">
+          <img src="{% static 'images/Charecter.png' %}" alt="Malola Character" class="vs-video" loading="lazy" decoding="async">
           <div class="vs-tag vs-tag-tl">🌾 Real Ingredients</div>
           <div class="vs-tag vs-tag-br">❤️ Made with Love</div>
         </div>

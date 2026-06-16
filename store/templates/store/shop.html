@@ -1,9 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo_Design.png' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -38,7 +38,7 @@ src="https://www.facebook.com/tr?id=1549283419509499&ev=PageView&noscript=1"
 
 <!-- SHOP BANNER -->
 <div class="shop-banner-wrap">
-  <img src="{% static 'images/banner/Screenshot 2026-06-10 130232.png' %}" alt="Malola Offer" class="shop-banner-img" loading="lazy" decoding="async">
+  <img src="{% static 'images/banner/shop-banner.png' %}" alt="Malola Offer" class="shop-banner-img" loading="lazy" decoding="async">
 </div>
 
 <!-- CATEGORY FILTER BAR -->

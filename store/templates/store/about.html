@@ -1,9 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo Design.png' %}">
+<link rel="icon" type="image/png" href="{% static 'images/Malola_Logo_Design.png' %}">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="csrf-token" content="{{ csrf_token }}">
 <meta id="malola-auth-data" data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-name="{{ user.first_name|default:user.username|escapejs }}">
@@ -207,7 +207,7 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
         <p class="body-text">Guided by our tagline <strong>"A Mom's Yes!"</strong>, every product is designed to earn the trust of families by being safe, natural, and made with love.</p>
       </div>
       <div class="story-img-wrap">
-        <img src="{% static 'images/about/ChatGPT Image Jun 10, 2026, 12_49_37 PM.png' %}" alt="Malola Products" class="story-img">
+        <img src="{% static 'images/about/chatgpt-image-3.png' %}" alt="Malola Products" class="story-img">
         <div class="story-badge"><strong>2022</strong>Founded</div>
       </div>
     </div>
@@ -396,7 +396,7 @@ body{font-family:'Nunito',sans-serif;background:#fff;color:#222;overflow-x:hidde
 
     <!-- Image -->
     <div class="social-img-wrap">
-      <img src="{% static 'images/about/ChatGPT Image Jun 10, 2026, 12_47_46 PM.png' %}"
+      <img src="{% static 'images/about/chatgpt-image-2.png' %}"
            alt="Malola Social Media" class="social-img">
       <div class="social-img-label">📲 Social Media</div>
     </div>
