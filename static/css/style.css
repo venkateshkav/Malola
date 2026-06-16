@@ -1726,7 +1726,7 @@ body {
 /* ABOUT */
 .kids-about {
   position: relative;
-  background: #FECF0A url("../images/section-2 bg.png") center/cover no-repeat;
+  background: #FECF0A url("../images/section-2-bg.png") center/cover no-repeat;
   padding: 90px 60px 100px;
   overflow: hidden
 }
