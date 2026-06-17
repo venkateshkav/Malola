@@ -4693,9 +4693,9 @@ body {
 
 @media(max-width:768px) {
 
-  /* Fixed nav — push all page content below it */
+  /* Fixed nav + search bar below it */
   body {
-    padding-top: 68px !important
+    padding-top: 100px !important
   }
 
   /* NAV — solid white header: hamburger | logo | account+cart */
@@ -4996,9 +4996,9 @@ body {
 
   /* HERO — compact proportional height, full-cover image */
   #hero {
-    height: 37vw;
+    height: 50vw;
     min-height: 180px;
-    max-height: 155px;
+    max-height: 300px;
     background: #ffffff
   }
 
@@ -5009,7 +5009,7 @@ body {
   .hs-slide img {
     position: absolute;
     top: 8px;
-    left: 12px;
+    left: 10px;
     width: 95%;
     height: 90%;
     object-fit: cover;
@@ -6048,6 +6048,40 @@ body {
 }
 
 /* ══ MOBILE MENU ══ */
+/* Mobile search bar below nav */
+.mob-nav-search-bar{
+  display:none;
+}
+@media(max-width:768px){
+  .mob-nav-search-bar{
+    display:flex;align-items:center;
+    position:fixed;top:52px;left:0;right:0;z-index:1001;
+    background:#fff;
+    border-bottom:1px solid rgba(0,0,0,.07);
+    padding:8px 14px;
+    cursor:pointer;
+  }
+  .mob-nav-search-bar .mob-search-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    width:100%;
+    background:#f5f6fa;
+    border-radius:12px;
+    padding:10px 14px;
+    gap:8px;
+  }
+  .mob-nav-search-bar span{
+    flex:1;
+    color:#b0b4c1;
+    font-size:.88rem;
+    font-weight:400;
+  }
+  .mob-nav-search-bar i{
+    color:#b0b4c1;
+    font-size:.88rem;
+    flex-shrink:0;
+  }
+}
+
 .mob-menu-overlay {
   position: fixed;
   inset: 0;
@@ -6056,7 +6090,6 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity .3s ease;
-  backdrop-filter: blur(4px);
 }
 
 .mob-menu-overlay.open {
@@ -6067,7 +6100,8 @@ body {
 .mob-menu {
   position: fixed;
   top: 0;
-  right: -100%;
+  right: 0;
+  transform: translateX(100%);
   width: min(320px, 88vw);
   height: 100dvh;
   background: #fff;
@@ -6076,12 +6110,13 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  transition: right .36s cubic-bezier(.77, 0, .175, 1);
+  will-change: transform;
+  transition: transform .36s cubic-bezier(.77, 0, .175, 1);
   box-shadow: -6px 0 40px rgba(13, 43, 107, .18);
 }
 
 .mob-menu.open {
-  right: 0
+  transform: translateX(0)
 }
 
 .mob-menu-head {

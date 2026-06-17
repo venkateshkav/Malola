@@ -1,4 +1,19 @@
-﻿/* ── NAV SCROLL ── */
+﻿/* ── SCROLL LOCK (prevents background scroll when any modal is open) ── */
+let _scrollLockCount = 0;
+function lockScroll() {
+  _scrollLockCount++;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+}
+function unlockScroll() {
+  _scrollLockCount = Math.max(0, _scrollLockCount - 1);
+  if (_scrollLockCount === 0) {
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+}
+
+/* ── NAV SCROLL ── */
 const mainNav=document.getElementById("mainNav");
 if(mainNav){
   if(document.body.classList.contains('product-body')||document.querySelector('.shop-main')){
@@ -43,7 +58,7 @@ const cartFooterEl=document.getElementById("cartFooter");
 const cartTotalEl=document.getElementById("cartTotal");
 const cartBadge=document.getElementById("cartBadge");
 
-function openCart(){cartSidebar.classList.add("open");cartOverlay.classList.add("open");document.body.style.overflow="hidden";refreshCartPrices();}
+function openCart(){cartSidebar.classList.add("open");cartOverlay.classList.add("open");lockScroll();refreshCartPrices();}
 
 /* Re-fetch live prices when the cart opens so a stale localStorage price can't
    silently differ at checkout. (Homepage items are base-weight; ratio=1.) */
@@ -86,7 +101,7 @@ function refreshCartPrices(){
     else if(priceChanged)showToast('<i class="fa-solid fa-tag"></i> Some prices were updated to the latest.',3500,'warn');
   }).catch(()=>{});
 }
-function closeCart(){cartSidebar.classList.remove("open");cartOverlay.classList.remove("open");document.body.style.overflow="";}
+function closeCart(){cartSidebar.classList.remove("open");cartOverlay.classList.remove("open");unlockScroll();}
 document.getElementById("navCartBtn").addEventListener("click",openCart);
 document.getElementById("cartClose").addEventListener("click",closeCart);
 cartOverlay.addEventListener("click",closeCart);
@@ -242,8 +257,8 @@ let pendingCheckout=false;
 
 const authModal=document.getElementById("authModal");
 const authOverlay=document.getElementById("authOverlay");
-function openAuth(tab){authModal.classList.add("open");authOverlay.classList.add("open");document.body.style.overflow="hidden";if(tab)switchAuthTab(tab);}
-function closeAuth(){authModal.classList.remove("open");authOverlay.classList.remove("open");document.body.style.overflow="";}
+function openAuth(tab){authModal.classList.add("open");authOverlay.classList.add("open");lockScroll();if(tab)switchAuthTab(tab);}
+function closeAuth(){authModal.classList.remove("open");authOverlay.classList.remove("open");unlockScroll();}
 function switchAuthTab(tab){document.querySelectorAll(".auth-tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===tab));document.getElementById("loginForm").style.display=tab==="login"?"block":"none";document.getElementById("registerForm").style.display=tab==="register"?"block":"none";}
 const navLoginBtn=document.getElementById("navLoginBtn");
 const navSignupBtn=document.getElementById("navSignupBtn");
@@ -660,7 +675,7 @@ async function buildCheckoutModal(){
     </div>
     <div id="coAddrSection"><div style="text-align:center;padding:24px;color:rgba(13,43,107,.35)"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
   </div>`;
-  document.body.appendChild(modal);document.body.style.overflow='hidden';
+  document.body.appendChild(modal);lockScroll();
   document.getElementById('coClose').addEventListener('click',closeCheckoutModal);
   modal.addEventListener('click',e=>{if(e.target===modal)closeCheckoutModal();});
   // Prefer the saved address book; fall back to the last-order address (no regression)
@@ -671,7 +686,7 @@ async function buildCheckoutModal(){
     }catch{_coRenderForm(false);}
   }
 }
-function closeCheckoutModal(){const m=document.getElementById('checkoutModal');if(m)m.remove();document.body.style.overflow='';}
+function closeCheckoutModal(){const m=document.getElementById('checkoutModal');if(m)m.remove();unlockScroll();}
 document.addEventListener('click',e=>{
   if(!e.target.closest('.checkout-btn'))return;
   if(!window.MALOLA_AUTH||!window.MALOLA_AUTH.authenticated){
@@ -711,8 +726,8 @@ function showOrderError(data){
   const mob = document.getElementById('mobMenu');
   const overlay = document.getElementById('mobMenuOverlay');
   const close = document.getElementById('mobMenuClose');
-  function openMob(){mob.classList.add('open');overlay.classList.add('open');ham.classList.add('open');document.body.style.overflow='hidden';}
-  function closeMob(){mob.classList.remove('open');overlay.classList.remove('open');ham.classList.remove('open');document.body.style.overflow='';}
+  function openMob(){mob.classList.add('open');overlay.classList.add('open');ham.classList.add('open');lockScroll();}
+  function closeMob(){mob.classList.remove('open');overlay.classList.remove('open');ham.classList.remove('open');unlockScroll();}
   ham.addEventListener('click', openMob);
   close.addEventListener('click', closeMob);
   overlay.addEventListener('click', closeMob);
@@ -745,12 +760,14 @@ function showOrderError(data){
     modal.classList.add('open');
     overlay.classList.add('open');
     modal.setAttribute('aria-hidden','false');
+    lockScroll();
     setTimeout(() => smInput.focus(), 150);
   }
   function closeWidget() {
     modal.classList.remove('open');
     overlay.classList.remove('open');
     modal.setAttribute('aria-hidden','true');
+    unlockScroll();
     smInput.value = '';
     smClear.classList.remove('visible');
     smBody.classList.remove('hidden');
@@ -952,13 +969,13 @@ function showOrderError(data){
 
   function openModal(idx) {
     modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     goTo(idx);
   }
 
   function closeModal() {
     modal.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockScroll();
     centerVid.pause(); centerVid.removeAttribute('src');
     peekLeft.querySelector('video').pause();
     peekRight.querySelector('video').pause();
