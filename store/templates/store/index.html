@@ -271,11 +271,15 @@
       <button class="btn-signup" id="navSignupBtn">Sign Up</button>
       {% endif %}
     </div>
-    <button type="button" class="topbar-search" id="topbarSearchBtn" aria-label="Search products">
-      <span>Search for products…</span>
-      <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
   </nav>
+
+  <!-- Mobile Search Bar (below nav, opens modal) -->
+  <div class="mob-nav-search-bar" id="mobNavSearchBar" onclick="document.getElementById('searchModal').classList.add('open');document.getElementById('smInput').focus();">
+    <div class="mob-search-inner">
+      <span>Search for products...</span>
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+  </div>
 
   <!-- Mobile Menu -->
   <div class="mob-menu-overlay" id="mobMenuOverlay"></div>
@@ -283,10 +287,6 @@
   <div class="mob-menu-head">
     <img src="{% static 'images/Malola_Logo_600x300-01-1536x768.webp' %}" alt="Malola" class="mob-logo">
     <button class="mob-menu-close" id="mobMenuClose"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <div class="mob-search-wrap">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <input type="text" id="mobSearchInput" placeholder="Search products..."/>
   </div>
   <ul class="mob-nav-links">
     <li><a href="#hero">Home</a></li>
@@ -331,10 +331,10 @@
   <!-- ══ HERO IMAGE SLIDER ══ -->
   <div class="hs-slider" id="hsSlider">
     <div class="hs-track" id="hsTrack">
-      <div class="hs-slide"><img src="{% static 'images/home/WEBSITE-PAGE-1.webp' %}" alt="Malola Slide 1" loading="eager" fetchpriority="high" decoding="sync"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP-2.webp' %}" alt="Malola Slide 2" loading="lazy" decoding="async"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP-3.webp' %}" alt="Malola Slide 3" loading="lazy" decoding="async"></div>
-      <div class="hs-slide"><img src="{% static 'images/home/WEBP-4.webp' %}" alt="Malola Slide 4" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEBSITE-PAGE-1.png' %}" alt="Malola Slide 1" loading="eager" fetchpriority="high" decoding="sync"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEB-2ND-PAGE.png' %}" alt="Malola Slide 2" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/WEB-3RD-PAGE.png' %}" alt="Malola Slide 3" loading="lazy" decoding="async"></div>
+      <div class="hs-slide"><img src="{% static 'images/home/snacking_made_joyful_1920x1080.png' %}" alt="Malola Slide 4" loading="lazy" decoding="async"></div>
     </div>
     <button class="hs-arrow hs-prev" id="hsPrev" aria-label="Previous slide">
       <i class="fa-solid fa-chevron-left"></i>
